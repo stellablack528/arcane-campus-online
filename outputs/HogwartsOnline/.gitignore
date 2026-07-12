@@ -1,0 +1,23 @@
+# Build artifacts
+build/
+*.obj
+*.o
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.qtcreator/
+*.pro.user*
+CMakeLists.txt.user*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Debug
+*.log
+*.dSYM/
+tags

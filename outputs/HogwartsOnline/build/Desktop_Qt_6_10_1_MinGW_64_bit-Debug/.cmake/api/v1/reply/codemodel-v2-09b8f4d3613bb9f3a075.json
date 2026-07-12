@@ -1,0 +1,78 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "HogwartsOnline",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "HogwartsOnline::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-HogwartsOnline-Debug-a523dce54f26f1a9c5ef.json",
+					"name" : "HogwartsOnline",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "HogwartsOnline_autogen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-HogwartsOnline_autogen-Debug-a6cfe771301d7050fa16.json",
+					"name" : "HogwartsOnline_autogen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "HogwartsOnline_autogen_timestamp_deps::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-HogwartsOnline_autogen_timestamp_deps-Debug-fba3456227cf44f59389.json",
+					"name" : "HogwartsOnline_autogen_timestamp_deps",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/JulieD/Documents/Codex/2026-07-10/qt6-c-qt-widgets-harry-potter/outputs/HogwartsOnline/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug",
+		"source" : "C:/Users/JulieD/Documents/Codex/2026-07-10/qt6-c-qt-widgets-harry-potter/outputs/HogwartsOnline"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}

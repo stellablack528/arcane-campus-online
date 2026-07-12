@@ -1,0 +1,171 @@
+QWidget {
+    background-color: #1b1512;
+    color: #e9dcc7;
+    font-size: 14px;
+}
+
+QMainWindow::separator,
+QSplitter::handle {
+    background-color: #6f5738;
+}
+
+QMenuBar {
+    background-color: #2a1b14;
+    color: #f0d9ad;
+    border-bottom: 1px solid #7a5d36;
+    padding: 6px;
+}
+
+QMenuBar::item {
+    background: transparent;
+    padding: 8px 14px;
+}
+
+QMenuBar::item:selected {
+    background-color: #4b3324;
+    color: #ffd98a;
+}
+
+QMenu {
+    background-color: #2a1b14;
+    color: #f0d9ad;
+    border: 1px solid #7a5d36;
+}
+
+QMenu::item:selected {
+    background-color: #604229;
+}
+
+QStatusBar {
+    background-color: #2a1b14;
+    color: #c9a45c;
+}
+
+#LoginWindow {
+    background-color: #17100d;
+}
+
+#LoginTitle {
+    color: #f3d27a;
+    font-size: 42px;
+    font-weight: bold;
+}
+
+#LoginSubtitle,
+#LoginHint {
+    color: #c9b78e;
+}
+
+#LoginPanel,
+#MemberListWidget,
+#CharacterStatusWidget,
+#InventoryWidget,
+#CourseScheduleWidget,
+#CampusTimeWidget,
+#HouseRankingWidget,
+#LocationActionBar {
+    background-color: #2a1b14;
+    border: 1px solid #755734;
+    border-radius: 8px;
+}
+
+#PanelTitle {
+    color: #f0d38a;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+#ValueLabel {
+    color: #f4e4c1;
+    font-weight: bold;
+}
+
+#TimePrimary {
+    color: #f3d27a;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+QLineEdit,
+QComboBox {
+    background-color: #37251b;
+    border: 1px solid #7a5d36;
+    border-radius: 6px;
+    padding: 8px;
+    color: #f5e8cf;
+}
+
+QPushButton {
+    background-color: #4a3021;
+    border: 1px solid #9a7440;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #f5e3bd;
+}
+
+QPushButton:hover {
+    background-color: #604029;
+    border-color: #c9a45c;
+}
+
+QPushButton:pressed {
+    background-color: #332016;
+}
+
+#PrimaryButton {
+    background-color: #7a4a24;
+    color: #fff0c2;
+    font-weight: bold;
+}
+
+QTreeWidget,
+QListWidget {
+    background-color: #211711;
+    alternate-background-color: #2d1e16;
+    border: 1px solid #604229;
+    border-radius: 6px;
+    color: #e9dcc7;
+    padding: 4px;
+}
+
+QHeaderView::section {
+    background-color: #3a251a;
+    color: #e8c981;
+    border: 0;
+    padding: 5px;
+}
+
+QTreeWidget::item,
+QListWidget::item {
+    padding: 5px;
+}
+
+QTreeWidget::item:selected,
+QListWidget::item:selected {
+    background-color: #6e4b2f;
+    color: #fff4d6;
+}
+
+#ParchmentView {
+    background-color: #d8c39a;
+    color: #2a1e14;
+    border: 2px solid #836039;
+    border-radius: 8px;
+    padding: 12px;
+    selection-background-color: #a77a43;
+}
+
+QScrollBar:vertical {
+    background: #2a1b14;
+    width: 12px;
+}
+
+QScrollBar::handle:vertical {
+    background: #8a673b;
+    border-radius: 5px;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0;
+}

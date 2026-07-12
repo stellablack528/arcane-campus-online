@@ -1,0 +1,5 @@
+C:/Users/JulieD/Documents/Codex/2026-07-10/qt6-c-qt-widgets-harry-potter/outputs/HogwartsOnline/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/HogwartsOnline.dir
+C:/Users/JulieD/Documents/Codex/2026-07-10/qt6-c-qt-widgets-harry-potter/outputs/HogwartsOnline/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/edit_cache.dir
+C:/Users/JulieD/Documents/Codex/2026-07-10/qt6-c-qt-widgets-harry-potter/outputs/HogwartsOnline/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/rebuild_cache.dir
+C:/Users/JulieD/Documents/Codex/2026-07-10/qt6-c-qt-widgets-harry-potter/outputs/HogwartsOnline/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/HogwartsOnline_autogen_timestamp_deps.dir
+C:/Users/JulieD/Documents/Codex/2026-07-10/qt6-c-qt-widgets-harry-potter/outputs/HogwartsOnline/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/CMakeFiles/HogwartsOnline_autogen.dir

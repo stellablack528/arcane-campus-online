@@ -1,11 +1,6 @@
 # Build artifacts
 build/
-*.obj
-*.o
-*.exe
-*.dll
-*.so
-*.dylib
+*.obj *.o *.exe *.dll *.so *.dylib
 
 # IDE
 .qtcreator/
@@ -13,11 +8,4 @@ build/
 CMakeLists.txt.user*
 
 # OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Debug
-*.log
-*.dSYM/
-tags
+.DS_Store Thumbs.db desktop.ini

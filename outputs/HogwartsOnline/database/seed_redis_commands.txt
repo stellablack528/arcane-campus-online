@@ -1,0 +1,14 @@
+SET hogwarts:campus:weekday "Thursday"
+SET hogwarts:campus:time "08:37 AM"
+SET hogwarts:campus:term "Autumn Term Week Three"
+SET hogwarts:campus:weather "Sunny"
+SET hogwarts:campus:event "Breakfast"
+
+ZADD hogwarts:house_points 145 Ravenclaw 132 Gryffindor 118 Hufflepuff 109 Slytherin
+
+HSET hogwarts:session:demo_student display_name "New Student" house "Ravenclaw" location "Great Hall" state "Breakfast"
+
+LPUSH hogwarts:events:latest \
+  "08:55 Gareth Weasley entered the Transfiguration Classroom." \
+  "09:03 Professor McGonagall started the lesson." \
+  "09:15 Hermione Granger answered correctly. Gryffindor gained 10 points."

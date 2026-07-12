@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qss/dark_wood.qss</file>
+    </qresource>
+</RCC>

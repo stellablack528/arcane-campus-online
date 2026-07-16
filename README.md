@@ -36,20 +36,21 @@ The project focuses on building a scalable server architecture and exploring tec
 
 ---
 
+
 ## 技术栈 / Tech Stack
 
-| 层次 / Layer              | 技术 / Technology                                    |
-| ------------------------- | ---------------------------------------------------- |
-| 开发语言 / Language       | C++20                                                |
-| 操作系统 / Operating System | Ubuntu Linux                                       |
-| 网络模型 / Network Model  | TCP Socket · Epoll · Reactor Pattern                 |
-| 并发模型 / Concurrency    | Thread Pool · Producer-Consumer Model                |
-| 数据库 / Database         | MySQL (InnoDB, utf8mb4)                              |
-| 数据库抽象               | Strategy Pattern · Connection Pool (RAII) · DAO Pattern |
-| 服务端架构               | 5-Layer: Controller → Service → DAO → DO / VO / Query  |
-| 缓存系统 / Cache          | Redis (预留)                                         |
-| 客户端 / Client           | Qt6 Widgets · QSS Theme                              |
-| 构建工具 / Build System   | CMake                                                |
+| 层次 / Layer | 技术 / Technology |
+|---|---|
+| 开发语言 / Language | C++20 |
+| 操作系统 / OS | Ubuntu Linux |
+| 网络模型 / Network | TCP Socket · Epoll · Reactor Pattern |
+| 并发模型 / Concurrency | Thread Pool · Producer-Consumer Model |
+| 数据库 / Database | MySQL（InnoDB, utf8mb4）|
+| 数据库抽象 / DB Abstraction | Strategy Pattern · Connection Pool (RAII) · DAO Pattern |
+| 服务端分层 / Server Layering | Controller → Service → DAO → DO / VO / Query |
+| 缓存系统 / Cache | Redis（规划中 / planned）|
+| 客户端 / Client | Qt6 Widgets · QSS Theme |
+| 构建工具 / Build | CMake |
 
 ---
 

@@ -419,6 +419,47 @@ QHeaderView::section:last {
     border-top-right-radius: 6px;
 }
 
+/* ---- 位置浏览器 ---- */
+#LocationBrowserWidget {
+    background-color: #2a1b14;
+    border: 1px solid #755734;
+    border-radius: 8px;
+}
+
+#LocationDetailPanel {
+    background-color: #1e1310;
+    border-left: 2px solid #755734;
+}
+
+#LocationDesc {
+    color: #c9b78e;
+    line-height: 1.6;
+}
+
+QListWidget#LocationList {
+    background-color: #1a110e;
+    border: none;
+    border-right: 1px solid #604229;
+    border-radius: 0;
+    color: #e9dcc7;
+    padding: 0;
+    outline: 0;
+}
+QListWidget#LocationList::item {
+    padding: 8px 10px;
+    border-bottom: 1px solid #2a1b14;
+    border-radius: 0;
+}
+QListWidget#LocationList::item:hover {
+    background-color: #3a251a;
+}
+QListWidget#LocationList::item:selected {
+    background-color: #6e4b2f;
+    color: #fff4d6;
+    border-left: 3px solid #c9a45c;
+    padding-left: 7px;
+}
+
 /* ---- 库存网格 ---- */
 QListWidget#InventoryList {
     background-color: #211711;

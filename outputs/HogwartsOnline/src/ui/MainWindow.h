@@ -9,7 +9,7 @@ class ChatEventWidget;
 class CourseScheduleWidget;
 class HouseRankingWidget;
 class InventoryWidget;
-class LocationActionBar;
+class LocationBrowserWidget;
 class DeepSeekClient;
 class MemberListWidget;
 class QActionGroup;
@@ -62,5 +62,5 @@ private:
     CourseScheduleWidget *m_courses = nullptr;
     CampusTimeWidget *m_campusTime = nullptr;
     HouseRankingWidget *m_houseRanking = nullptr;
-    LocationActionBar *m_actionBar = nullptr;
+    LocationBrowserWidget *m_locationBrowser = nullptr;
 };

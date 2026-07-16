@@ -8,7 +8,7 @@
 #include "ui/widgets/CourseScheduleWidget.h"
 #include "ui/widgets/HouseRankingWidget.h"
 #include "ui/widgets/InventoryWidget.h"
-#include "ui/widgets/LocationActionBar.h"
+#include "ui/widgets/LocationBrowserWidget.h"
 #include "ui/widgets/MemberListWidget.h"
 #include "ui/widgets/NpcChatDialog.h"
 
@@ -106,12 +106,12 @@ void MainWindow::buildUi()
     rootLayout->setSpacing(10);
 
     m_campusTime = new CampusTimeWidget(central);
-    m_actionBar = new LocationActionBar(central);
+    m_locationBrowser = new LocationBrowserWidget(central);
 
     auto *topLayout = new QHBoxLayout;
     topLayout->setSpacing(10);
     topLayout->addWidget(m_campusTime, 1);
-    topLayout->addWidget(m_actionBar, 2);
+    topLayout->addWidget(m_locationBrowser, 2);
 
     auto *mainSplitter = new QSplitter(Qt::Horizontal, central);
     mainSplitter->setObjectName("MainSplitter");
@@ -155,7 +155,7 @@ void MainWindow::connectWidgetSignals()
 {
     connect(m_chatEvents, &ChatEventWidget::sendChatRequested,
             this, &MainWindow::sendChatRequested);
-    connect(m_actionBar, &LocationActionBar::moveToLocationRequested,
+    connect(m_locationBrowser, &LocationBrowserWidget::travelRequested,
             this, &MainWindow::moveToLocationRequested);
     connect(m_courses, &CourseScheduleWidget::goToClassroomRequested,
             this, &MainWindow::joinClassRequested);

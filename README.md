@@ -90,31 +90,18 @@ The project focuses on building a scalable server architecture and exploring tec
 
 ## 当前进度 / Progress
 
-### Phase 1 — 基础网络层 ✅
-
-- [x] UDP Chatroom Demo
-- [x] Thread Pool
-- [x] Producer-Consumer Architecture
-- [x] Modular Project Structure
-
-### Phase 2 — 数据库与客户端 🚧
-
-- [x] Qt6 Desktop Client (LoginWindow + MainWindow + 8 功能 Widget)
-- [x] MySQL Schema 设计 (9 张业务表 + 种子数据)
-- [x] 数据库抽象层 (Strategy Pattern 驱动 + 连接池 + DAO 模式)
-- [x] 玩家背包 (Inventory) 功能接口（Service 层待实现）
-- [x] 活点地图 (Marauder's Map) 功能接口（已完整实现）
-- [ ] TCP Persistent Connection
-- [ ] Room System
-- [ ] Character System
-- [ ] Epoll-based High Concurrency Refactor
-- [ ] Redis Integration
-
-### Phase 3 — 计划中 📋
-
-- [ ] AI NPC System
-- [ ] Friend System
-- [ ] Quest System
+* [x] UDP Chatroom Demo
+* [x] Thread Pool
+* [x] Producer-Consumer Architecture
+* [x] Modular Project Structure
+* [ ] TCP Persistent Connection
+* [ ] Room System
+* [ ] Character System
+* [ ] Epoll-based High Concurrency Refactor
+* [ ] MySQL Integration
+* [ ] Redis Integration
+* [ ] Qt Desktop Client
+* [ ] AI NPC System
 
 ---
 

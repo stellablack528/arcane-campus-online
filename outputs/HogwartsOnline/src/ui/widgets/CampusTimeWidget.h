@@ -11,6 +11,10 @@ class CampusTimeWidget : public QWidget
 
 public:
     explicit CampusTimeWidget(QWidget *parent = nullptr);
+    void retranslateUi();
+
+protected:
+    void changeEvent(QEvent *event) override;
 
 private slots:
     void refreshTime();

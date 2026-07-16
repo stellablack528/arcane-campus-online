@@ -1,6 +1,8 @@
 #include "ui/widgets/CampusTimeWidget.h"
+#include "core/LanguageManager.h"
 
 #include <QDateTime>
+#include <QEvent>
 #include <QGridLayout>
 #include <QLabel>
 #include <QTimer>
@@ -10,6 +12,7 @@ CampusTimeWidget::CampusTimeWidget(QWidget *parent)
 {
     setObjectName("CampusTimeWidget");
     buildUi();
+    retranslateUi();
     refreshTime();
 
     m_timer = new QTimer(this);
@@ -28,9 +31,12 @@ void CampusTimeWidget::buildUi()
     m_weekdayLabel->setObjectName("TimePrimary");
     m_timeLabel = new QLabel(this);
     m_timeLabel->setObjectName("TimePrimary");
-    m_termLabel = new QLabel("Autumn Term - Week Three", this);
-    m_weatherLabel = new QLabel("Weather: Sunny", this);
-    m_eventLabel = new QLabel("Current Event: Breakfast", this);
+    m_termLabel = new QLabel(this);
+    m_termLabel->setObjectName("TimeSecondary");
+    m_weatherLabel = new QLabel(this);
+    m_weatherLabel->setObjectName("TimeSecondary");
+    m_eventLabel = new QLabel(this);
+    m_eventLabel->setObjectName("TimeSecondary");
 
     layout->addWidget(m_weekdayLabel, 0, 0);
     layout->addWidget(m_timeLabel, 0, 1);
@@ -41,7 +47,35 @@ void CampusTimeWidget::buildUi()
 
 void CampusTimeWidget::refreshTime()
 {
+    auto &lm = LanguageManager::instance();
     const QDateTime now = QDateTime::currentDateTime();
-    m_weekdayLabel->setText(now.toString("dddd"));
-    m_timeLabel->setText(now.toString("hh:mm AP"));
+    const bool isCn = (lm.currentLanguage() == Language::Chinese);
+
+    // 星期（手动翻译以避免 locale 差异）
+    static const QString weekdaysEn[7] = {
+        "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"
+    };
+    static const QString weekdaysCn[7] = {
+        "星期一","星期二","星期三","星期四","星期五","星期六","星期日"
+    };
+    const int dow = now.date().dayOfWeek(); // 1..7
+    m_weekdayLabel->setText(isCn ? weekdaysCn[dow - 1] : weekdaysEn[dow - 1]);
+
+    m_timeLabel->setText(now.toString(isCn ? "hh:mm" : "hh:mm AP"));
+}
+
+void CampusTimeWidget::retranslateUi()
+{
+    auto &lm = LanguageManager::instance();
+    const bool isCn = (lm.currentLanguage() == Language::Chinese);
+    m_termLabel->setText(isCn ? "秋学期 · 第三周" : "Autumn Term · Week Three");
+    m_weatherLabel->setText(isCn ? "天气：晴朗" : "Weather: Sunny");
+    m_eventLabel->setText(isCn ? "当前事件：早餐时间" : "Current Event: Breakfast");
+    refreshTime();
+}
+
+void CampusTimeWidget::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange) retranslateUi();
+    QWidget::changeEvent(event);
 }

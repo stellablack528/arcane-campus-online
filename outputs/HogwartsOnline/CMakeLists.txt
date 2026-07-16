@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(HogwartsOnline VERSION 0.1.0 LANGUAGES CXX)
+project(HogwartsOnline VERSION 0.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,6 +11,7 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 include(CTest)
 
+# ====== 数据库抽象层（静态库）======
 add_library(ArcaneCampusDatabase STATIC
     database/include/IDatabaseDriver.hpp
     database/include/DBConnection.hpp
@@ -55,28 +56,41 @@ if(BUILD_TESTING)
     )
 endif()
 
+# ====== Qt6 桌面客户端（可执行文件）======
 qt_add_executable(HogwartsOnline
     src/main.cpp
+
+    # 核心
+    src/core/LanguageManager.h
+    src/core/LanguageManager.cpp
+
+    # 窗口
+    src/ui/WelcomeWindow.h
+    src/ui/WelcomeWindow.cpp
     src/ui/LoginWindow.h
     src/ui/LoginWindow.cpp
     src/ui/MainWindow.h
     src/ui/MainWindow.cpp
-    src/ui/widgets/MemberListWidget.h
-    src/ui/widgets/MemberListWidget.cpp
-    src/ui/widgets/ChatEventWidget.h
-    src/ui/widgets/ChatEventWidget.cpp
-    src/ui/widgets/CharacterStatusWidget.h
-    src/ui/widgets/CharacterStatusWidget.cpp
-    src/ui/widgets/InventoryWidget.h
-    src/ui/widgets/InventoryWidget.cpp
-    src/ui/widgets/CourseScheduleWidget.h
-    src/ui/widgets/CourseScheduleWidget.cpp
+
+    # Widget
     src/ui/widgets/CampusTimeWidget.h
     src/ui/widgets/CampusTimeWidget.cpp
+    src/ui/widgets/CharacterStatusWidget.h
+    src/ui/widgets/CharacterStatusWidget.cpp
+    src/ui/widgets/ChatEventWidget.h
+    src/ui/widgets/ChatEventWidget.cpp
+    src/ui/widgets/CourseScheduleWidget.h
+    src/ui/widgets/CourseScheduleWidget.cpp
     src/ui/widgets/HouseRankingWidget.h
     src/ui/widgets/HouseRankingWidget.cpp
+    src/ui/widgets/InventoryWidget.h
+    src/ui/widgets/InventoryWidget.cpp
     src/ui/widgets/LocationActionBar.h
     src/ui/widgets/LocationActionBar.cpp
+    src/ui/widgets/MemberListWidget.h
+    src/ui/widgets/MemberListWidget.cpp
+
+    # 资源
     src/resources/resources.qrc
 )
 

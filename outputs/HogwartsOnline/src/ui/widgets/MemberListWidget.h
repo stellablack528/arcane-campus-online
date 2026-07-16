@@ -12,14 +12,19 @@ class MemberListWidget : public QWidget
 
 public:
     explicit MemberListWidget(QWidget *parent = nullptr);
+    void retranslateUi();
 
 signals:
     void memberSelected(const QString &memberId);
     void privateChatRequested(const QString &memberId);
     void viewProfileRequested(const QString &memberId);
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private:
     void buildUi();
+    void refreshTree();
     QTreeWidgetItem *addGroup(const QString &title);
     void addMember(QTreeWidgetItem *group,
                    const QString &id,
@@ -28,5 +33,6 @@ private:
                    const QString &status,
                    const QString &house);
 
+    QLabel *m_titleLabel = nullptr;
     QTreeWidget *m_tree = nullptr;
 };

@@ -1,26 +1,67 @@
+/* ============================================
+   Hogwarts Online — 暗色木质魔法主题
+   配色：深棕底 + 金色文字 + 学院色点缀
+   ============================================ */
+
 QWidget {
     background-color: #1b1512;
     color: #e9dcc7;
     font-size: 14px;
 }
 
+/* ---- 滚动条 ---- */
+QScrollBar:vertical {
+    background: #2a1b14;
+    width: 12px;
+    border: none;
+}
+QScrollBar::handle:vertical {
+    background: #8a673b;
+    border-radius: 5px;
+    min-height: 30px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #a78244;
+}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+QScrollBar:horizontal {
+    background: #2a1b14;
+    height: 12px;
+    border: none;
+}
+QScrollBar::handle:horizontal {
+    background: #8a673b;
+    border-radius: 5px;
+    min-width: 30px;
+}
+
+/* ---- 分割器 ---- */
 QMainWindow::separator,
 QSplitter::handle {
     background-color: #6f5738;
+    width: 3px;
+    height: 3px;
+}
+QSplitter::handle:hover {
+    background-color: #c9a45c;
 }
 
+/* ---- 菜单栏 ---- */
 QMenuBar {
     background-color: #2a1b14;
     color: #f0d9ad;
     border-bottom: 1px solid #7a5d36;
-    padding: 6px;
+    padding: 6px 10px;
 }
-
 QMenuBar::item {
     background: transparent;
     padding: 8px 14px;
+    border-radius: 4px;
 }
-
 QMenuBar::item:selected {
     background-color: #4b3324;
     color: #ffd98a;
@@ -30,32 +71,137 @@ QMenu {
     background-color: #2a1b14;
     color: #f0d9ad;
     border: 1px solid #7a5d36;
+    padding: 6px 0;
 }
-
+QMenu::item {
+    padding: 8px 30px 8px 24px;
+}
 QMenu::item:selected {
     background-color: #604229;
+    color: #fff4d6;
+}
+QMenu::separator {
+    height: 1px;
+    background: #5c3f24;
+    margin: 4px 8px;
 }
 
+/* ---- 状态栏 ---- */
 QStatusBar {
     background-color: #2a1b14;
     color: #c9a45c;
+    border-top: 1px solid #7a5d36;
 }
 
+/* ============================================
+   欢迎窗口
+   ============================================ */
+#WelcomeWindow {
+    background-color: #0e0805;
+    /* 渐变背景模拟羊皮纸光照 */
+    background-image: qradialgradient(cx:50%, cy:40%, radius:80%, fx:50%, fy:40%,
+        stop:0 #2a1b14, stop:0.7 #170d09, stop:1 #0e0805);
+}
+
+#WelcomeCrest {
+    background: transparent;
+}
+
+#WelcomeTitle {
+    color: #f3d27a;
+    font-size: 42px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    padding: 10px;
+}
+
+#WelcomeSubtitle {
+    color: #d4b87e;
+    font-size: 18px;
+    font-style: italic;
+    letter-spacing: 1px;
+}
+
+#WelcomeQuote {
+    color: #b89a6b;
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.6;
+    padding: 12px 20px;
+    border-left: 2px solid #7a5d36;
+    border-right: 2px solid #7a5d36;
+    margin: 10px 0;
+}
+
+#WelcomeLangLabel {
+    color: #d4b87e;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* ============================================
+   登录 / 入学窗口
+   ============================================ */
 #LoginWindow {
     background-color: #17100d;
+    background-image: qradialgradient(cx:50%, cy:30%, radius:80%, fx:50%, fy:30%,
+        stop:0 #2a1b14, stop:0.7 #17100d, stop:1 #0e0805);
 }
 
 #LoginTitle {
     color: #f3d27a;
-    font-size: 42px;
+    font-size: 32px;
     font-weight: bold;
+    letter-spacing: 2px;
+    padding: 8px;
 }
 
 #LoginSubtitle,
 #LoginHint {
     color: #c9b78e;
+    font-size: 13px;
 }
 
+#LoginStepIndicator {
+    color: #d4b87e;
+    font-size: 14px;
+    font-style: italic;
+    letter-spacing: 1px;
+    padding: 4px;
+}
+
+#LoginPanel,
+#LoginStack {
+    background-color: rgba(42, 27, 20, 220);
+    border: 2px solid #7a5d36;
+    border-radius: 12px;
+}
+
+#StepPrompt {
+    color: #f0d38a;
+    font-size: 18px;
+    font-style: italic;
+    padding: 16px;
+    line-height: 1.6;
+}
+
+#FieldLabel {
+    color: #d4b87e;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 4px 2px;
+}
+
+#WandPreview {
+    background-color: #d8c39a;
+    border: 2px solid #836039;
+    border-radius: 8px;
+}
+
+/* ============================================
+   通用面板样式
+   ============================================ */
 #LoginPanel,
 #MemberListWidget,
 #CharacterStatusWidget,
@@ -73,6 +219,10 @@ QStatusBar {
     color: #f0d38a;
     font-size: 17px;
     font-weight: bold;
+    letter-spacing: 1px;
+    padding: 4px 0 8px 0;
+    border-bottom: 1px solid #5c3f24;
+    margin-bottom: 6px;
 }
 
 #ValueLabel {
@@ -84,40 +234,152 @@ QStatusBar {
     color: #f3d27a;
     font-size: 18px;
     font-weight: bold;
+    letter-spacing: 1px;
 }
 
+#TimeSecondary {
+    color: #c9b78e;
+    font-size: 12px;
+}
+
+/* ============================================
+   输入控件
+   ============================================ */
 QLineEdit,
 QComboBox {
     background-color: #37251b;
     border: 1px solid #7a5d36;
     border-radius: 6px;
-    padding: 8px;
+    padding: 8px 12px;
     color: #f5e8cf;
+    selection-background-color: #6e4b2f;
+    selection-color: #fff4d6;
+}
+QLineEdit:focus,
+QComboBox:focus {
+    border-color: #c9a45c;
+    background-color: #43291d;
+}
+QLineEdit:hover,
+QComboBox:hover {
+    border-color: #a78244;
 }
 
+QComboBox::drop-down {
+    border: none;
+    width: 30px;
+    background: transparent;
+}
+QComboBox::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid #c9a45c;
+    margin-right: 10px;
+}
+QComboBox QAbstractItemView {
+    background-color: #2a1b14;
+    color: #f0d9ad;
+    border: 1px solid #7a5d36;
+    selection-background-color: #604229;
+    selection-color: #fff4d6;
+    outline: 0;
+    padding: 4px;
+}
+
+/* ---- 滑块 ---- */
+QSlider::groove:horizontal {
+    background: #3a251a;
+    height: 8px;
+    border-radius: 4px;
+    border: 1px solid #5c3f24;
+}
+QSlider::sub-page:horizontal {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #7a4a24, stop:1 #c9a45c);
+    border-radius: 4px;
+}
+QSlider::add-page:horizontal {
+    background: #3a251a;
+    border-radius: 4px;
+}
+QSlider::handle:horizontal {
+    background: qradialgradient(cx:50%, cy:50%, radius:50%,
+        stop:0 #f3d27a, stop:1 #8a673b);
+    border: 1px solid #5c3f24;
+    width: 20px;
+    height: 20px;
+    margin: -7px 0;
+    border-radius: 10px;
+}
+QSlider::handle:horizontal:hover {
+    background: qradialgradient(cx:50%, cy:50%, radius:50%,
+        stop:0 #fff4d6, stop:1 #c9a45c);
+}
+
+/* ============================================
+   按钮
+   ============================================ */
 QPushButton {
     background-color: #4a3021;
     border: 1px solid #9a7440;
     border-radius: 6px;
-    padding: 8px 12px;
+    padding: 8px 16px;
     color: #f5e3bd;
+    font-weight: 500;
 }
-
 QPushButton:hover {
     background-color: #604029;
     border-color: #c9a45c;
+    color: #fff4d6;
 }
-
 QPushButton:pressed {
     background-color: #332016;
+    padding-top: 9px;
+    padding-bottom: 7px;
+}
+QPushButton:disabled {
+    background-color: #2a1b14;
+    color: #6e5d3f;
+    border-color: #5c3f24;
 }
 
 #PrimaryButton {
-    background-color: #7a4a24;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #8a5a2e, stop:1 #5a3818);
     color: #fff0c2;
     font-weight: bold;
+    border: 2px solid #c9a45c;
+    font-size: 15px;
+    letter-spacing: 1px;
+    padding: 10px 20px;
+}
+#PrimaryButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #a06b3a, stop:1 #6e4b2f);
+    border-color: #f3d27a;
+    color: #ffffff;
+}
+#PrimaryButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #5a3818, stop:1 #3a251a);
 }
 
+#SecondaryButton {
+    background-color: #2a1b14;
+    color: #d4b87e;
+    border: 1px solid #5c3f24;
+    font-weight: 500;
+}
+#SecondaryButton:hover {
+    background-color: #3a251a;
+    border-color: #7a5d36;
+    color: #f0d9ad;
+}
+
+/* ============================================
+   列表 / 树
+   ============================================ */
 QTreeWidget,
 QListWidget {
     background-color: #211711;
@@ -126,46 +388,100 @@ QListWidget {
     border-radius: 6px;
     color: #e9dcc7;
     padding: 4px;
+    outline: 0;
 }
-
-QHeaderView::section {
-    background-color: #3a251a;
-    color: #e8c981;
-    border: 0;
-    padding: 5px;
-}
-
 QTreeWidget::item,
 QListWidget::item {
-    padding: 5px;
+    padding: 6px;
+    border-radius: 4px;
 }
-
+QTreeWidget::item:hover,
+QListWidget::item:hover {
+    background-color: #3a251a;
+}
 QTreeWidget::item:selected,
 QListWidget::item:selected {
     background-color: #6e4b2f;
     color: #fff4d6;
 }
 
+QHeaderView::section {
+    background-color: #3a251a;
+    color: #e8c981;
+    border: 0;
+    padding: 6px;
+    font-weight: bold;
+}
+QHeaderView::section:first {
+    border-top-left-radius: 6px;
+}
+QHeaderView::section:last {
+    border-top-right-radius: 6px;
+}
+
+/* ---- 库存网格 ---- */
+QListWidget#InventoryList {
+    background-color: #211711;
+}
+QListWidget#InventoryList::item {
+    text-align: center;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 8px 4px;
+}
+QListWidget#InventoryList::item:hover {
+    background-color: #3a251a;
+    border-color: #7a5d36;
+}
+QListWidget#InventoryList::item:selected {
+    background-color: #6e4b2f;
+    border-color: #c9a45c;
+    color: #fff4d6;
+}
+
+/* ---- 课程列表 ---- */
+QListWidget#CourseList::item {
+    padding: 10px 8px;
+    border-bottom: 1px solid #3a251a;
+}
+QListWidget#CourseList::item:selected {
+    background-color: #6e4b2f;
+    border-left: 3px solid #c9a45c;
+}
+
+/* ============================================
+   聊天羊皮纸
+   ============================================ */
 #ParchmentView {
     background-color: #d8c39a;
     color: #2a1e14;
     border: 2px solid #836039;
     border-radius: 8px;
-    padding: 12px;
+    padding: 14px;
     selection-background-color: #a77a43;
+    selection-color: #2a1e14;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
-QScrollBar:vertical {
-    background: #2a1b14;
-    width: 12px;
+/* ============================================
+   表单
+   ============================================ */
+QFormLayout {
+    spacing: 8px;
+}
+QLabel {
+    color: #d4b87e;
 }
 
-QScrollBar::handle:vertical {
-    background: #8a673b;
-    border-radius: 5px;
-}
-
-QScrollBar::add-line:vertical,
-QScrollBar::sub-line:vertical {
-    height: 0;
+/* ============================================
+   提示框
+   ============================================ */
+QToolTip {
+    background-color: #2a1b14;
+    color: #f5e8cf;
+    border: 1px solid #7a5d36;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
 }

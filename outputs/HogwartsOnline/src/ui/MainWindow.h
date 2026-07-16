@@ -11,6 +11,8 @@ class HouseRankingWidget;
 class InventoryWidget;
 class LocationActionBar;
 class MemberListWidget;
+class QActionGroup;
+class QMenu;
 
 class MainWindow : public QMainWindow
 {
@@ -18,9 +20,12 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
+    void retranslateUi();
 
 public slots:
     void setPlayerIdentity(const QString &studentName, const QString &houseName);
+    void setWandInfo(const QString &wood, const QString &core, int lengthInches,
+                     const QString &flexibility);
 
 signals:
     void sendChatRequested(const QString &channel, const QString &text);
@@ -30,10 +35,20 @@ signals:
     void itemInspectRequested(const QString &itemId);
     void itemGiftRequested(const QString &itemId, const QString &npcId);
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private:
     void buildMenu();
     void buildUi();
     void connectWidgetSignals();
+
+    QMenu *m_characterMenu = nullptr;
+    QMenu *m_campusMenu = nullptr;
+    QMenu *m_socialMenu = nullptr;
+    QMenu *m_systemMenu = nullptr;
+    QMenu *m_languageMenu = nullptr;
+    QActionGroup *m_langGroup = nullptr;
 
     MemberListWidget *m_memberList = nullptr;
     ChatEventWidget *m_chatEvents = nullptr;

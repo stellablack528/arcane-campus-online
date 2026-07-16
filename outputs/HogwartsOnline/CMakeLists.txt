@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 include(CTest)
 
 # ====== 数据库抽象层（静态库）======
@@ -108,6 +108,7 @@ target_include_directories(HogwartsOnline PRIVATE src)
 target_link_libraries(HogwartsOnline PRIVATE
     ArcaneCampusDatabase
     Qt6::Widgets
+    Qt6::Network
 )
 
 if(WIN32)

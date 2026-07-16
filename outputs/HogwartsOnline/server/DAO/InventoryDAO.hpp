@@ -1,8 +1,7 @@
 #pragma once
 
-#include "DBConnection.hpp"
-
-#include "../server/model/PlayerInventoryDO.h"
+#include "../database/include/DBConnection.hpp"
+#include "DO/PlayerInventoryDO.h"
 
 #include <cstdint>
 #include <memory>
@@ -31,7 +30,7 @@ class InventoryDAO final {
 public:
     explicit InventoryDAO(std::shared_ptr<DBConnection> connection) noexcept;
 
-    // ---- 原有 CRUD ----
+    // ---- 基础 CRUD ----
     [[nodiscard]] bool createItem(const ItemRecord& item);
     [[nodiscard]] std::optional<ItemRecord> getItemById(std::uint64_t itemId) const;
     [[nodiscard]] bool addInventoryItem(const InventoryRecord& inventory);
@@ -39,25 +38,10 @@ public:
     [[nodiscard]] bool updateInventoryQuantity(std::uint64_t inventoryId, std::uint32_t quantity);
     [[nodiscard]] bool deleteInventoryItem(std::uint64_t inventoryId);
 
-    // ---- 新增：活点地图 & 背包接口 ----
-
-    /**
-     * @brief 检查玩家是否拥有指定物品（活点地图用）
-     * @return 物品数量，0 表示没有
-     */
+    // ---- 活点地图 & 背包 ----
     [[nodiscard]] std::int32_t hasItem(std::uint64_t characterId, const std::string& itemName) const;
-
-    /**
-     * @brief 分页查询玩家背包（JOIN items 表，返回完整信息）
-     */
     [[nodiscard]] std::vector<PlayerInventoryDO> getInventoryPaged(
-        std::uint64_t characterId,
-        std::int32_t offset,
-        std::int32_t limit) const;
-
-    /**
-     * @brief 统计玩家的物品种类数（分页用）
-     */
+        std::uint64_t characterId, std::int32_t offset, std::int32_t limit) const;
     [[nodiscard]] int countInventoryItems(std::uint64_t characterId) const;
 
 private:

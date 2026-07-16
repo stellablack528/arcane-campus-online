@@ -7,6 +7,7 @@
 ---
 
 ## 项目简介 / About
+
 ### 中文
 
 **Arcane Campus Online** 是一个以魔法校园为背景的多人在线文字 RPG 社交平台。
@@ -20,7 +21,6 @@
 > 本项目为非商业同人作品。
 > Harry Potter © J.K. Rowling / Warner Bros. 版权所有。
 
-
 ### English
 
 **Arcane Campus Online** is a multiplayer online text RPG social platform inspired by the magical world of Harry Potter.
@@ -31,89 +31,149 @@ Players enter the world as characters and interact with others in locations such
 
 The project focuses on building a scalable server architecture and exploring technologies commonly used in large-scale online systems, including asynchronous networking, concurrency models, database integration, caching systems, and desktop client development.
 
->  Fan Project — Non-commercial use only.
+> Fan Project — Non-commercial use only.
 > Harry Potter © J.K. Rowling / Warner Bros. All rights reserved.
-
----
-
 
 ---
 
 ## 技术栈 / Tech Stack
 
-| 层次 / Layer              | 技术 / Technology                       |
-| ----------------------- | ------------------------------------- |
-| 开发语言 / Language         | C++20                                 |
-| 操作系统 / Operating System | Ubuntu Linux                          |
-| 网络模型 / Network Model    | TCP Socket · Epoll · Reactor Pattern  |
-| 并发模型 / Concurrency      | Thread Pool · Producer-Consumer Model |
-| 数据库 / Database          | MySQL                                 |
-| 缓存系统 / Cache            | Redis                                 |
-| 客户端 / Client            | Qt6 Widgets                           |
-| 构建工具 / Build System     | CMake                                 |
+| 层次 / Layer              | 技术 / Technology                                    |
+| ------------------------- | ---------------------------------------------------- |
+| 开发语言 / Language       | C++20                                                |
+| 操作系统 / Operating System | Ubuntu Linux                                       |
+| 网络模型 / Network Model  | TCP Socket · Epoll · Reactor Pattern                 |
+| 并发模型 / Concurrency    | Thread Pool · Producer-Consumer Model                |
+| 数据库 / Database         | MySQL (InnoDB, utf8mb4)                              |
+| 数据库抽象               | Strategy Pattern · Connection Pool (RAII) · DAO Pattern |
+| 服务端架构               | 5-Layer: Controller → Service → DAO → DO / VO / Query  |
+| 缓存系统 / Cache          | Redis (预留)                                         |
+| 客户端 / Client           | Qt6 Widgets · QSS Theme                              |
+| 构建工具 / Build System   | CMake                                                |
 
 ---
 
 ## 系统架构 / Architecture
 
 ```text
-Qt Desktop Client
-        │
- TCP Long Connection
-        │
-   Gateway Server
-        │
-┌──────────────────────┐
-│      Room System     │
-│      Chat System     │
-│   Character System   │
-│      NPC System      │
-│      Quest System    │
-└──────────────────────┘
-        │
-   MySQL + Redis
+                    Qt6 Desktop Client
+                           │
+                    TCP Long Connection
+                           │
+                      Gateway Server
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+     Controller         Service           DAO
+   (路由控制层)      (业务逻辑层)    (数据访问层)
+          │                │                │
+          └────────────────┼────────────────┘
+                           │
+                DO / VO / Query (数据模型)
+                           │
+                    ┌──────┴──────┐
+                  MySQL           Redis
 ```
+
+### 服务端分层架构
+
+| 层 | 目录 | 职责 |
+|---|------|------|
+| **Controller** | `server/Controller/` | HTTP 路由控制，参数绑定 |
+| **Service** | `server/Service/` | 核心业务逻辑编排 |
+| **DAO** | `database/src/`, `server/DAO/` | 数据库 CRUD，参数化查询 |
+| **DO** | `server/DO/` | 数据库表映射对象 |
+| **VO** | `server/VO/` | 接口返回视图对象 |
+| **Query** | `server/Query/` | 请求参数封装对象 |
 
 ---
 
 ## 当前进度 / Progress
 
-* [x] UDP Chatroom Demo
-* [x] Thread Pool
-* [x] Producer-Consumer Architecture
-* [x] Modular Project Structure
-* [ ] TCP Persistent Connection
-* [ ] Room System
-* [ ] Character System
-* [ ] Epoll-based High Concurrency Refactor
-* [ ] MySQL Integration
-* [ ] Redis Integration
-* [ ] Qt Desktop Client
-* [ ] AI NPC System
+### Phase 1 — 基础网络层 ✅
+
+- [x] UDP Chatroom Demo
+- [x] Thread Pool
+- [x] Producer-Consumer Architecture
+- [x] Modular Project Structure
+
+### Phase 2 — 数据库与客户端 🚧
+
+- [x] Qt6 Desktop Client (LoginWindow + MainWindow + 8 功能 Widget)
+- [x] MySQL Schema 设计 (9 张业务表 + 种子数据)
+- [x] 数据库抽象层 (Strategy Pattern 驱动 + 连接池 + DAO 模式)
+- [x] 玩家背包 (Inventory) 功能接口（Service 层待实现）
+- [x] 活点地图 (Marauder's Map) 功能接口（已完整实现）
+- [ ] TCP Persistent Connection
+- [ ] Room System
+- [ ] Character System
+- [ ] Epoll-based High Concurrency Refactor
+- [ ] Redis Integration
+
+### Phase 3 — 计划中 📋
+
+- [ ] AI NPC System
+- [ ] Friend System
+- [ ] Quest System
 
 ---
 
 ## Planned Features
 
-* Real-time scene chat
-* Multi-room interaction
-* Character and profile system
-* Friend system
-* Inventory system
-* Quest system
-* NPC interaction
-* Achievement system
-* AI-driven NPC dialogue
-* Persistent world data storage
+- Real-time scene chat
+- Multi-room interaction
+- Character and profile system
+- Friend system
+- Inventory system 🚧
+- Quest system
+- NPC interaction
+- Achievement system
+- AI-driven NPC dialogue
+- Persistent world data storage
+
+---
+
+## 项目目录 / Project Structure
+
+```
+arcane-campus-online/
+├── phase1-udp-chatroom/          # Phase 1: UDP 聊天室 Demo
+│   ├── UdpServer.hpp             # UDP 服务器核心
+│   ├── ChatServerMain.cc         # 聊天服务入口
+│   ├── ChatClient.cc             # 客户端实现
+│   ├── ThreadPool.hpp            # 线程池
+│   ├── Route.hpp                 # 消息路由
+│   ├── UserManager.hpp           # 用户管理
+│   └── ...
+│
+├── outputs/HogwartsOnline/       # Phase 2: 核心项目
+│   ├── database/                 # 数据库抽象层
+│   │   ├── include/              # DAO 头文件 (8 个)
+│   │   ├── src/                  # DAO + 连接池实现
+│   │   └── sql/                  # SQL 脚本 (建表+种子)
+│   ├── server/                   # 服务端逻辑层 (5层架构)
+│   │   ├── Controller/           # Inventory + Map 控制器
+│   │   ├── Service/              # 业务逻辑
+│   │   ├── DAO/                  # 数据访问
+│   │   ├── DO/                   # 数据对象
+│   │   ├── VO/                   # 视图对象
+│   │   └── Query/                # 请求参数
+│   ├── src/                      # Qt6 桌面客户端
+│   │   ├── ui/                   # Login + MainWindow + 8 Widget
+│   │   └── resources/            # QSS 主题
+│   └── tests/                    # 单元测试
+│
+└── README.md
+```
 
 ---
 
 ## 项目目标 / Goals
 
-* Practice Linux network programming and high-concurrency server design.
-* Explore modern C++ backend engineering practices.
-* Build a long-term portfolio project for graduate school applications and future career development.
-* Accumulate experience in system architecture, database design, and desktop application development.
+- Practice Linux network programming and high-concurrency server design.
+- Explore modern C++ backend engineering practices.
+- Build a long-term portfolio project for graduate school applications and future career development.
+- Accumulate experience in system architecture, database design, and desktop application development.
 
 ---
 
@@ -123,13 +183,13 @@ Third-year CS student · Linux Network Programming Enthusiast
 
 Currently focusing on:
 
-* Modern C++
-* Linux Network Programming
-* High-Concurrency Server Architecture
-* Distributed Systems
-* Database Engineering
+- Modern C++
+- Linux Network Programming
+- High-Concurrency Server Architecture
+- Distributed Systems
+- Database Engineering
 
-Building this as a long-term portfolio project for graduate school applications and backend engineering practice. 
+Building this as a long-term portfolio project for graduate school applications and backend engineering practice.
 
 ---
 
@@ -140,4 +200,3 @@ MIT License — See [LICENSE](./LICENSE) for details.
 > Fan Project · Non-commercial use only.
 >
 > Harry Potter © J.K. Rowling / Warner Bros.
-A multiplayer online text RPG social platform built with C++ and Linux network programming

@@ -21,3 +21,6 @@ desktop.ini
 *.log
 *.dSYM/
 tags
+
+# Qt translations (generated .qm files)
+*.qm

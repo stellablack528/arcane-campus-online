@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QString>
 
+class QTranslator;
+
 // 语言枚举
 enum class Language {
     English = 0,
@@ -19,12 +21,11 @@ public:
 
     Language currentLanguage() const { return m_language; }
     QString currentCode() const;     // "en_US" / "zh_CN"
-    QString currentDisplayName() const;
 
-    // 切换语言（发出 languageChanged 信号）
+    // 切换语言（emit languageChanged）
     void setLanguage(Language lang);
 
-    // 辅助：双语文本查找
+    // 辅助：双语文本查找（当 QTranslator 未命中时使用）
     QString tr(const QString &english, const QString &chinese) const;
 
 signals:
@@ -32,5 +33,8 @@ signals:
 
 private:
     explicit LanguageManager(QObject *parent = nullptr);
+    void loadTranslation(Language lang);
+
     Language m_language = Language::English;
+    QTranslator *m_translator = nullptr;
 };

@@ -92,6 +92,9 @@ qt_add_executable(HogwartsOnline
 
     # 资源
     src/resources/resources.qrc
+
+    # 国际化
+    src/i18n/arcane_campus_zh_CN.ts
 )
 
 target_include_directories(HogwartsOnline PRIVATE src)
@@ -106,3 +109,18 @@ if(WIN32)
         WIN32_EXECUTABLE TRUE
     )
 endif()
+
+# ====== 国际化：编译 .ts → .qm ======
+find_package(Qt6 COMPONENTS LinguistTools QUIET)
+if(Qt6LinguistTools_FOUND)
+    qt_add_translation(HogwartsTranslation
+        TS_FILES src/i18n/arcane_campus_zh_CN.ts
+        QM_FILES_OUTPUT_VARIABLE QM_FILES
+    )
+    add_dependencies(HogwartsOnline HogwartsTranslation)
+endif()
+
+# 如果 Qt6 LinguistTools 未找到，说明检查:
+message(STATUS "LinguistTools found: ${Qt6LinguistTools_FOUND}")
+message(STATUS "⚡ To compile .ts → .qm manually:")
+message(STATUS "   cd src/i18n && lrelease arcane_campus_zh_CN.ts")

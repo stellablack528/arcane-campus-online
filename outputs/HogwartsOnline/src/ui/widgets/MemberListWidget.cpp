@@ -4,6 +4,8 @@
 #include <QEvent>
 #include <QHeaderView>
 #include <QLabel>
+#include <QMenu>
+#include <QPoint>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
@@ -37,6 +39,26 @@ void MemberListWidget::buildUi()
         const QString id = item->data(0, Qt::UserRole).toString();
         if (!id.isEmpty()) {
             emit memberSelected(id);
+        }
+    });
+
+    // 右键 → NPC 对话
+    m_tree->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_tree, &QTreeWidget::customContextMenuRequested, this,
+            [this](const QPoint &pos) {
+        auto *item = m_tree->itemAt(pos);
+        if (!item) return;
+        const QString id = item->data(0, Qt::UserRole).toString();
+        if (id.isEmpty()) return;
+        if (id.startsWith("npc_") || id.startsWith("ghost_")
+            || id.startsWith("prof_") || id.startsWith("shop_")) {
+            auto &lm = LanguageManager::instance();
+            bool isCn = lm.currentLanguage() == Language::Chinese;
+            QMenu menu;
+            menu.addAction(isCn ? "💬 对话" : "💬 Chat");
+            if (menu.exec(m_tree->mapToGlobal(pos))) {
+                emit npcChatRequested(id);
+            }
         }
     });
 }

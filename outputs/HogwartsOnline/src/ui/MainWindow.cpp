@@ -1,5 +1,6 @@
 #include "ui/MainWindow.h"
 #include "core/LanguageManager.h"
+#include "core/DeepSeekClient.h"
 
 #include "ui/widgets/CampusTimeWidget.h"
 #include "ui/widgets/CharacterStatusWidget.h"
@@ -9,6 +10,7 @@
 #include "ui/widgets/InventoryWidget.h"
 #include "ui/widgets/LocationActionBar.h"
 #include "ui/widgets/MemberListWidget.h"
+#include "ui/widgets/NpcChatDialog.h"
 
 #include <QAction>
 #include <QActionGroup>
@@ -27,6 +29,13 @@ MainWindow::MainWindow(QWidget *parent)
     setObjectName("MainWindow");
     resize(1440, 900);
     setMinimumSize(1180, 760);
+
+    // DeepSeek 客户端
+    m_deepseek = new DeepSeekClient(this);
+    connect(m_deepseek, &DeepSeekClient::replyReceived, this,
+            [](const QString &, const QString &reply, bool ok) {
+        Q_UNUSED(reply); Q_UNUSED(ok); // 对话弹窗自己处理
+    });
 
     buildMenu();
     buildUi();
@@ -156,6 +165,22 @@ void MainWindow::connectWidgetSignals()
             this, &MainWindow::itemInspectRequested);
     connect(m_inventory, &InventoryWidget::itemGiftRequested,
             this, &MainWindow::itemGiftRequested);
+    connect(m_memberList, &MemberListWidget::npcChatRequested,
+            this, &MainWindow::onNpcChatRequested);
+}
+
+void MainWindow::onNpcChatRequested(const QString &npcId)
+{
+    const auto npcs = DeepSeekClient::presetNpcs();
+    for (const auto &p : npcs) {
+        if (p.npcId == npcId) {
+            auto *dialog = new NpcChatDialog(m_deepseek, p, this);
+            dialog->setAttribute(Qt::WA_DeleteOnClose);
+            connect(dialog, &NpcChatDialog::dialogClosed, this, [](const QString &) {});
+            dialog->show();
+            return;
+        }
+    }
 }
 
 void MainWindow::retranslateUi()

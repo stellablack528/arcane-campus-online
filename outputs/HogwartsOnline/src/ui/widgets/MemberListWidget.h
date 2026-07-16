@@ -18,6 +18,7 @@ signals:
     void memberSelected(const QString &memberId);
     void privateChatRequested(const QString &memberId);
     void viewProfileRequested(const QString &memberId);
+    void npcChatRequested(const QString &npcId);
 
 protected:
     void changeEvent(QEvent *event) override;

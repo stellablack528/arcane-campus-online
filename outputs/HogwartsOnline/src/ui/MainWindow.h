@@ -10,6 +10,7 @@ class CourseScheduleWidget;
 class HouseRankingWidget;
 class InventoryWidget;
 class LocationActionBar;
+class DeepSeekClient;
 class MemberListWidget;
 class QActionGroup;
 class QMenu;
@@ -38,11 +39,15 @@ signals:
 protected:
     void changeEvent(QEvent *event) override;
 
+private slots:
+    void onNpcChatRequested(const QString &npcId);
+
 private:
     void buildMenu();
     void buildUi();
     void connectWidgetSignals();
 
+    DeepSeekClient *m_deepseek = nullptr;
     QMenu *m_characterMenu = nullptr;
     QMenu *m_campusMenu = nullptr;
     QMenu *m_socialMenu = nullptr;

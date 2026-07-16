@@ -63,6 +63,8 @@ qt_add_executable(HogwartsOnline
     # 核心
     src/core/LanguageManager.h
     src/core/LanguageManager.cpp
+    src/core/DeepSeekClient.h
+    src/core/DeepSeekClient.cpp
 
     # 窗口
     src/ui/WelcomeWindow.h
@@ -89,6 +91,8 @@ qt_add_executable(HogwartsOnline
     src/ui/widgets/LocationActionBar.cpp
     src/ui/widgets/MemberListWidget.h
     src/ui/widgets/MemberListWidget.cpp
+    src/ui/widgets/NpcChatDialog.h
+    src/ui/widgets/NpcChatDialog.cpp
 
     # 资源
     src/resources/resources.qrc

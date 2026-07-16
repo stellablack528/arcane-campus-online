@@ -120,7 +120,7 @@ The project focuses on building a scalable server architecture and exploring tec
 
 ---
 
-## 项目目录 / Project Structure
+## 当前项目目录 / Project Structure
 
 ```
 arcane-campus-online/

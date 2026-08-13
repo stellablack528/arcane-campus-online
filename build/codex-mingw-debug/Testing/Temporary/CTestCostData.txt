@@ -1,2 +1,0 @@
-ArcaneCampusDatabaseSmokeTest 4 0.00666265
----

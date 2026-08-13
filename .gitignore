@@ -1,5 +1,9 @@
 build/
+.qtcreator/
 *.obj
 *.o
 *.exe
 database.ini
+.vscode/
+.idea/
+*.user

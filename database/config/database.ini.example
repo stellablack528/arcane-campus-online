@@ -1,0 +1,10 @@
+# Copy this file to database.ini (next to the executable, or provide its path).
+# Set ARCANE_DB_PASSWORD in your user environment instead of writing a password below.
+driver=mysql
+host=127.0.0.1
+port=3306
+database=arcane_campus_online
+username=root
+password=
+character_set=utf8mb4
+client_library_path=D:/mysql-8.0.25-winx64/bin/libmysql.dll

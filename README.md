@@ -278,7 +278,7 @@ host=127.0.0.1
 port=3306
 database=arcane_campus_online
 username=root
-password=jun060520            ; 修改为你的 MySQL 密码
+password=******           ; 修改为你的 MySQL 密码
 character_set=utf8mb4
 client_library_path=D:/mysql-8.0.25-winx64/bin/libmysql.dll
 ```
@@ -339,14 +339,20 @@ ctest --output-on-failure
 
 ## 👤 作者 / Author
 
-CS Student · Backend Engineering & Network Programming Enthusiast
 
-Currently focusing on:
-- Modern C++ (C++20)
-- Linux Network Programming
-- High-Concurrency Server Architecture
-- Database Engineering
-- Qt Desktop Application Development
+
+CS Student · Backend & Systems Enthusiast
+
+Currently learning and experimenting with:
+
+* Modern C++ / C++20
+* Linux Network Programming
+* Concurrency & Server Architecture
+* Database Fundamentals
+* Qt Desktop Development
+
+Mostly learning by building small projects and messing around with ideas I find interesting.
+
 
 ---
 

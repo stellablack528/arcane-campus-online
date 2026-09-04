@@ -25,6 +25,10 @@ public:
     void configureInventoryService(std::shared_ptr<arcane::database::InventoryDAO> inventoryDao);
     void configureMapService(std::shared_ptr<arcane::database::InventoryDAO> inventoryDao,
                              std::shared_ptr<arcane::database::LocationDAO> locationDao);
+    void configureCampusService(std::shared_ptr<arcane::database::RoomDAO> roomDao,
+                                std::shared_ptr<arcane::database::NPCDAO> npcDao);
+    void configureSocialService(std::shared_ptr<arcane::database::FriendDAO> friendDao,
+                                std::shared_ptr<arcane::database::CharacterDAO> characterDao);
 
 public slots:
     void handleLogin(const QString& studentName, const QString& house);
@@ -59,10 +63,10 @@ private:
     void publish(const vo::OperationResultVO& result);
 
     std::unique_ptr<service::SessionService> sessionService_;
-    service::CampusService campusService_;
+    std::unique_ptr<service::CampusService> campusService_;
     std::unique_ptr<service::ChatService> chatService_;
     service::InventoryService inventoryService_;
-    service::SocialService socialService_;
+    std::unique_ptr<service::SocialService> socialService_;
     std::unique_ptr<service::MapService> mapService_;
 };
 

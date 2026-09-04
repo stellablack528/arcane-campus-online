@@ -46,6 +46,19 @@ std::vector<RoomRecord> RoomDAO::getAllRooms() const
     return rooms;
 }
 
+std::optional<RoomRecord> RoomDAO::getRoomByName(const std::string& roomName) const
+{
+    const auto result = connection_->query("SELECT * FROM rooms WHERE room_name = ? LIMIT 1",
+                                           {roomName});
+    if (!result || result->rows.empty()) {
+        return std::nullopt;
+    }
+    const auto& row = result->rows.front();
+    return RoomRecord{detail::integer<std::uint64_t>(row, "room_id"), detail::value(row, "room_name"),
+                      detail::value(row, "room_type"), detail::value(row, "description"),
+                      detail::integer<std::uint32_t>(row, "max_players")};
+}
+
 bool RoomDAO::updateRoom(const RoomRecord& room)
 {
     return connection_->execute(

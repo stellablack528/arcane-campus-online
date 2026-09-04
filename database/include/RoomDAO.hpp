@@ -24,6 +24,7 @@ public:
 
     [[nodiscard]] bool createRoom(const RoomRecord& room);
     [[nodiscard]] std::optional<RoomRecord> getRoomById(std::uint64_t roomId) const;
+    [[nodiscard]] std::optional<RoomRecord> getRoomByName(const std::string& roomName) const;
     [[nodiscard]] std::vector<RoomRecord> getAllRooms() const;
     [[nodiscard]] bool updateRoom(const RoomRecord& room);
     [[nodiscard]] bool deleteRoom(std::uint64_t roomId);

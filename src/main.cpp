@@ -14,6 +14,9 @@
 #include "InventoryDAO.hpp"
 #include "LocationDAO.hpp"
 #include "MessageDAO.hpp"
+#include "NPCDAO.hpp"
+#include "RoomDAO.hpp"
+#include "FriendDAO.hpp"
 
 #include <filesystem>
 #include <memory>
@@ -72,11 +75,16 @@ int main(int argc, char *argv[])
         auto messageDao = std::make_shared<arcane::database::MessageDAO>(connection);
         auto inventoryDao = std::make_shared<arcane::database::InventoryDAO>(connection);
         auto locationDao = std::make_shared<arcane::database::LocationDAO>(connection);
+        auto roomDao = std::make_shared<arcane::database::RoomDAO>(connection);
+        auto npcDao = std::make_shared<arcane::database::NPCDAO>(connection);
+        auto friendDao = std::make_shared<arcane::database::FriendDAO>(connection);
 
         campusController->configureSessionService(userDao, characterDao);
         campusController->configureChatService(messageDao);
         campusController->configureInventoryService(inventoryDao);
         campusController->configureMapService(inventoryDao, locationDao);
+        campusController->configureCampusService(roomDao, npcDao);
+        campusController->configureSocialService(friendDao, characterDao);
     }
 
     QObject::connect(loginWindow, &LoginWindow::loginRequested,

@@ -9,7 +9,9 @@ namespace arcane::application::controller {
 CampusController::CampusController(QObject* parent)
     : QObject(parent)
     , sessionService_(std::make_unique<service::SessionService>(nullptr, nullptr))
+    , campusService_(std::make_unique<service::CampusService>(nullptr, nullptr))
     , chatService_(std::make_unique<service::ChatService>(nullptr))
+    , socialService_(std::make_unique<service::SocialService>(nullptr, nullptr))
 {
 }
 
@@ -35,6 +37,20 @@ void CampusController::configureMapService(std::shared_ptr<arcane::database::Inv
 {
     mapService_ = std::make_unique<service::MapService>(std::move(inventoryDao),
                                                          std::move(locationDao));
+}
+
+void CampusController::configureCampusService(std::shared_ptr<arcane::database::RoomDAO> roomDao,
+                                             std::shared_ptr<arcane::database::NPCDAO> npcDao)
+{
+    campusService_ = std::make_unique<service::CampusService>(std::move(roomDao),
+                                                                std::move(npcDao));
+}
+
+void CampusController::configureSocialService(std::shared_ptr<arcane::database::FriendDAO> friendDao,
+                                              std::shared_ptr<arcane::database::CharacterDAO> characterDao)
+{
+    socialService_ = std::make_unique<service::SocialService>(std::move(friendDao),
+                                                               std::move(characterDao));
 }
 
 void CampusController::handleLogin(const QString& studentName, const QString& house)
@@ -77,7 +93,7 @@ void CampusController::handleMove(const QString& locationId)
         publish({false, "Enter the campus before travelling."});
         return;
     }
-    const auto result = campusService_.moveTo(*session, {locationId.toStdString()});
+    const auto result = campusService_->moveTo(*session, {locationId.toStdString()});
     publish(result);
     if (result.success) {
         emit playerLocationChanged(QString::fromStdString(session->currentLocation),
@@ -92,7 +108,7 @@ void CampusController::handleCourseJoin(const QString& courseId)
         publish({false, "Enter the campus before joining a class."});
         return;
     }
-    const auto result = campusService_.joinCourse(*session, {courseId.toStdString()});
+    const auto result = campusService_->joinCourse(*session, {courseId.toStdString()});
     publish(result);
     if (result.success) {
         emit playerLocationChanged(QString::fromStdString(session->currentLocation),
@@ -102,12 +118,12 @@ void CampusController::handleCourseJoin(const QString& courseId)
 
 void CampusController::handleCourseDetails(const QString& courseId)
 {
-    publish(campusService_.describeCourse({courseId.toStdString()}));
+    publish(campusService_->describeCourse({courseId.toStdString()}));
 }
 
 void CampusController::handleProfessorInfo(const QString& professorId)
 {
-    publish(campusService_.describeProfessor(professorId.toStdString()));
+    publish(campusService_->describeProfessor(professorId.toStdString()));
 }
 
 void CampusController::handleItemUse(const QString& itemId)
@@ -134,7 +150,7 @@ void CampusController::handleStudy(const QString& locationId)
 
 void CampusController::handleActivity(const QString& activityId)
 {
-    publish(campusService_.joinActivity(activityId.toStdString()));
+    publish(campusService_->joinActivity(activityId.toStdString()));
 }
 
 void CampusController::handleMemberSelected(const QString& memberId)
@@ -145,12 +161,12 @@ void CampusController::handleMemberSelected(const QString& memberId)
 
 void CampusController::handlePrivateChat(const QString& memberId)
 {
-    publish(socialService_.startPrivateChat(memberId.toStdString()));
+    publish(socialService_->startPrivateChat(memberId.toStdString()));
 }
 
 void CampusController::handleProfile(const QString& memberId)
 {
-    publish(socialService_.viewProfile(memberId.toStdString()));
+    publish(socialService_->viewProfile(memberId.toStdString()));
 }
 
 void CampusController::handleUseMaraudersMap(std::uint64_t roomId)

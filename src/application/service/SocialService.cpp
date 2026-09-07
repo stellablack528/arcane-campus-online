@@ -58,7 +58,7 @@ vo::OperationResultVO SocialService::viewProfile(const std::string& memberId) co
                 : character->house == "Hufflepuff" ? "🦡"
                 : character->house == "Ravenclaw" ? "🦅"
                 : "✨";
-            return {true, houseEmoji + " " + character->nickname + " | House: " + character->house
+            return {true, std::string(houseEmoji) + " " + character->nickname + " | House: " + character->house
                         + " | Level: " + std::to_string(character->level)
                         + " | Title: " + character->title};
         } catch (...) {

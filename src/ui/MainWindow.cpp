@@ -1,5 +1,6 @@
 #include "ui/MainWindow.h"
 
+#include "ui/ApiKeyDialog.h"
 #include "ui/widgets/CampusTimeWidget.h"
 #include "ui/widgets/CharacterStatusWidget.h"
 #include "ui/widgets/ChatEventWidget.h"
@@ -103,7 +104,11 @@ void MainWindow::buildMenu()
     auto *systemMenu = menuBar()->addMenu("System");
     auto *refreshInventoryAction = systemMenu->addAction("Refresh Inventory");
     connect(refreshInventoryAction, &QAction::triggered, this, [this] { emit refreshInventoryRequested(); });
-    systemMenu->addAction("Settings");
+    auto *aiSettingsAction = systemMenu->addAction("AI Settings...");
+    connect(aiSettingsAction, &QAction::triggered, this, [this] {
+        ApiKeyDialog dialog(this);
+        dialog.exec();
+    });
     systemMenu->addAction("Logout");
 }
 

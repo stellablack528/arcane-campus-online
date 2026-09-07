@@ -10,6 +10,10 @@
 #include <QObject>
 #include <QString>
 
+namespace arcane::core {
+class DeepSeekClient;
+}
+
 namespace arcane::application::controller {
 
 class CampusController final : public QObject {
@@ -47,6 +51,8 @@ public slots:
     void handleProfile(const QString& memberId);
     void handleUseMaraudersMap(std::uint64_t roomId);
     void handleRefreshInventory();
+    void onAiReplyReceived(const QString& channel, const QString& speaker, const QString& text);
+    void onAiErrorOccurred(const QString& message);
 
 signals:
     void loginAccepted(const QString& studentName, const QString& house);
@@ -65,9 +71,10 @@ private:
     std::unique_ptr<service::SessionService> sessionService_;
     std::unique_ptr<service::CampusService> campusService_;
     std::unique_ptr<service::ChatService> chatService_;
-    service::InventoryService inventoryService_;
+    std::unique_ptr<service::InventoryService> inventoryService_;
     std::unique_ptr<service::SocialService> socialService_;
     std::unique_ptr<service::MapService> mapService_;
+    std::unique_ptr<core::DeepSeekClient> deepSeekClient_;
 };
 
 } // namespace arcane::application::controller

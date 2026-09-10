@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 include(CTest)
 
 set(ARCANE_MYSQL_ROOT "D:/mysql-8.0.25-winx64" CACHE PATH "MySQL Server or Connector/C installation")
@@ -117,8 +117,12 @@ qt_add_executable(HogwartsOnline
     src/application/controller/CampusController.cpp
     src/application/router/ClientCommandRouter.hpp
     src/application/router/ClientCommandRouter.cpp
+    src/core/DeepSeekClient.hpp
+    src/core/DeepSeekClient.cpp
     src/ui/LoginWindow.h
     src/ui/LoginWindow.cpp
+    src/ui/ApiKeyDialog.h
+    src/ui/ApiKeyDialog.cpp
     src/ui/MainWindow.h
     src/ui/MainWindow.cpp
     src/ui/widgets/MemberListWidget.h
@@ -145,6 +149,7 @@ target_include_directories(HogwartsOnline PRIVATE src)
 target_link_libraries(HogwartsOnline PRIVATE
     ArcaneCampusDatabase
     Qt6::Widgets
+    Qt6::Network
 )
 
 if(WIN32)

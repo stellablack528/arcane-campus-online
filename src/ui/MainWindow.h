@@ -48,6 +48,7 @@ signals:
     void profileRequested(const QString &memberId);
     void useMaraudersMapRequested(std::uint64_t roomId);
     void refreshInventoryRequested();
+    void timePeriodChanged(int period);
 
 private:
     void buildMenu();

@@ -6,6 +6,8 @@
 #include "application/service/MapService.hpp"
 #include "application/service/SessionService.hpp"
 #include "application/service/SocialService.hpp"
+#include "application/world/WorldClock.hpp"
+#include "application/world/WorldEvent.hpp"
 
 #include <QObject>
 #include <QString>
@@ -53,6 +55,7 @@ public slots:
     void handleRefreshInventory();
     void onAiReplyReceived(const QString& channel, const QString& speaker, const QString& text);
     void onAiErrorOccurred(const QString& message);
+    void onTimePeriodChanged(int period);
 
 signals:
     void loginAccepted(const QString& studentName, const QString& house);

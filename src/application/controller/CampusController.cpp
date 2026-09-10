@@ -141,6 +141,30 @@ void CampusController::onAiErrorOccurred(const QString& message)
     publish({false, message.toStdString()});
 }
 
+void CampusController::onTimePeriodChanged(int period)
+{
+    using namespace arcane::application::world;
+    const auto timePeriod = static_cast<TimePeriod>(period);
+
+    // 构造事件评估上下文。PlayerState 梳理：登录态/当前地点/时段。
+    // 未来迁移到 TCP Server 时，服务端可以用同样的 context 在每个时段切换时评估事件。
+    WorldEventContext context;
+    context.period = timePeriod;
+    auto* session = activeSession();
+    context.playerOnline = (session != nullptr);
+    context.locationId = session ? session->currentLocation : std::string{};
+
+    // 评估世界事件并把产生的消息广播到聊天区。
+    // 事件只产生"消息反馈"，不直接改数据库游戏状态（保持 AI / 事件边界清晰）。
+    const auto results = evaluateWorldEvents(context);
+    for (const auto& result : results) {
+        emit campusMessageProduced(
+            QStringLiteral("World"),
+            QString::fromStdString(result.speaker),
+            QString::fromStdString(result.message));
+    }
+}
+
 void CampusController::handleMove(const QString& locationId)
 {
     auto* session = activeSession();

@@ -194,4 +194,6 @@ void MainWindow::connectWidgetSignals()
             this, &MainWindow::privateChatRequested);
     connect(m_memberList, &MemberListWidget::viewProfileRequested,
             this, &MainWindow::profileRequested);
+    connect(m_campusTime, &CampusTimeWidget::timePeriodChanged,
+            this, &MainWindow::timePeriodChanged);
 }

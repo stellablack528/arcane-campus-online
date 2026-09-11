@@ -129,6 +129,7 @@ graph TD
     class ServerNet,ThreadPool,Router serverStyle;
     class SessionSvc,ChatSvc,MapSvc,AISvc appStyle;
     class DAO,DBPool,MySQL,Redis dbStyle;
+```
 
 ### 服务端分层 / Server Layering
 
@@ -300,7 +301,7 @@ host=127.0.0.1
 port=3306
 database=arcane_campus_online
 username=root
-password=******           ; 修改为你的 MySQL 密码
+password=******            ; 修改为你的 MySQL 密码
 character_set=utf8mb4
 client_library_path=D:/mysql-8.0.25-winx64/bin/libmysql.dll
 ```
@@ -361,8 +362,6 @@ ctest --output-on-failure
 
 ## 👤 作者 / Author
 
-
-
 CS Student · Backend & Systems Enthusiast
 
 Currently learning and experimenting with:
@@ -374,7 +373,6 @@ Currently learning and experimenting with:
 * Qt Desktop Development
 
 Mostly learning by building small projects and messing around with ideas I find interesting.
-
 
 ---
 

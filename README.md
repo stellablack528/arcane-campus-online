@@ -78,7 +78,7 @@ The platform aims to provide an immersive text-based social experience while ser
 
 ## 🏗️ 系统架构 / Architecture
 
-``````mermaid
+```mermaid
 graph TD
     %% 客户端层
     subgraph Client [🎮 Client Layer - Qt6 Desktop Application]
@@ -129,7 +129,6 @@ graph TD
     class ServerNet,ThreadPool,Router serverStyle;
     class SessionSvc,ChatSvc,MapSvc,AISvc appStyle;
     class DAO,DBPool,MySQL,Redis dbStyle;
-```
 ```
 
 ### 服务端分层 / Server Layering

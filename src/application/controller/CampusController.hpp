@@ -7,6 +7,7 @@
 #include "application/service/SessionService.hpp"
 #include "application/service/SocialService.hpp"
 #include "application/narrative/NarrativeService.hpp"
+#include "application/prologue/PrologueService.hpp"
 #include "application/world/WorldClock.hpp"
 #include "application/world/WorldEvent.hpp"
 
@@ -68,12 +69,19 @@ public slots:
     // 剧情模块入口：做出选择 / 查询风评。
     void handleMakeChoice(const QString& choiceId);
     void handleQueryReputation();
+    // 开局剧情：开始 / 处理选项。
+    void startPrologue();
+    void handlePrologueChoice(int index);
 
 signals:
     void loginAccepted(const QString& studentName, const QString& house);
     void campusMessageProduced(const QString& channel, const QString& speaker, const QString& text);
     // 富文本广播：body 原样插入 ChatEventWidget（学院色日志、剧情回馈等可信内容）。
     void richCampusMessageProduced(const QString& channel, const QString& speaker, const QString& htmlBody);
+    // 开局剧情驱动：场景 Header / 输入提示 / 选项按钮。
+    void sceneHeaderChanged(const QString& title);
+    void inputHintChanged(const QString& hint);
+    void choicesPresented(const QStringList& labels);
     void playerLocationChanged(const QString& location, const QString& state);
     void feedbackProduced(const QString& text);
     void maraudersMapRevealed(const QString& spellQuote,
@@ -96,6 +104,7 @@ private:
     std::unique_ptr<service::SocialService> socialService_;
     std::unique_ptr<service::MapService> mapService_;
     std::unique_ptr<service::NarrativeService> narrativeService_;
+    std::unique_ptr<prologue::PrologueService> prologueService_;
     std::unique_ptr<core::DeepSeekClient> deepSeekClient_;
 };
 

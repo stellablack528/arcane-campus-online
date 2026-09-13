@@ -546,3 +546,176 @@ QProgressBar#HufflepuffBar {
         stop:0 #2a2410, stop:0.55 #b89010, stop:1 #ecb939);
     border-radius: 3px;
 }
+
+/* ============================================================
+ * 左侧地点面板 — LocationPanel
+ * ============================================================ */
+
+#LocationPanel {
+    background-color: #1a201c;
+    border: 1px solid #2a342d;
+    border-radius: 6px;
+}
+
+#LocationPanel QGroupBox {
+    background-color: #1c231e;
+    border: 1px solid #2a342d;
+    border-radius: 5px;
+    margin-top: 14px;
+    padding: 6px 4px 6px 4px;
+    font-weight: 600;
+    color: #e8d5a4;
+}
+
+#LocationPanel QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 2px 8px;
+    color: #b89860;
+    font-family: Georgia, "Times New Roman";
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+#LocationPanel #SectionCaption {
+    color: #b89860;
+    font-family: Georgia, "Times New Roman";
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+#LocationPanel #CurrentLocationTitle {
+    color: #e8d5a4;
+    font-family: Georgia, "Times New Roman";
+    font-size: 22px;
+    font-weight: 700;
+    padding: 4px 0 6px 0;
+}
+
+#LocationPanel #LocationActionBtn,
+#LocationPanel #LocationMoveBtn {
+    background-color: #232c25;
+    border: 1px solid #3a483d;
+    border-radius: 4px;
+    padding: 8px 10px;
+    color: #c8d0c0;
+    font-weight: 500;
+    text-align: left;
+}
+
+#LocationPanel #LocationActionBtn:hover,
+#LocationPanel #LocationMoveBtn:hover {
+    background-color: #2c3930;
+    border-color: #6a8068;
+    color: #f0e0b8;
+}
+
+#LocationPanel #LocationActionBtn:pressed,
+#LocationPanel #LocationMoveBtn:pressed {
+    background-color: #1a221c;
+    border-color: #4a6052;
+}
+
+#LocationPanel #PeopleHereList {
+    background-color: #141814;
+    border: 1px solid #2a342d;
+    border-radius: 4px;
+    color: #c8d0c0;
+    padding: 2px;
+}
+
+#LocationPanel #PeopleHereList::item {
+    padding: 6px 8px;
+    border-radius: 3px;
+}
+
+#LocationPanel #PeopleHereList::item:hover {
+    background-color: #232c25;
+}
+
+#LocationPanel #PeopleHereList::item:selected {
+    background-color: #34463b;
+    color: #f0e0b8;
+}
+
+/* ============================================================
+ * 顶栏语言切换
+ * ============================================================ */
+
+#LanguageCombo {
+    background-color: #1c231e;
+    border: 1px solid #364239;
+    border-radius: 4px;
+    padding: 6px 10px;
+    color: #e8ece0;
+    font-weight: 500;
+}
+
+#LanguageCombo:hover {
+    border-color: #b89860;
+}
+
+#LanguageCombo::drop-down {
+    border: 0;
+    width: 22px;
+}
+
+#LanguageCombo::down-arrow {
+    image: none;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #8a948a;
+    width: 0;
+    height: 0;
+    margin-right: 6px;
+}
+
+#LanguageCombo QAbstractItemView {
+    background-color: #1c231e;
+    border: 1px solid #364239;
+    color: #d4d8cc;
+    selection-background-color: #2c3930;
+    selection-color: #f0e0b8;
+    padding: 4px;
+}
+
+/* ============================================================
+ * 场景 Header + 选项按钮栏（开局剧情）
+ * ============================================================ */
+
+#SceneHeader {
+    background-color: #1c231e;
+    border: 1px solid #3a4a3d;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #e8d5a4;
+    font-family: Georgia, "Times New Roman";
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+#ChoiceBar {
+    background: transparent;
+}
+
+#ChoiceButton {
+    background-color: #2c3930;
+    border: 1px solid #4a6052;
+    border-radius: 4px;
+    padding: 10px 16px;
+    color: #f0e0b8;
+    font-weight: 500;
+    min-height: 22px;
+}
+
+#ChoiceButton:hover {
+    background-color: #3a5040;
+    border-color: #b89860;
+    color: #fff5dc;
+}
+
+#ChoiceButton:pressed {
+    background-color: #1a221c;
+    border-color: #4a6052;
+}

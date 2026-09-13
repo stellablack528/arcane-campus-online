@@ -72,9 +72,7 @@ CREATE TABLE IF NOT EXISTS friendships (
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_friendships_friend_id
         FOREIGN KEY (friend_id) REFERENCES users(user_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT chk_friendships_not_self
-        CHECK (user_id <> friend_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS chat_messages (

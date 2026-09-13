@@ -6,8 +6,15 @@
 #include <QWidget>
 #include <vector>
 
+class QLabel;
 class QListWidget;
 class QListWidgetItem;
+
+struct ItemSeed {
+    QString id;
+    QString nameKey;
+    QString description;
+};
 
 class InventoryWidget : public QWidget
 {
@@ -17,7 +24,6 @@ public:
     explicit InventoryWidget(QWidget *parent = nullptr);
 
 public slots:
-    // Replace the whole list with items loaded from the database.
     void refreshFromDatabase(const std::vector<arcane::application::vo::InventoryItemVO> &items);
 
 signals:
@@ -27,8 +33,11 @@ signals:
 
 private:
     void buildUi();
-    void addItem(const QString &id, const QString &name, const QString &description);
+    void retranslateUi();
+    void addItem(const QString &id, const QString &nameKey, const QString &description);
     QString itemId(QListWidgetItem *item) const;
 
+    QLabel *m_titleLabel = nullptr;
     QListWidget *m_list = nullptr;
+    std::vector<ItemSeed> m_seed;
 };

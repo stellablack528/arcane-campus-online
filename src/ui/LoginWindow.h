@@ -4,6 +4,7 @@
 #include <QWidget>
 
 class QComboBox;
+class QLabel;
 class QLineEdit;
 class QPushButton;
 
@@ -23,8 +24,15 @@ private slots:
 
 private:
     void buildUi();
+    void retranslateUi();
 
     QLineEdit *m_nameEdit = nullptr;
     QComboBox *m_houseCombo = nullptr;
     QPushButton *m_loginButton = nullptr;
+    QPushButton *m_enrollButton = nullptr;
+    QLabel *m_titleLabel = nullptr;
+    QLabel *m_subtitleLabel = nullptr;
+    QLabel *m_nameLabel = nullptr;
+    QLabel *m_houseLabel = nullptr;
+    QLabel *m_hintLabel = nullptr;
 };

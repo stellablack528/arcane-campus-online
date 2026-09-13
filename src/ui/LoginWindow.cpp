@@ -1,5 +1,7 @@
 #include "ui/LoginWindow.h"
 
+#include "ui/I18n.hpp"
+
 #include <QComboBox>
 #include <QFrame>
 #include <QFont>
@@ -14,10 +16,13 @@ LoginWindow::LoginWindow(QWidget *parent)
     : QWidget(parent)
 {
     setObjectName("LoginWindow");
-    setWindowTitle("Hogwarts Online - Login");
+    setWindowTitle(QStringLiteral("Hogwarts Online - Login"));
     setMinimumSize(860, 560);
     resize(960, 620);
     buildUi();
+
+    connect(&arcane::ui::I18n::instance(), &arcane::ui::I18n::languageChanged,
+            this, [this](arcane::ui::I18n::Lang) { retranslateUi(); });
 }
 
 void LoginWindow::buildUi()
@@ -26,13 +31,13 @@ void LoginWindow::buildUi()
     rootLayout->setContentsMargins(64, 48, 64, 48);
     rootLayout->setSpacing(24);
 
-    auto *title = new QLabel("Hogwarts Online", this);
-    title->setObjectName("LoginTitle");
-    title->setAlignment(Qt::AlignCenter);
+    m_titleLabel = new QLabel(this);
+    m_titleLabel->setObjectName("LoginTitle");
+    m_titleLabel->setAlignment(Qt::AlignCenter);
 
-    auto *subtitle = new QLabel("Autumn Term - Week Three - Student Entrance", this);
-    subtitle->setObjectName("LoginSubtitle");
-    subtitle->setAlignment(Qt::AlignCenter);
+    m_subtitleLabel = new QLabel(this);
+    m_subtitleLabel->setObjectName("LoginSubtitle");
+    m_subtitleLabel->setAlignment(Qt::AlignCenter);
 
     auto *panel = new QFrame(this);
     panel->setObjectName("LoginPanel");
@@ -44,7 +49,7 @@ void LoginWindow::buildUi()
     panelLayout->setContentsMargins(44, 36, 44, 36);
     panelLayout->setSpacing(18);
 
-    auto *nameLabel = new QLabel("Student Name", panel);
+    m_nameLabel = new QLabel(panel);
     m_nameEdit = new QLineEdit(panel);
     m_nameEdit->setPlaceholderText("Julie Dumbledore");
     m_nameEdit->setText("New Student");
@@ -57,41 +62,65 @@ void LoginWindow::buildUi()
     inputFont.setPointSize(13);
     m_nameEdit->setFont(inputFont);
 
-    auto *houseLabel = new QLabel("House", panel);
+    m_houseLabel = new QLabel(panel);
     m_houseCombo = new QComboBox(panel);
-    m_houseCombo->addItems({"Ravenclaw", "Gryffindor", "Hufflepuff", "Slytherin"});
     m_houseCombo->setMinimumHeight(46);
 
-    m_loginButton = new QPushButton("Enter Campus", panel);
+    m_loginButton = new QPushButton(panel);
     m_loginButton->setObjectName("PrimaryButton");
     m_loginButton->setMinimumHeight(48);
     m_loginButton->setDefault(true);
 
-    panelLayout->addWidget(nameLabel);
+    panelLayout->addWidget(m_nameLabel);
     panelLayout->addWidget(m_nameEdit);
-    panelLayout->addWidget(houseLabel);
+    panelLayout->addWidget(m_houseLabel);
     panelLayout->addWidget(m_houseCombo);
     panelLayout->addSpacing(8);
     panelLayout->addWidget(m_loginButton);
     panelLayout->addSpacing(4);
-    auto *enrollButton = new QPushButton("New Student? Enroll Here", panel);
-    enrollButton->setObjectName("ApiKeyDialog");
-    panelLayout->addWidget(enrollButton);
+    m_enrollButton = new QPushButton(panel);
+    m_enrollButton->setObjectName("ApiKeyDialog");
+    panelLayout->addWidget(m_enrollButton);
 
-    auto *hint = new QLabel("Today: Breakfast is open in the Great Hall. First class begins at 09:00.", this);
-    hint->setObjectName("LoginHint");
-    hint->setAlignment(Qt::AlignCenter);
+    m_hintLabel = new QLabel(this);
+    m_hintLabel->setObjectName("LoginHint");
+    m_hintLabel->setAlignment(Qt::AlignCenter);
 
     rootLayout->addStretch();
-    rootLayout->addWidget(title);
-    rootLayout->addWidget(subtitle);
+    rootLayout->addWidget(m_titleLabel);
+    rootLayout->addWidget(m_subtitleLabel);
     rootLayout->addWidget(panel, 0, Qt::AlignHCenter);
-    rootLayout->addWidget(hint);
+    rootLayout->addWidget(m_hintLabel);
     rootLayout->addStretch();
+
+    retranslateUi();
 
     connect(m_loginButton, &QPushButton::clicked, this, &LoginWindow::onLoginClicked);
     connect(m_nameEdit, &QLineEdit::returnPressed, this, &LoginWindow::onLoginClicked);
-    connect(enrollButton, &QPushButton::clicked, this, &LoginWindow::newStudentRequested);
+    connect(m_enrollButton, &QPushButton::clicked, this, &LoginWindow::newStudentRequested);
+}
+
+void LoginWindow::retranslateUi()
+{
+    if (m_titleLabel)    m_titleLabel->setText(TR("login.title"));
+    if (m_subtitleLabel) m_subtitleLabel->setText(TR("login.subtitle"));
+    if (m_nameLabel)     m_nameLabel->setText(TR("login.studentname"));
+    if (m_houseLabel)    m_houseLabel->setText(TR("login.house"));
+    if (m_loginButton)   m_loginButton->setText(TR("login.enter"));
+    if (m_enrollButton)  m_enrollButton->setText(TR("login.enroll"));
+    if (m_hintLabel)     m_hintLabel->setText(TR("login.hint"));
+
+    if (m_houseCombo) {
+        const int cur = m_houseCombo->currentIndex();
+        m_houseCombo->clear();
+        m_houseCombo->addItems({
+            TR("house.ravenclaw"),
+            TR("house.gryffindor"),
+            TR("house.hufflepuff"),
+            TR("house.slytherin"),
+        });
+        if (cur >= 0 && cur < m_houseCombo->count()) m_houseCombo->setCurrentIndex(cur);
+    }
 }
 
 void LoginWindow::onLoginClicked()

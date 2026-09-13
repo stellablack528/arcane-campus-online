@@ -149,6 +149,17 @@ int main(int argc, char *argv[])
                      campusController, &arcane::application::controller::CampusController::handleQueryReputation);
     QObject::connect(campusController, &arcane::application::controller::CampusController::richCampusMessageProduced,
                      mainWindow, &MainWindow::appendRichCampusMessage);
+    // 开局剧情接线
+    QObject::connect(mainWindow, &MainWindow::startPrologueRequested,
+                     campusController, &arcane::application::controller::CampusController::startPrologue);
+    QObject::connect(mainWindow, &MainWindow::prologueChoiceSelected,
+                     campusController, &arcane::application::controller::CampusController::handlePrologueChoice);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::sceneHeaderChanged,
+                     mainWindow, &MainWindow::setSceneHeader);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::inputHintChanged,
+                     mainWindow, &MainWindow::setInputHint);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::choicesPresented,
+                     mainWindow, &MainWindow::presentChoices);
 
     QObject::connect(campusController, &arcane::application::controller::CampusController::campusMessageProduced,
                      mainWindow, &MainWindow::appendCampusMessage);

@@ -1,5 +1,7 @@
 #include "ui/widgets/HouseRankingWidget.h"
 
+#include "ui/I18n.hpp"
+
 #include <QEasingCurve>
 #include <QFont>
 #include <QHash>
@@ -31,13 +33,13 @@ const std::array<HouseMeta, 4> kHouses = {{
     {"Hufflepuff", "HufflepuffBar", "\xf0\x9f\xa6\xa1", 118},
 }};
 
-QString rankSuffix(int rank)
+QString rankKey(int rank)
 {
     switch (rank) {
-        case 1: return QStringLiteral("st");
-        case 2: return QStringLiteral("nd");
-        case 3: return QStringLiteral("rd");
-        default: return QStringLiteral("th");
+        case 1: return QStringLiteral("ranking.rank.1");
+        case 2: return QStringLiteral("ranking.rank.2");
+        case 3: return QStringLiteral("ranking.rank.3");
+        default: return QStringLiteral("ranking.rank.4");
     }
 }
 
@@ -53,6 +55,12 @@ HouseRankingWidget::HouseRankingWidget(QWidget *parent)
     }
     buildUi();
     refreshRanks();
+
+    connect(&arcane::ui::I18n::instance(), &arcane::ui::I18n::languageChanged,
+            this, [this](arcane::ui::I18n::Lang) {
+                if (m_titleLabel) m_titleLabel->setText(TR("title.housecup"));
+                refreshRanks();
+            });
 }
 
 void HouseRankingWidget::buildUi()
@@ -61,8 +69,9 @@ void HouseRankingWidget::buildUi()
     layout->setContentsMargins(14, 14, 14, 14);
     layout->setSpacing(10);
 
-    auto *title = new QLabel(QStringLiteral("House Cup \xe2\x8f\xb3"), this);
+    auto *title = new QLabel(TR("title.housecup"), this);
     title->setObjectName("PanelTitle");
+    m_titleLabel = title;
 
     auto *grid = new QGridLayout;
     grid->setContentsMargins(0, 0, 0, 0);
@@ -130,7 +139,7 @@ void HouseRankingWidget::refreshRanks()
 
     int rank = 1;
     for (const auto &house : ranked) {
-        m_rankLabels[house]->setText(QString::number(rank) + rankSuffix(rank));
+        m_rankLabels[house]->setText(TRQ(rankKey(rank)));
         m_pointsLabels[house]->setText(QString::number(m_points[house]));
         ++rank;
     }

@@ -22,6 +22,7 @@ private slots:
 
 private:
     void buildUi();
+    void retranslateUi();
 
     QLabel *m_weekdayLabel = nullptr;
     QLabel *m_timeLabel = nullptr;

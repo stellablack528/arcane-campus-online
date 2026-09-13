@@ -118,6 +118,8 @@ qt_add_executable(HogwartsOnline
     src/application/narrative/NarrativeDTO.hpp
     src/application/narrative/NarrativeService.hpp
     src/application/narrative/NarrativeService.cpp
+    src/application/prologue/PrologueService.hpp
+    src/application/prologue/PrologueService.cpp
     src/application/controller/CampusController.hpp
     src/application/controller/CampusController.cpp
     src/application/router/ClientCommandRouter.hpp
@@ -130,6 +132,8 @@ qt_add_executable(HogwartsOnline
     src/core/DeepSeekClient.cpp
     src/ui/LoginWindow.h
     src/ui/LoginWindow.cpp
+    src/ui/I18n.hpp
+    src/ui/I18n.cpp
     src/ui/ApiKeyDialog.h
     src/ui/ApiKeyDialog.cpp
     src/ui/EnrollmentDialog.h
@@ -152,6 +156,8 @@ qt_add_executable(HogwartsOnline
     src/ui/widgets/HouseRankingWidget.cpp
     src/ui/widgets/LocationActionBar.h
     src/ui/widgets/LocationActionBar.cpp
+    src/ui/widgets/LocationPanel.h
+    src/ui/widgets/LocationPanel.cpp
     src/resources/resources.qrc
 )
 

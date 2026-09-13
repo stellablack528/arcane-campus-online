@@ -141,12 +141,35 @@ CampusController::CampusController(QObject* parent)
     , inventoryService_(std::make_unique<service::InventoryService>(nullptr))
     , socialService_(std::make_unique<service::SocialService>(nullptr, nullptr))
     , narrativeService_(std::make_unique<service::NarrativeService>())
+    , prologueService_(std::make_unique<prologue::PrologueService>(this))
     , deepSeekClient_(std::make_unique<core::DeepSeekClient>(this))
 {
     connect(deepSeekClient_.get(), &core::DeepSeekClient::replyReceived,
             this, &CampusController::onAiReplyReceived);
     connect(deepSeekClient_.get(), &core::DeepSeekClient::errorOccurred,
             this, &CampusController::onAiErrorOccurred);
+
+    // 开局剧情信号 → 转发到 UI。
+    connect(prologueService_.get(), &prologue::PrologueService::narrativeProduced,
+            this, [this](const QString& html) {
+                emit richCampusMessageProduced(QStringLiteral("Prologue"),
+                                               QStringLiteral("Narrator"), html);
+            });
+    connect(prologueService_.get(), &prologue::PrologueService::sceneHeaderChanged,
+            this, &CampusController::sceneHeaderChanged);
+    connect(prologueService_.get(), &prologue::PrologueService::inputHintChanged,
+            this, &CampusController::inputHintChanged);
+    connect(prologueService_.get(), &prologue::PrologueService::choicesPresented,
+            this, &CampusController::choicesPresented);
+    connect(prologueService_.get(), &prologue::PrologueService::wandConfigured,
+            this, [this](const prologue::WandConfig& config) {
+                // 阶段2完成：记录魔杖配置，刷新背包（DB 写入留作后续）。
+                publish({true, "Wand configured: " + config.woodId.toStdString()
+                               + "/" + config.coreId.toStdString()
+                               + " " + QString::number(config.lengthInches).toStdString()
+                               + "\". Pet: " + config.petType.toStdString()});
+                handleRefreshInventory();
+            });
 }
 
 void CampusController::configureSessionService(std::shared_ptr<arcane::database::UserDAO> userDao,
@@ -400,6 +423,26 @@ void CampusController::handleQueryReputation()
     emit richCampusMessageProduced(
         QStringLiteral("Story"), QStringLiteral("Reputation"), buildReputationHtml(rep));
     publish({true, rep.message});
+}
+
+void CampusController::startPrologue()
+{
+    auto* session = activeSession();
+    if (!session) {
+        publish({false, "Enter the campus before beginning the prologue."});
+        return;
+    }
+    prologueService_->begin();
+    publish({true, "The prologue begins..."});
+}
+
+void CampusController::handlePrologueChoice(int index)
+{
+    if (!prologueService_->isActive()) {
+        publish({false, "No active prologue choice to respond to."});
+        return;
+    }
+    prologueService_->submitChoice(index);
 }
 
 void CampusController::handleMove(const QString& locationId)

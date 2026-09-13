@@ -13,7 +13,9 @@ class CourseScheduleWidget;
 class HouseRankingWidget;
 class InventoryWidget;
 class LocationActionBar;
+class LocationPanel;
 class MemberListWidget;
+class QComboBox;
 
 class MainWindow : public QMainWindow
 {
@@ -27,6 +29,8 @@ public slots:
     void appendCampusMessage(const QString &channel, const QString &speaker, const QString &text);
     void updatePlayerLocation(const QString &location, const QString &state);
     void showFeedback(const QString &text);
+    // 触发左栏"当前地点"刷新 + 此地角色列表更新。
+    void updateCurrentLocationPanel(const QString &location);
     void displayMaraudersMap(const QString &spellQuote,
                              std::uint32_t onlineCount,
                              const std::vector<arcane::application::vo::MapPlayerVO> &players);
@@ -34,6 +38,10 @@ public slots:
     void onHousePointsChanged(const QString &house, int delta, const QString &reason);
     // 富文本广播通道：body 原样插入聊天面板（学院色日志/剧情回馈）。
     void appendRichCampusMessage(const QString &channel, const QString &speaker, const QString &htmlBody);
+    // 开局剧情驱动：场景 Header / 输入提示 / 选项按钮。
+    void setSceneHeader(const QString &title);
+    void setInputHint(const QString &hint);
+    void presentChoices(const QStringList &labels);
 
 signals:
     void sendChatRequested(const QString &channel, const QString &text);
@@ -56,11 +64,15 @@ signals:
     // 剧情模块：做出选择 / 查询风评。
     void storyChoiceRequested(const QString &choiceId);
     void reputationQueryRequested();
+    // 开局剧情：开始 / 选项点击。
+    void startPrologueRequested();
+    void prologueChoiceSelected(int index);
 
 private:
     void buildMenu();
     void buildUi();
     void connectWidgetSignals();
+    void retranslateUi();
 
     MemberListWidget *m_memberList = nullptr;
     ChatEventWidget *m_chatEvents = nullptr;
@@ -70,4 +82,6 @@ private:
     CampusTimeWidget *m_campusTime = nullptr;
     HouseRankingWidget *m_houseRanking = nullptr;
     LocationActionBar *m_actionBar = nullptr;
+    LocationPanel *m_locationPanel = nullptr;
+    QComboBox *m_languageCombo = nullptr;
 };

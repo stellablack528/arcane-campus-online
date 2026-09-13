@@ -3,8 +3,18 @@
 #include <QString>
 #include <QWidget>
 
+class QLabel;
 class QListWidget;
 class QListWidgetItem;
+class QPushButton;
+
+struct CourseSeed {
+    QString id;
+    QString time;
+    QString nameKey;
+    QString statusKey;
+    QString professorId;
+};
 
 class CourseScheduleWidget : public QWidget
 {
@@ -20,13 +30,13 @@ signals:
 
 private:
     void buildUi();
-    void addCourse(const QString &id,
-                   const QString &time,
-                   const QString &name,
-                   const QString &status,
-                   const QString &professorId);
+    void retranslateUi();
     QString courseId(QListWidgetItem *item) const;
     QString professorId(QListWidgetItem *item) const;
 
+    QLabel *m_titleLabel = nullptr;
     QListWidget *m_list = nullptr;
+    QPushButton *m_goButton = nullptr;
+    QPushButton *m_detailButton = nullptr;
+    QList<CourseSeed> m_seed;
 };

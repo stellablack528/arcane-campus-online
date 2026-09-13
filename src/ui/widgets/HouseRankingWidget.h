@@ -28,6 +28,7 @@ private:
     static constexpr int kMaxBar = 300;
 
     QStringList m_houseOrder;                  // 固定展示顺序
+    QLabel *m_titleLabel = nullptr;
     QHash<QString, QProgressBar*> m_bars;       // 学院 → 积分条
     QHash<QString, QLabel*> m_rankLabels;       // 学院 → 名次徽章
     QHash<QString, QLabel*> m_pointsLabels;     // 学院 → 分数

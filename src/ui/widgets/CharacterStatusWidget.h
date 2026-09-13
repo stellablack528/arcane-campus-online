@@ -18,7 +18,18 @@ public slots:
 
 private:
     void buildUi();
+    void retranslateUi();
     QLabel *createValue(const QString &text);
+
+    QLabel *m_titleLabel = nullptr;
+    QLabel *m_nameLabel = nullptr;
+    QLabel *m_houseLabel = nullptr;
+    QLabel *m_yearLabel = nullptr;
+    QLabel *m_locationLabel = nullptr;
+    QLabel *m_galleonLabel = nullptr;
+    QLabel *m_pointsLabel = nullptr;
+    QLabel *m_stateLabel = nullptr;
+    QLabel *m_courseLabel = nullptr;
 
     QLabel *m_nameValue = nullptr;
     QLabel *m_houseValue = nullptr;

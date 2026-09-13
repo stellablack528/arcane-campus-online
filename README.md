@@ -78,34 +78,57 @@ The platform aims to provide an immersive text-based social experience while ser
 
 ## 🏗️ 系统架构 / Architecture
 
-```
-                  Qt6 Desktop Client
-              (Widgets + QSS + Signals/Slots)
-                          │
-                Qt Signal/Slot (in-process)
-                          │
-                CampusController
-                (16 slots / 6 signals)
-                          │
-        ┌─────────────────┼─────────────────┐
-        │                 │                 │
-   SessionService    ChatService      InventoryService
-   CampusService     MapService       QuestService
-   SocialService
-        │                 │                 │
-        └─────────────────┼─────────────────┘
-                          │
-              DAO 层 (shared_ptr<DBConnection>)
-        ┌────────┬────────┬────────┬────────┐
-        │        │        │        │        │
-     UserDAO  ItemDAO  QuestDAO  RoomDAO  FriendDAO
-   CharacterDAO InventoryDAO LocationDAO MessageDAO
-                          │
-                   DBConnectionPool
-                          │
-                  MySqlDatabaseDriver
-                          │
-                       MySQL
+```mermaid
+graph TD
+    %% 客户端层
+    subgraph Client ["🎮 Client Layer - Qt6 Desktop Application"]
+        UI["Qt6 Widgets / Dark QSS Theme"]
+        Controller["CampusController / Signals & Slots Hub"]
+        ClientNet["Qt TCP Client Socket Manager"]
+
+        UI <--> Controller
+        Controller <--> ClientNet
+    end
+
+    %% TCP 网络通信层
+    ClientNet <-->|"TCP Binary/JSON Protocol (Length-Header + Body)"| ServerNet
+
+    %% Linux 高并发服务端
+    subgraph LinuxServer ["🏰 Linux C++ High-Performance Server System"]
+        ServerNet["Epoll Reactor Network Layer (Non-blocking I/O)"]
+        ThreadPool["Producer-Consumer Thread Pool"]
+        Router["ClientCommandRouter / Message Dispatcher"]
+
+        ServerNet --> ThreadPool
+        ThreadPool --> Router
+    end
+
+    %% 业务逻辑层
+    subgraph BusinessLayer ["⚙️ Business Services Layer"]
+        Router --> SessionSvc["SessionService"]
+        Router --> ChatSvc["ChatService"]
+        Router --> MapSvc["MapService / Marauder's Map"]
+        Router --> AISvc["DeepSeek AI Integration"]
+    end
+
+    %% 数据持久化层
+    subgraph DataLayer ["🗄️ Persistence & Storage Layer"]
+        SessionSvc & ChatSvc & MapSvc --> DAO["DAO Pattern Abstraction"]
+        DAO --> DBPool["DBConnectionPool RAII"]
+        DBPool --> MySQL[(MySQL 8.0 Database)]
+        DAO -. Planned .-> Redis[(Redis Session & Cache)]
+    end
+
+    %% 样式美化
+    classDef clientStyle fill:#1e222a,stroke:#61afef,stroke-width:2px,color:#abb2bf;
+    classDef serverStyle fill:#21252b,stroke:#98c379,stroke-width:2px,color:#abb2bf;
+    classDef appStyle fill:#2c313a,stroke:#e5c07b,stroke-width:2px,color:#abb2bf;
+    classDef dbStyle fill:#1b1d23,stroke:#c678dd,stroke-width:2px,color:#abb2bf;
+
+    class UI,Controller,ClientNet clientStyle;
+    class ServerNet,ThreadPool,Router serverStyle;
+    class SessionSvc,ChatSvc,MapSvc,AISvc appStyle;
+    class DAO,DBPool,MySQL,Redis dbStyle;
 ```
 
 ### 服务端分层 / Server Layering
@@ -278,7 +301,7 @@ host=127.0.0.1
 port=3306
 database=arcane_campus_online
 username=root
-password=******           ; 修改为你的 MySQL 密码
+password=******            ; 修改为你的 MySQL 密码
 character_set=utf8mb4
 client_library_path=D:/mysql-8.0.25-winx64/bin/libmysql.dll
 ```
@@ -339,8 +362,6 @@ ctest --output-on-failure
 
 ## 👤 作者 / Author
 
-
-
 CS Student · Backend & Systems Enthusiast
 
 Currently learning and experimenting with:
@@ -352,7 +373,6 @@ Currently learning and experimenting with:
 * Qt Desktop Development
 
 Mostly learning by building small projects and messing around with ideas I find interesting.
-
 
 ---
 

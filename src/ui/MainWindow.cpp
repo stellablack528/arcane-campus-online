@@ -85,6 +85,11 @@ void MainWindow::refreshInventory(const std::vector<arcane::application::vo::Inv
     m_inventory->refreshFromDatabase(items);
 }
 
+void MainWindow::onHousePointsChanged(const QString &house, int delta, const QString &reason)
+{
+    m_houseRanking->onHousePointsChanged(house, delta, reason);
+}
+
 void MainWindow::buildMenu()
 {
     auto *roleMenu = menuBar()->addMenu("Character");
@@ -94,6 +99,8 @@ void MainWindow::buildMenu()
     auto *campusMenu = menuBar()->addMenu("Campus");
     auto *mapAction = campusMenu->addAction("Marauder's Map");
     connect(mapAction, &QAction::triggered, this, [this] { emit useMaraudersMapRequested(0); });
+    auto *nightPatrolAction = campusMenu->addAction("Night Patrol (Solo)");
+    connect(nightPatrolAction, &QAction::triggered, this, [this] { emit nightPatrolRequested({}); });
     campusMenu->addAction("Courses");
     campusMenu->addAction("Activities");
 

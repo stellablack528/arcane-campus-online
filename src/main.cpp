@@ -130,6 +130,10 @@ int main(int argc, char *argv[])
                      campusController, &arcane::application::controller::CampusController::handleRefreshInventory);
     QObject::connect(mainWindow, &MainWindow::timePeriodChanged,
                      campusController, &arcane::application::controller::CampusController::onTimePeriodChanged);
+    QObject::connect(mainWindow, &MainWindow::nightPatrolRequested,
+                     campusController, &arcane::application::controller::CampusController::handleStartNightPatrol);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::housePointsChanged,
+                     mainWindow, &MainWindow::onHousePointsChanged);
 
     QObject::connect(campusController, &arcane::application::controller::CampusController::campusMessageProduced,
                      mainWindow, &MainWindow::appendCampusMessage);

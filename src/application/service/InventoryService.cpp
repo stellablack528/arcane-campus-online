@@ -126,4 +126,23 @@ std::string InventoryService::resolveItemName(const std::string& itemId) const
     return iterator == fallbackItemNames.end() ? std::string{} : iterator->second;
 }
 
+bool InventoryService::hasItemByName(std::uint64_t characterId, const std::string& itemName) const
+{
+    if (!inventoryDao_ || characterId == 0 || itemName.empty()) {
+        return false;
+    }
+    // Walk the character's inventory and resolve each item definition to check the name.
+    const auto slots = inventoryDao_->getInventoryByCharacter(characterId);
+    for (const auto& slot : slots) {
+        if (slot.quantity == 0) {
+            continue;
+        }
+        const auto item = inventoryDao_->getItemById(slot.itemId);
+        if (item && item->itemName == itemName) {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace arcane::application::service

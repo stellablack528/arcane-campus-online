@@ -56,6 +56,8 @@ public slots:
     void onAiReplyReceived(const QString& channel, const QString& speaker, const QString& text);
     void onAiErrorOccurred(const QString& message);
     void onTimePeriodChanged(int period);
+    // 夜游入口：targetId 为空表示独自夜游，非空表示邀请 NPC 或玩家朋友。
+    void handleStartNightPatrol(const QString& targetId);
 
 signals:
     void loginAccepted(const QString& studentName, const QString& house);
@@ -66,10 +68,14 @@ signals:
                               std::uint32_t onlineCount,
                               const std::vector<arcane::application::vo::MapPlayerVO>& players);
     void inventoryRefreshed(const std::vector<arcane::application::vo::InventoryItemVO>& items);
+    // 学院积分变化（delta 正=加分，负=扣分）。
+    void housePointsChanged(const QString& house, int delta, const QString& reason);
 
 private:
     [[nodiscard]] do_model::PlayerSessionDO* activeSession();
     void publish(const vo::OperationResultVO& result);
+    // 统一的学院积分变化出口：emit housePointsChanged 信号。
+    void applyHousePointsChange(const std::string& house, int delta, const std::string& reason);
 
     std::unique_ptr<service::SessionService> sessionService_;
     std::unique_ptr<service::CampusService> campusService_;

@@ -31,6 +31,7 @@ public slots:
                              std::uint32_t onlineCount,
                              const std::vector<arcane::application::vo::MapPlayerVO> &players);
     void refreshInventory(const std::vector<arcane::application::vo::InventoryItemVO> &items);
+    void onHousePointsChanged(const QString &house, int delta, const QString &reason);
 
 signals:
     void sendChatRequested(const QString &channel, const QString &text);
@@ -49,6 +50,7 @@ signals:
     void useMaraudersMapRequested(std::uint64_t roomId);
     void refreshInventoryRequested();
     void timePeriodChanged(int period);
+    void nightPatrolRequested(const QString &targetId);
 
 private:
     void buildMenu();

@@ -13,6 +13,12 @@ TimePeriod WorldClock::periodFromHour(int hour)
     return TimePeriod::Night;   // 21:00-24:00
 }
 
+bool WorldClock::isCurfew(int hour)
+{
+    // 23:00-23:59 或 00:00-05:59
+    return hour >= 23 || hour < 6;
+}
+
 std::string WorldClock::displayName(TimePeriod period)
 {
     switch (period) {

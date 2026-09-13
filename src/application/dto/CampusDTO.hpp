@@ -46,4 +46,9 @@ struct InventoryListRequestDTO {
     std::uint64_t characterId = 0;
 };
 
+// 夜游请求：可邀请 NPC 或玩家朋友（targetId 为空表示独自夜游）。
+struct NightPatrolRequestDTO {
+    std::string targetId;
+};
+
 } // namespace arcane::application::dto

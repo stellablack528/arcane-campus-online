@@ -73,6 +73,16 @@ vo::OperationResultVO CampusService::moveTo(do_model::PlayerSessionDO& session,
     return {true, "You arrived at " + session.currentLocation + "."};
 }
 
+bool CampusService::checkRoomRestricted(const std::string& locationId) const
+{
+    if (!roomDao_) {
+        return false;
+    }
+    const auto roomName = locationIdToRoomName(locationId);
+    const auto room = roomDao_->getRoomByName(roomName);
+    return room.has_value() && room->isRestricted;
+}
+
 vo::OperationResultVO CampusService::joinCourse(do_model::PlayerSessionDO& session,
                                                  const dto::CourseActionRequestDTO& request) const
 {

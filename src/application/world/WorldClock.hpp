@@ -24,6 +24,10 @@ public:
     // 从 24 小时制的 hour（0-23）计算 TimePeriod。
     [[nodiscard]] static TimePeriod periodFromHour(int hour);
 
+    // 宵禁判定：23:00-06:00 之间为宵禁时段（独立于 TimePeriod 枚举，
+    // 因为现有时段把 21:00-24:00 整体划为 Night，而宵禁只从 23:00 起）。
+    [[nodiscard]] static bool isCurfew(int hour);
+
     // 人类可读的时段名称（如 "Morning Classes"）。
     [[nodiscard]] static std::string displayName(TimePeriod period);
 

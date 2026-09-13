@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS rooms (
     room_type VARCHAR(48) NOT NULL,
     description TEXT NOT NULL,
     max_players INT UNSIGNED NOT NULL DEFAULT 100,
+    is_restricted BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (room_id),
     UNIQUE KEY uk_rooms_room_name (room_name),
     KEY idx_rooms_room_type (room_type)

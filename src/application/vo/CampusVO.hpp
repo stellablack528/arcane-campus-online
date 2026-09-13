@@ -81,4 +81,11 @@ struct InventoryListVO {
     std::vector<InventoryItemVO> items;
 };
 
+// 学院积分变化事件（用于 HouseRankingWidget 显示"攒了多少分/丢了多少分"）。
+struct HousePointsChangeVO {
+    std::string house;         // 学院名（Gryffindor / Slytherin / Hufflepuff / Ravenclaw）
+    std::int32_t delta = 0;    // 分数变化（正=加分，负=扣分）
+    std::string reason;        // 变化原因（如 "Curfew violation at Forbidden Forest"）
+};
+
 } // namespace arcane::application::vo

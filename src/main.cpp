@@ -5,6 +5,7 @@
 
 #include "ui/LoginWindow.h"
 #include "ui/MainWindow.h"
+#include "ui/EnrollmentDialog.h"
 #include "application/controller/CampusController.hpp"
 
 #include "DBConnection.hpp"
@@ -79,7 +80,7 @@ int main(int argc, char *argv[])
         auto npcDao = std::make_shared<arcane::database::NPCDAO>(connection);
         auto friendDao = std::make_shared<arcane::database::FriendDAO>(connection);
 
-        campusController->configureSessionService(userDao, characterDao);
+        campusController->configureSessionService(userDao, characterDao, inventoryDao);
         campusController->configureChatService(messageDao);
         campusController->configureInventoryService(inventoryDao);
         campusController->configureMapService(inventoryDao, locationDao);
@@ -89,6 +90,13 @@ int main(int argc, char *argv[])
 
     QObject::connect(loginWindow, &LoginWindow::loginRequested,
                      campusController, &arcane::application::controller::CampusController::handleLogin);
+    QObject::connect(loginWindow, &LoginWindow::newStudentRequested,
+                     campusController, [loginWindow, campusController]() {
+        EnrollmentDialog dialog(loginWindow);
+        if (dialog.exec() == QDialog::Accepted) {
+            campusController->handleEnrollment(dialog.buildRequest());
+        }
+    });
     QObject::connect(campusController, &arcane::application::controller::CampusController::loginAccepted,
                      mainWindow, [loginWindow, mainWindow](const QString &studentName,
                                                            const QString &houseName) {

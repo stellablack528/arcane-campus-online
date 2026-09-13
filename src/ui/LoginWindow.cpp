@@ -73,6 +73,10 @@ void LoginWindow::buildUi()
     panelLayout->addWidget(m_houseCombo);
     panelLayout->addSpacing(8);
     panelLayout->addWidget(m_loginButton);
+    panelLayout->addSpacing(4);
+    auto *enrollButton = new QPushButton("New Student? Enroll Here", panel);
+    enrollButton->setObjectName("ApiKeyDialog");
+    panelLayout->addWidget(enrollButton);
 
     auto *hint = new QLabel("Today: Breakfast is open in the Great Hall. First class begins at 09:00.", this);
     hint->setObjectName("LoginHint");
@@ -87,6 +91,7 @@ void LoginWindow::buildUi()
 
     connect(m_loginButton, &QPushButton::clicked, this, &LoginWindow::onLoginClicked);
     connect(m_nameEdit, &QLineEdit::returnPressed, this, &LoginWindow::onLoginClicked);
+    connect(enrollButton, &QPushButton::clicked, this, &LoginWindow::newStudentRequested);
 }
 
 void LoginWindow::onLoginClicked()

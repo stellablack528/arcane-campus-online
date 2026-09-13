@@ -127,6 +127,8 @@ qt_add_executable(HogwartsOnline
     src/ui/LoginWindow.cpp
     src/ui/ApiKeyDialog.h
     src/ui/ApiKeyDialog.cpp
+    src/ui/EnrollmentDialog.h
+    src/ui/EnrollmentDialog.cpp
     src/ui/MainWindow.h
     src/ui/MainWindow.cpp
     src/ui/widgets/MemberListWidget.h

@@ -16,6 +16,7 @@ public:
 
 signals:
     void loginRequested(const QString &studentName, const QString &houseName);
+    void newStudentRequested();
 
 private slots:
     void onLoginClicked();

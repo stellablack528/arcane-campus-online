@@ -26,7 +26,8 @@ public:
 
     // Inject the database-backed DAOs. Safe to call with nullptr to run in demo mode.
     void configureSessionService(std::shared_ptr<arcane::database::UserDAO> userDao,
-                                 std::shared_ptr<arcane::database::CharacterDAO> characterDao);
+                                 std::shared_ptr<arcane::database::CharacterDAO> characterDao,
+                                 std::shared_ptr<arcane::database::InventoryDAO> inventoryDao);
     void configureChatService(std::shared_ptr<arcane::database::MessageDAO> messageDao);
     void configureInventoryService(std::shared_ptr<arcane::database::InventoryDAO> inventoryDao);
     void configureMapService(std::shared_ptr<arcane::database::InventoryDAO> inventoryDao,
@@ -35,6 +36,8 @@ public:
                                 std::shared_ptr<arcane::database::NPCDAO> npcDao);
     void configureSocialService(std::shared_ptr<arcane::database::FriendDAO> friendDao,
                                 std::shared_ptr<arcane::database::CharacterDAO> characterDao);
+    // 入学注册：从 EnrollmentDialog 获取请求后直接调用（非信号槽驱动）。
+    void handleEnrollment(const dto::EnrollmentRequestDTO& request);
 
 public slots:
     void handleLogin(const QString& studentName, const QString& house);

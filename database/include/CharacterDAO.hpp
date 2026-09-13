@@ -19,6 +19,10 @@ struct CharacterRecord {
     std::uint64_t gold = 0;
     std::uint64_t currentRoomId = 0;
     std::string title;
+    std::string gender;
+    std::string hairColor;
+    std::string eyeColor;
+    std::string bloodStatus;
     std::string createTime;
 };
 

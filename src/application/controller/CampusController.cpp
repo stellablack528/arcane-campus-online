@@ -34,7 +34,7 @@ NpcPersona npcForChannel(const std::string& channel)
 
 CampusController::CampusController(QObject* parent)
     : QObject(parent)
-    , sessionService_(std::make_unique<service::SessionService>(nullptr, nullptr))
+    , sessionService_(std::make_unique<service::SessionService>(nullptr, nullptr, nullptr))
     , campusService_(std::make_unique<service::CampusService>(nullptr, nullptr))
     , chatService_(std::make_unique<service::ChatService>(nullptr))
     , inventoryService_(std::make_unique<service::InventoryService>(nullptr))
@@ -48,10 +48,27 @@ CampusController::CampusController(QObject* parent)
 }
 
 void CampusController::configureSessionService(std::shared_ptr<arcane::database::UserDAO> userDao,
-                                               std::shared_ptr<arcane::database::CharacterDAO> characterDao)
+                                               std::shared_ptr<arcane::database::CharacterDAO> characterDao,
+                                               std::shared_ptr<arcane::database::InventoryDAO> inventoryDao)
 {
     sessionService_ = std::make_unique<service::SessionService>(std::move(userDao),
-                                                                 std::move(characterDao));
+                                                                 std::move(characterDao),
+                                                                 std::move(inventoryDao));
+}
+
+void CampusController::handleEnrollment(const dto::EnrollmentRequestDTO& request)
+{
+    const auto result = sessionService_->registerStudent(request);
+    if (!result.success) {
+        publish({false, result.message});
+        return;
+    }
+    emit loginAccepted(QString::fromStdString(result.studentName),
+                        QString::fromStdString(result.house));
+    emit playerLocationChanged(QString::fromStdString(result.location),
+                                QStringLiteral("Breakfast"));
+    emit campusMessageProduced(QStringLiteral("System"), QStringLiteral("Campus Notice"),
+                               QString::fromStdString(result.message));
 }
 
 void CampusController::configureChatService(std::shared_ptr<arcane::database::MessageDAO> messageDao)

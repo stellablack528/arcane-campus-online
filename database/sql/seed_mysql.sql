@@ -71,7 +71,11 @@ VALUES
     (4, 'Potion', 'consumable', 'A small bottle of shimmering potion.', TRUE),
     (5, 'Quill', 'tool', 'Useful for class notes and letters.', FALSE),
     (6, 'Galleon Pouch', 'currency', 'A small pouch used to carry wizarding currency.', FALSE),
-    (7, 'Marauder''s Map', 'tool', 'A magical map that reveals everyone within the castle grounds.', FALSE)
+    (7, 'Marauder''s Map', 'tool', 'A magical map that reveals everyone within the castle grounds.', FALSE),
+    (8, 'Owl', 'pet', 'A loyal feathered companion for mail delivery and nighttime company.', FALSE),
+    (9, 'Cat', 'pet', 'A feline familiar with keen senses and independent charm.', FALSE),
+    (10, 'Toad', 'pet', 'A humble amphibian companion, favored by traditionalists.', FALSE),
+    (11, 'School Robe', 'equipment', 'Standard Hogwarts robes in your house colors.', FALSE)
 ON DUPLICATE KEY UPDATE
     item_type = VALUES(item_type),
     description = VALUES(description),

@@ -21,7 +21,7 @@ namespace Hogwarts
     class TcpConnection
     {
     public:
-        explicit TcpConnection(int fd);
+        explicit TcpConnection(int fd);//禁止隐式类型转换
 
         ~TcpConnection();
 
@@ -43,6 +43,7 @@ namespace Hogwarts
         // 设置错误回调
         void setErrorCallback(std::function<void(const std::string&)> callback);
 
+        int fd() const;//转发/访问接口
     private:
         // 从读缓冲区中按 \n 拆分完整消息并回调
         void processMessages();

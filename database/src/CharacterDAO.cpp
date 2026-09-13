@@ -13,8 +13,10 @@ CharacterDAO::CharacterDAO(std::shared_ptr<DBConnection> connection) noexcept
 bool CharacterDAO::createCharacter(const CharacterRecord& character)
 {
     return connection_->execute(
-        "INSERT INTO characters (user_id, nickname, house, level, experience, gold, current_room_id, title) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO characters "
+        "(user_id, nickname, house, level, experience, gold, current_room_id, title, "
+        "gender, hair_color, eye_color, blood_status) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         {std::to_string(character.userId),
          character.nickname,
          character.house,
@@ -22,7 +24,11 @@ bool CharacterDAO::createCharacter(const CharacterRecord& character)
          std::to_string(character.experience),
          std::to_string(character.gold),
          std::to_string(character.currentRoomId),
-         character.title});
+         character.title,
+         character.gender,
+         character.hairColor,
+         character.eyeColor,
+         character.bloodStatus});
 }
 
 std::optional<CharacterRecord> CharacterDAO::getCharacterById(std::uint64_t characterId) const
@@ -34,11 +40,18 @@ std::optional<CharacterRecord> CharacterDAO::getCharacterById(std::uint64_t char
     }
     const auto& row = result->rows.front();
     return CharacterRecord{detail::integer<std::uint64_t>(row, "character_id"),
-                           detail::integer<std::uint64_t>(row, "user_id"), detail::value(row, "nickname"),
-                           detail::value(row, "house"), detail::integer<std::uint32_t>(row, "level"),
+                           detail::integer<std::uint64_t>(row, "user_id"),
+                           detail::value(row, "nickname"),
+                           detail::value(row, "house"),
+                           detail::integer<std::uint32_t>(row, "level"),
                            detail::integer<std::uint64_t>(row, "experience"),
                            detail::integer<std::uint64_t>(row, "gold"),
-                           detail::integer<std::uint64_t>(row, "current_room_id"), detail::value(row, "title"),
+                           detail::integer<std::uint64_t>(row, "current_room_id"),
+                           detail::value(row, "title"),
+                           detail::value(row, "gender"),
+                           detail::value(row, "hair_color"),
+                           detail::value(row, "eye_color"),
+                           detail::value(row, "blood_status"),
                            detail::value(row, "create_time")};
 }
 
@@ -51,11 +64,18 @@ std::optional<CharacterRecord> CharacterDAO::getCharacterByUserId(std::uint64_t 
     }
     const auto& row = result->rows.front();
     return CharacterRecord{detail::integer<std::uint64_t>(row, "character_id"),
-                           detail::integer<std::uint64_t>(row, "user_id"), detail::value(row, "nickname"),
-                           detail::value(row, "house"), detail::integer<std::uint32_t>(row, "level"),
+                           detail::integer<std::uint64_t>(row, "user_id"),
+                           detail::value(row, "nickname"),
+                           detail::value(row, "house"),
+                           detail::integer<std::uint32_t>(row, "level"),
                            detail::integer<std::uint64_t>(row, "experience"),
                            detail::integer<std::uint64_t>(row, "gold"),
-                           detail::integer<std::uint64_t>(row, "current_room_id"), detail::value(row, "title"),
+                           detail::integer<std::uint64_t>(row, "current_room_id"),
+                           detail::value(row, "title"),
+                           detail::value(row, "gender"),
+                           detail::value(row, "hair_color"),
+                           detail::value(row, "eye_color"),
+                           detail::value(row, "blood_status"),
                            detail::value(row, "create_time")};
 }
 

@@ -1,0 +1,418 @@
+{
+  "title": "Arcane Campus Online - Wand Customization Data",
+  "version": "1.0",
+  "canon_scope": {
+    "source_policy": "Official Wizarding World / HarryPotter.com material only for canon fields",
+    "note": "Wood, core and general length/flexibility information are canon-based. Handle appearance, finish, engraving, decorative materials and player-entered naming are game-original customization fields."
+  },
+  "player_fields": {
+    "wand_name": {
+      "type": "string",
+      "required": false,
+      "max_length": 32,
+      "description": "Player-defined wand name"
+    },
+    "wood": {
+      "type": "enum",
+      "required": true,
+      "description": "Wand wood; official Ollivander wand woods"
+    },
+    "core": {
+      "type": "enum",
+      "required": true,
+      "description": "Core; Hogwarts/Ollivander default set"
+    },
+    "length_inches": {
+      "type": "number",
+      "required": true,
+      "min": 9.0,
+      "max": 14.0,
+      "step": 0.25,
+      "unit": "inch",
+      "description": "Recommended player-choice range based on the official statement that most wands are 9–14 inches. The 0.25-inch step is a game UI choice, not a canon requirement."
+    },
+    "flexibility": {
+      "type": "enum",
+      "required": true,
+      "description": "Flexibility descriptor. The official material treats flexibility as a wand characteristic but does not present one short exhaustive public enum; the presets below are observed on official wand pages."
+    },
+    "handle_style": {
+      "type": "enum",
+      "required": true,
+      "canon_status": "game_original",
+      "description": "Visual handle/grip style"
+    },
+    "finish": {
+      "type": "enum",
+      "required": false,
+      "canon_status": "game_original",
+      "description": "Surface finish / color treatment"
+    },
+    "engraving": {
+      "type": "string",
+      "required": false,
+      "max_length": 24,
+      "canon_status": "game_original",
+      "description": "Optional engraving or maker mark"
+    },
+    "description": {
+      "type": "string",
+      "required": false,
+      "max_length": 160,
+      "canon_status": "game_original",
+      "description": "Player's short description of the wand"
+    }
+  },
+  "official_wood_options": [
+    {
+      "id": "acacia",
+      "name_en": "Acacia",
+      "name_zh": "金合欢木",
+      "traits": "Tricky; selective; subtle magic"
+    },
+    {
+      "id": "alder",
+      "name_en": "Alder",
+      "name_zh": "桤木",
+      "traits": "Helpful; considerate; excellent for non-verbal magic"
+    },
+    {
+      "id": "apple",
+      "name_en": "Apple",
+      "name_zh": "苹果木",
+      "traits": "Powerful; high aims; poor fit with Dark magic"
+    },
+    {
+      "id": "ash",
+      "name_en": "Ash",
+      "name_zh": "白蜡木",
+      "traits": "Loyal to one true master; steadfast"
+    },
+    {
+      "id": "aspen",
+      "name_en": "Aspen",
+      "name_zh": "白杨木",
+      "traits": "Excellent charmwork; duelling; determined"
+    },
+    {
+      "id": "beech",
+      "name_en": "Beech",
+      "name_zh": "山毛榉木",
+      "traits": "Wisdom; understanding; subtle artistry"
+    },
+    {
+      "id": "blackthorn",
+      "name_en": "Blackthorn",
+      "name_zh": "黑刺李木",
+      "traits": "Warrior; hardened by hardship; loyal"
+    },
+    {
+      "id": "black_walnut",
+      "name_en": "Black Walnut",
+      "name_zh": "黑胡桃木",
+      "traits": "Insight; invention; strong charmwork"
+    },
+    {
+      "id": "cedar",
+      "name_en": "Cedar",
+      "name_zh": "雪松木",
+      "traits": "Strength of character; loyalty; perception"
+    },
+    {
+      "id": "cherry",
+      "name_en": "Cherry",
+      "name_zh": "樱桃木",
+      "traits": "Rare; powerful; especially prestigious"
+    },
+    {
+      "id": "chestnut",
+      "name_en": "Chestnut",
+      "name_zh": "栗木",
+      "traits": "Multi-faceted; magical creatures; Herbology; flying"
+    },
+    {
+      "id": "cypress",
+      "name_en": "Cypress",
+      "name_zh": "柏木",
+      "traits": "Nobility; bravery; self-sacrifice"
+    },
+    {
+      "id": "dogwood",
+      "name_en": "Dogwood",
+      "name_zh": "山茱萸木",
+      "traits": "Quirky; playful; clever; dramatic effects"
+    },
+    {
+      "id": "ebony",
+      "name_en": "Ebony",
+      "name_zh": "乌木",
+      "traits": "Combative magic; Transfiguration; individuality"
+    },
+    {
+      "id": "elder",
+      "name_en": "Elder",
+      "name_zh": "接骨木",
+      "traits": "Rarest; difficult to master; extraordinary destiny"
+    },
+    {
+      "id": "elm",
+      "name_en": "Elm",
+      "name_zh": "榆木",
+      "traits": "Dignity; dexterity; elegant, advanced magic"
+    },
+    {
+      "id": "english_oak",
+      "name_en": "English Oak",
+      "name_zh": "英国橡木",
+      "traits": "Loyalty; strength; courage; natural magic"
+    },
+    {
+      "id": "fir",
+      "name_en": "Fir",
+      "name_zh": "冷杉木",
+      "traits": "Staying power; strong purpose; Transfiguration"
+    },
+    {
+      "id": "hawthorn",
+      "name_en": "Hawthorn",
+      "name_zh": "山楂木",
+      "traits": "Complex; healing and curses; may backfire if mishandled"
+    },
+    {
+      "id": "hazel",
+      "name_en": "Hazel",
+      "name_zh": "榛木",
+      "traits": "Emotion-sensitive; devoted; strong magic"
+    },
+    {
+      "id": "holly",
+      "name_en": "Holly",
+      "name_zh": "冬青木",
+      "traits": "Protective; dangerous quests; volatile pairings"
+    },
+    {
+      "id": "hornbeam",
+      "name_en": "Hornbeam",
+      "name_zh": "鹅耳枥木",
+      "traits": "Talented; vision/obsession; highly personalised"
+    },
+    {
+      "id": "larch",
+      "name_en": "Larch",
+      "name_zh": "落叶松木",
+      "traits": "Courage; confidence; hidden talents"
+    },
+    {
+      "id": "laurel",
+      "name_en": "Laurel",
+      "name_zh": "月桂木",
+      "traits": "Glory; honours first match; dislikes laziness"
+    },
+    {
+      "id": "maple",
+      "name_en": "Maple",
+      "name_zh": "枫木",
+      "traits": "Travel; ambition; high achievers"
+    },
+    {
+      "id": "pear",
+      "name_en": "Pear",
+      "name_zh": "梨木",
+      "traits": "Warm-hearted; generous; wise; resilient"
+    },
+    {
+      "id": "pine",
+      "name_en": "Pine",
+      "name_zh": "松木",
+      "traits": "Independent; creative; non-verbal magic"
+    },
+    {
+      "id": "poplar",
+      "name_en": "Poplar",
+      "name_zh": "白杨树木",
+      "traits": "Integrity; consistency; clear moral vision"
+    },
+    {
+      "id": "red_oak",
+      "name_en": "Red Oak",
+      "name_zh": "红橡木",
+      "traits": "Fast reactions; duelling; adaptable"
+    },
+    {
+      "id": "redwood",
+      "name_en": "Redwood",
+      "name_zh": "红杉木",
+      "traits": "Good fortune; adaptability; resilience"
+    },
+    {
+      "id": "rowan",
+      "name_en": "Rowan",
+      "name_zh": "花楸木",
+      "traits": "Protective; defensive magic; duelling"
+    },
+    {
+      "id": "silver_lime",
+      "name_en": "Silver Lime",
+      "name_zh": "银椴木",
+      "traits": "Seers; Legilimency; rare and attractive"
+    },
+    {
+      "id": "spruce",
+      "name_en": "Spruce",
+      "name_zh": "云杉木",
+      "traits": "Bold spell-caster; flamboyant effects"
+    },
+    {
+      "id": "sycamore",
+      "name_en": "Sycamore",
+      "name_zh": "悬铃木",
+      "traits": "Questing; curious; adaptable"
+    },
+    {
+      "id": "vine",
+      "name_en": "Vine",
+      "name_zh": "葡萄藤木",
+      "traits": "Greater purpose; hidden depths; sensitive matching"
+    },
+    {
+      "id": "walnut",
+      "name_en": "Walnut",
+      "name_zh": "胡桃木",
+      "traits": "Intelligence; invention; versatility"
+    },
+    {
+      "id": "willow",
+      "name_en": "Willow",
+      "name_zh": "柳木",
+      "traits": "Healing; potential; advanced non-verbal magic"
+    },
+    {
+      "id": "yew",
+      "name_en": "Yew",
+      "name_zh": "紫杉木",
+      "traits": "Rare; life/death symbolism; duelling and curses"
+    }
+  ],
+  "official_ollivander_core_options": [
+    {
+      "id": "unicorn_hair",
+      "name_en": "Unicorn Hair",
+      "name_zh": "独角兽毛",
+      "traits": "Most consistent; faithful; generally hardest to turn to Dark Arts",
+      "game_design_hint": "Stability / control"
+    },
+    {
+      "id": "dragon_heartstring",
+      "name_en": "Dragon Heartstring",
+      "name_zh": "龙心弦",
+      "traits": "Generally most powerful; learns quickly; flamboyant magic; more temperamental",
+      "game_design_hint": "Power / volatility"
+    },
+    {
+      "id": "phoenix_feather",
+      "name_en": "Phoenix Feather",
+      "name_zh": "凤凰羽毛",
+      "traits": "Rarest of the three; greatest range of magic; selective; strong initiative",
+      "game_design_hint": "Versatility / rarity"
+    }
+  ],
+  "other_canonical_core_note": {
+    "status": "official_but_not_ollivander_standard",
+    "examples": [
+      {
+        "name_en": "Veela Hair",
+        "name_zh": "媚娃头发",
+        "example": "Fleur Delacour's wand"
+      }
+    ],
+    "note": "The official encyclopedia states that wandmakers of other nationalities may use different cores. Keep these as an optional later expansion rather than the default Hogwarts/Ollivander selection."
+  },
+  "length_data": {
+    "official_typical_range_inches": [
+      9.0,
+      14.0
+    ],
+    "official_rare_short_rule": "8 inches and under are exceptionally rare",
+    "official_rare_long_rule": "Over 15 inches are exceptionally rare",
+    "recommended_game_range_inches": [
+      9.0,
+      14.0
+    ],
+    "recommended_step_inches": 0.25
+  },
+  "flexibility_presets_observed_on_official_pages": [
+    "Unbending",
+    "Rigid",
+    "Solid",
+    "Pliant",
+    "Supple",
+    "Slightly yielding",
+    "Quite bendy",
+    "Surprisingly swishy",
+    "Slightly springy",
+    "Reasonably supple"
+  ],
+  "game_original_cosmetic_options": {
+    "handle_style": [
+      "plain",
+      "carved",
+      "wrapped",
+      "ornate",
+      "gem_set",
+      "metal_ferrule",
+      "natural_grip"
+    ],
+    "finish": [
+      "matte",
+      "satin",
+      "gloss",
+      "weathered",
+      "polished"
+    ],
+    "color_tone": [
+      "natural",
+      "dark_brown",
+      "reddish_brown",
+      "black",
+      "grey",
+      "pale"
+    ]
+  },
+  "suggested_runtime_model": {
+    "wand_id": "auto-generated UUID",
+    "owner_id": "player_id",
+    "wand_name": "string",
+    "wood_id": "enum: official_wood_options[].id",
+    "core_id": "enum: official_ollivander_core_options[].id",
+    "length_inches": "number",
+    "flexibility": "enum: flexibility_presets_observed_on_official_pages[]",
+    "handle_style": "enum: game_original_cosmetic_options.handle_style[]",
+    "finish": "enum: game_original_cosmetic_options.finish[]",
+    "color_tone": "enum: game_original_cosmetic_options.color_tone[]",
+    "engraving": "string|null",
+    "description": "string|null",
+    "chosen_at": "ISO-8601 datetime"
+  },
+  "sources": [
+    {
+      "title": "Harry Potter | Wand Woods | Wizarding World",
+      "url": "https://www.harrypotter.com/writing-by-jk-rowling/wand-woods",
+      "use": "Official wand wood list and lore"
+    },
+    {
+      "title": "Harry Potter | Wand Cores | Wizarding World",
+      "url": "https://www.harrypotter.com/writing-by-jk-rowling/wand-cores",
+      "use": "Official Ollivander core options and properties"
+    },
+    {
+      "title": "Harry Potter | Wand Lengths & Flexibility | Wizarding World",
+      "url": "https://www.harrypotter.com/writing-by-jk-rowling/wand-lengths-and-flexibility",
+      "use": "Official typical length range and flexibility lore"
+    },
+    {
+      "title": "Harry Potter | Wand | Official Harry Potter Encyclopedia",
+      "url": "https://www.harrypotter.com/fact-file/objects/wand",
+      "use": "General wand construction and non-Ollivander core note"
+    }
+  ]
+}

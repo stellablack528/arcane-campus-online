@@ -11,19 +11,21 @@ ON DUPLICATE KEY UPDATE
     avatar = VALUES(avatar),
     status = VALUES(status);
 
-INSERT INTO rooms (room_id, room_name, room_type, description, max_players)
+INSERT INTO rooms (room_id, room_name, room_type, description, max_players, is_restricted)
 VALUES
-    (1, 'Great Hall', 'public', 'Long tables, floating candles, breakfast, announcements, and the pulse of daily campus life.', 300),
-    (2, 'Library', 'study', 'Quiet shelves, parchment notes, study groups, and careful whispers.', 120),
-    (3, 'Astronomy Tower', 'exploration', 'A high tower for stargazing, late conversations, and night events.', 80),
-    (4, 'Gryffindor Common Room', 'house_common_room', 'A warm red-and-gold common room for Gryffindor students.', 80),
-    (5, 'Slytherin Common Room', 'house_common_room', 'A green-lit stone common room beneath the lake.', 80),
-    (6, 'Hufflepuff Common Room', 'house_common_room', 'A cozy common room near the kitchens with plants and round doors.', 80),
-    (7, 'Ravenclaw Common Room', 'house_common_room', 'An airy tower room with blue accents, books, and riddles.', 80)
+    (1, 'Great Hall', 'public', 'Long tables, floating candles, breakfast, announcements, and the pulse of daily campus life.', 300, FALSE),
+    (2, 'Library', 'study', 'Quiet shelves, parchment notes, study groups, and careful whispers.', 120, FALSE),
+    (3, 'Astronomy Tower', 'exploration', 'A high tower for stargazing, late conversations, and night events.', 80, TRUE),
+    (4, 'Gryffindor Common Room', 'house_common_room', 'A warm red-and-gold common room for Gryffindor students.', 80, FALSE),
+    (5, 'Slytherin Common Room', 'house_common_room', 'A green-lit stone common room beneath the lake.', 80, FALSE),
+    (6, 'Hufflepuff Common Room', 'house_common_room', 'A cozy common room near the kitchens with plants and round doors.', 80, FALSE),
+    (7, 'Ravenclaw Common Room', 'house_common_room', 'An airy tower room with blue accents, books, and riddles.', 80, FALSE),
+    (8, 'Forbidden Forest', 'danger', 'A dark and ancient forest at the edge of the grounds. Centaurs, acromantulas, and things best left undisturbed.', 30, TRUE)
 ON DUPLICATE KEY UPDATE
     room_type = VALUES(room_type),
     description = VALUES(description),
-    max_players = VALUES(max_players);
+    max_players = VALUES(max_players),
+    is_restricted = VALUES(is_restricted);
 
 INSERT INTO characters
     (character_id, user_id, nickname, house, level, experience, gold, current_room_id, title)
@@ -69,7 +71,11 @@ VALUES
     (4, 'Potion', 'consumable', 'A small bottle of shimmering potion.', TRUE),
     (5, 'Quill', 'tool', 'Useful for class notes and letters.', FALSE),
     (6, 'Galleon Pouch', 'currency', 'A small pouch used to carry wizarding currency.', FALSE),
-    (7, 'Marauder''s Map', 'tool', 'A magical map that reveals everyone within the castle grounds.', FALSE)
+    (7, 'Marauder''s Map', 'tool', 'A magical map that reveals everyone within the castle grounds.', FALSE),
+    (8, 'Owl', 'pet', 'A loyal feathered companion for mail delivery and nighttime company.', FALSE),
+    (9, 'Cat', 'pet', 'A feline familiar with keen senses and independent charm.', FALSE),
+    (10, 'Toad', 'pet', 'A humble amphibian companion, favored by traditionalists.', FALSE),
+    (11, 'School Robe', 'equipment', 'Standard Hogwarts robes in your house colors.', FALSE)
 ON DUPLICATE KEY UPDATE
     item_type = VALUES(item_type),
     description = VALUES(description),

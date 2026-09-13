@@ -3,6 +3,7 @@
 #include "application/dto/CampusDTO.hpp"
 #include "core/DeepSeekClient.hpp"
 
+#include <QTime>
 #include <utility>
 
 namespace arcane::application::controller {
@@ -33,7 +34,7 @@ NpcPersona npcForChannel(const std::string& channel)
 
 CampusController::CampusController(QObject* parent)
     : QObject(parent)
-    , sessionService_(std::make_unique<service::SessionService>(nullptr, nullptr))
+    , sessionService_(std::make_unique<service::SessionService>(nullptr, nullptr, nullptr))
     , campusService_(std::make_unique<service::CampusService>(nullptr, nullptr))
     , chatService_(std::make_unique<service::ChatService>(nullptr))
     , inventoryService_(std::make_unique<service::InventoryService>(nullptr))
@@ -47,10 +48,29 @@ CampusController::CampusController(QObject* parent)
 }
 
 void CampusController::configureSessionService(std::shared_ptr<arcane::database::UserDAO> userDao,
-                                               std::shared_ptr<arcane::database::CharacterDAO> characterDao)
+                                               std::shared_ptr<arcane::database::CharacterDAO> characterDao,
+                                               std::shared_ptr<arcane::database::InventoryDAO> inventoryDao)
 {
     sessionService_ = std::make_unique<service::SessionService>(std::move(userDao),
-                                                                 std::move(characterDao));
+                                                                 std::move(characterDao),
+                                                                 std::move(inventoryDao));
+}
+
+void CampusController::handleEnrollment(const dto::EnrollmentRequestDTO& request)
+{
+    const auto result = sessionService_->registerStudent(request);
+    if (!result.success) {
+        publish({false, result.message});
+        return;
+    }
+    emit loginAccepted(QString::fromStdString(result.studentName),
+                        QString::fromStdString(result.house));
+    emit playerLocationChanged(QString::fromStdString(result.location),
+                                QStringLiteral("Breakfast"));
+    emit campusMessageProduced(QStringLiteral("System"), QStringLiteral("Campus Notice"),
+                               QString::fromStdString(result.message));
+    // 入学成功后自动刷新背包，新角色立刻看到初始物品。
+    handleRefreshInventory();
 }
 
 void CampusController::configureChatService(std::shared_ptr<arcane::database::MessageDAO> messageDao)
@@ -95,6 +115,8 @@ void CampusController::handleLogin(const QString& studentName, const QString& ho
     emit playerLocationChanged(QString::fromStdString(result.location), QStringLiteral("Breakfast"));
     emit campusMessageProduced(QStringLiteral("System"), QStringLiteral("Campus Notice"),
                                QString::fromStdString(result.message));
+    // 登录成功后自动刷新背包，无需用户手动点菜单。
+    handleRefreshInventory();
 }
 
 void CampusController::handleChat(const QString& channel, const QString& text)
@@ -141,6 +163,83 @@ void CampusController::onAiErrorOccurred(const QString& message)
     publish({false, message.toStdString()});
 }
 
+void CampusController::onTimePeriodChanged(int period)
+{
+    using namespace arcane::application::world;
+    const auto timePeriod = static_cast<TimePeriod>(period);
+
+    // 构造事件评估上下文。PlayerState 梳理：登录态/当前地点/时段。
+    // 未来迁移到 TCP Server 时，服务端可以用同样的 context 在每个时段切换时评估事件。
+    WorldEventContext context;
+    context.period = timePeriod;
+    auto* session = activeSession();
+    context.playerOnline = (session != nullptr);
+    context.locationId = session ? session->currentLocation : std::string{};
+
+    // 评估世界事件并把产生的消息广播到聊天区。
+    // 事件只产生"消息反馈"，不直接改数据库游戏状态（保持 AI / 事件边界清晰）。
+    const auto results = evaluateWorldEvents(context);
+    for (const auto& result : results) {
+        emit campusMessageProduced(
+            QStringLiteral("World"),
+            QString::fromStdString(result.speaker),
+            QString::fromStdString(result.message));
+    }
+}
+
+void CampusController::handleStartNightPatrol(const QString& targetId)
+{
+    auto* session = activeSession();
+    if (!session) {
+        publish({false, "Enter the campus before starting a night patrol."});
+        return;
+    }
+
+    const int hour = QTime::currentTime().hour();
+    if (!world::WorldClock::isCurfew(hour)) {
+        publish({false, "It is not curfew hours. Night patrol is only meaningful between 23:00 and 06:00."});
+        return;
+    }
+
+    // 没有活点地图，夜游风险高。
+    const bool hasMap = inventoryService_->hasItemByName(
+        session->characterId, "Marauder's Map");
+    if (!hasMap) {
+        emit campusMessageProduced(
+            QStringLiteral("World"), QStringLiteral("Patrol"),
+            QStringLiteral("Without the Marauder's Map, you stumble through the dark "
+                           "corridors. Filch's cat yowls nearby \xe2\x80\x94 you retreat "
+                           "before things get worse."));
+        applyHousePointsChange(session->house, -5, "Risky night patrol without a map");
+        publish({false, "Your night patrol was cut short \xe2\x80\x94 no map to guide you."});
+        return;
+    }
+
+    // 有地图，夜游成功。
+    QString patrolMsg;
+    if (targetId.isEmpty()) {
+        patrolMsg = QStringLiteral("You slip through the moonlit corridors alone, the map "
+                                   "guiding your every step. The castle feels alive in a way "
+                                   "daylight never reveals.");
+    } else {
+        patrolMsg = QStringLiteral("You invite %1 to join your night patrol. Together, you "
+                                   "trace secret passages and dodge Filch's lamp with "
+                                   "practiced ease.").arg(targetId);
+    }
+    emit campusMessageProduced(QStringLiteral("World"), QStringLiteral("Night Patrol"), patrolMsg);
+    // 夜游成功的冒险奖励。
+    applyHousePointsChange(session->house, 3, "Successful night patrol with the Marauder's Map");
+    publish({true, "Night patrol completed. The castle remembers."});
+}
+
+void CampusController::applyHousePointsChange(const std::string& house, int delta, const std::string& reason)
+{
+    emit housePointsChanged(
+        QString::fromStdString(house),
+        delta,
+        QString::fromStdString(reason));
+}
+
 void CampusController::handleMove(const QString& locationId)
 {
     auto* session = activeSession();
@@ -151,6 +250,38 @@ void CampusController::handleMove(const QString& locationId)
     const auto result = campusService_->moveTo(*session, {locationId.toStdString()});
     publish(result);
     if (result.success) {
+        // 宵禁+限制区域+活点地图检查
+        const int hour = QTime::currentTime().hour();
+        const bool curfewActive = world::WorldClock::isCurfew(hour);
+        const bool restricted = campusService_->checkRoomRestricted(locationId.toStdString());
+
+        if (curfewActive && restricted) {
+            const bool hasMap = inventoryService_->hasItemByName(
+                session->characterId, "Marauder's Map");
+            if (hasMap) {
+                emit campusMessageProduced(
+                    QStringLiteral("World"), QStringLiteral("Marauder's Map"),
+                    QStringLiteral("Your map glows faintly \xe2\x80\x94 passages shift to show "
+                                   "you a safe route past the patrols."));
+            } else {
+                // 随机巡逻警告（用毫秒数取模，避免引入 <random> 增加复杂度）。
+                static const QStringList warnings = {
+                    QStringLiteral("Filch's lamp swings around the corner \xe2\x80\x94 you barely "
+                                   "dodge behind a suit of armor."),
+                    QStringLiteral("Mrs. Norris fixes her lamp-like eyes on you from the shadows. "
+                                   "You've been spotted."),
+                    QStringLiteral("A prefect's footsteps echo down the corridor. 'Hey! You! Halt!'")
+                };
+                const int index = QTime::currentTime().msec() % warnings.size();
+                emit campusMessageProduced(
+                    QStringLiteral("World"), QStringLiteral("Patrol"), warnings[index]);
+
+                // 扣学院分 -5。
+                applyHousePointsChange(session->house, -5,
+                    "Curfew violation at " + session->currentLocation);
+            }
+        }
+
         emit playerLocationChanged(QString::fromStdString(session->currentLocation),
                                    QString::fromStdString(session->currentState));
     }

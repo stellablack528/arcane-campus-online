@@ -16,6 +16,7 @@ struct RoomRecord {
     std::string roomType;
     std::string description;
     std::uint32_t maxPlayers = 0;
+    bool isRestricted = false;
 };
 
 class RoomDAO final {

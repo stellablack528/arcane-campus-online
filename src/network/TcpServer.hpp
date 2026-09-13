@@ -5,6 +5,7 @@ public:
     ~TcpServer();
 
     bool Start();
+    int acceptClient();
 
 private:
     uint16_t port_;

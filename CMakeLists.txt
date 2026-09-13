@@ -117,12 +117,18 @@ qt_add_executable(HogwartsOnline
     src/application/controller/CampusController.cpp
     src/application/router/ClientCommandRouter.hpp
     src/application/router/ClientCommandRouter.cpp
+    src/application/world/WorldClock.hpp
+    src/application/world/WorldClock.cpp
+    src/application/world/WorldEvent.hpp
+    src/application/world/WorldEvent.cpp
     src/core/DeepSeekClient.hpp
     src/core/DeepSeekClient.cpp
     src/ui/LoginWindow.h
     src/ui/LoginWindow.cpp
     src/ui/ApiKeyDialog.h
     src/ui/ApiKeyDialog.cpp
+    src/ui/EnrollmentDialog.h
+    src/ui/EnrollmentDialog.cpp
     src/ui/MainWindow.h
     src/ui/MainWindow.cpp
     src/ui/widgets/MemberListWidget.h

@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>qss/dark_wood.qss</file>
+        <file>data/wand_customization.json</file>
     </qresource>
 </RCC>

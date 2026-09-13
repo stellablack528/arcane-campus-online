@@ -3,7 +3,9 @@
 #include "application/dto/CampusDTO.hpp"
 #include "application/vo/CampusVO.hpp"
 
+#include <cstdint>
 #include <memory>
+#include <string>
 
 namespace arcane::database {
 class InventoryDAO;
@@ -23,6 +25,10 @@ public:
     [[nodiscard]] vo::OperationResultVO useItem(const dto::ItemActionRequestDTO& request) const;
     [[nodiscard]] vo::OperationResultVO inspectItem(const dto::ItemActionRequestDTO& request) const;
     [[nodiscard]] vo::OperationResultVO giftItem(const dto::ItemActionRequestDTO& request) const;
+
+    // 检查角色背包中是否拥有指定名称的物品（数量 > 0）。
+    // 用于宵禁时检查 "Marauder's Map" 等关键道具。
+    [[nodiscard]] bool hasItemByName(std::uint64_t characterId, const std::string& itemName) const;
 
 private:
     [[nodiscard]] std::string resolveItemName(const std::string& itemId) const;

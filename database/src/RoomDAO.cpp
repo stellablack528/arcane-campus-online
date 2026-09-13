@@ -13,8 +13,10 @@ RoomDAO::RoomDAO(std::shared_ptr<DBConnection> connection) noexcept
 bool RoomDAO::createRoom(const RoomRecord& room)
 {
     return connection_->execute(
-        "INSERT INTO rooms (room_name, room_type, description, max_players) VALUES (?, ?, ?, ?)",
-        {room.roomName, room.roomType, room.description, std::to_string(room.maxPlayers)});
+        "INSERT INTO rooms (room_name, room_type, description, max_players, is_restricted) "
+        "VALUES (?, ?, ?, ?, ?)",
+        {room.roomName, room.roomType, room.description,
+         std::to_string(room.maxPlayers), room.isRestricted ? "1" : "0"});
 }
 
 std::optional<RoomRecord> RoomDAO::getRoomById(std::uint64_t roomId) const
@@ -26,7 +28,8 @@ std::optional<RoomRecord> RoomDAO::getRoomById(std::uint64_t roomId) const
     const auto& row = result->rows.front();
     return RoomRecord{detail::integer<std::uint64_t>(row, "room_id"), detail::value(row, "room_name"),
                       detail::value(row, "room_type"), detail::value(row, "description"),
-                      detail::integer<std::uint32_t>(row, "max_players")};
+                      detail::integer<std::uint32_t>(row, "max_players"),
+                      detail::boolean(row, "is_restricted")};
 }
 
 std::vector<RoomRecord> RoomDAO::getAllRooms() const
@@ -41,7 +44,8 @@ std::vector<RoomRecord> RoomDAO::getAllRooms() const
         rooms.push_back(RoomRecord{detail::integer<std::uint64_t>(row, "room_id"),
                                    detail::value(row, "room_name"), detail::value(row, "room_type"),
                                    detail::value(row, "description"),
-                                   detail::integer<std::uint32_t>(row, "max_players")});
+                                   detail::integer<std::uint32_t>(row, "max_players"),
+                                   detail::boolean(row, "is_restricted")});
     }
     return rooms;
 }
@@ -56,17 +60,20 @@ std::optional<RoomRecord> RoomDAO::getRoomByName(const std::string& roomName) co
     const auto& row = result->rows.front();
     return RoomRecord{detail::integer<std::uint64_t>(row, "room_id"), detail::value(row, "room_name"),
                       detail::value(row, "room_type"), detail::value(row, "description"),
-                      detail::integer<std::uint32_t>(row, "max_players")};
+                      detail::integer<std::uint32_t>(row, "max_players"),
+                      detail::boolean(row, "is_restricted")};
 }
 
 bool RoomDAO::updateRoom(const RoomRecord& room)
 {
     return connection_->execute(
-        "UPDATE rooms SET room_name = ?, room_type = ?, description = ?, max_players = ? WHERE room_id = ?",
+        "UPDATE rooms SET room_name = ?, room_type = ?, description = ?, max_players = ?, "
+        "is_restricted = ? WHERE room_id = ?",
         {room.roomName,
          room.roomType,
          room.description,
          std::to_string(room.maxPlayers),
+         room.isRestricted ? "1" : "0",
          std::to_string(room.roomId)});
 }
 

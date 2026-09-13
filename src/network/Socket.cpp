@@ -49,7 +49,20 @@ bool Socket::bind(const std::string&ip,uint16_t port)
 
     addr.sin_family =AF_INET;
     addr.sin_port = htons(port);
-    inet_pton(AF_INET, ip.c_str(), &addr.sin_addr);
+    int i = inet_pton(AF_INET, ip.c_str(), &addr.sin_addr);
+    if(i== 0)
+    {
+         std::cerr<<"invalid IPV4 address"
+                 <<std::endl;
+                 return false;
+    }
+    else if(i<0)
+    {
+            std::cerr << "inet_pton failed: "
+               << std::strerror(errno)
+               << std::endl;
+                 return false;
+    }
     if(::bind(fd_,(struct sockaddr*)& addr,sizeof(addr))<0)
     {
         std::cerr<<"bind failed:" << std::strerror(errno)

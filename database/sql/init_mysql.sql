@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS rooms (
     room_type VARCHAR(48) NOT NULL,
     description TEXT NOT NULL,
     max_players INT UNSIGNED NOT NULL DEFAULT 100,
+    is_restricted BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (room_id),
     UNIQUE KEY uk_rooms_room_name (room_name),
     KEY idx_rooms_room_type (room_type)
@@ -40,6 +41,10 @@ CREATE TABLE IF NOT EXISTS characters (
     gold BIGINT UNSIGNED NOT NULL DEFAULT 0,
     current_room_id BIGINT UNSIGNED NULL,
     title VARCHAR(64) NULL,
+    gender ENUM('male', 'female', 'other') NOT NULL DEFAULT 'other',
+    hair_color VARCHAR(32) NOT NULL DEFAULT '',
+    eye_color VARCHAR(32) NOT NULL DEFAULT '',
+    blood_status ENUM('pureblood', 'halfblood', 'muggleborn') NOT NULL DEFAULT 'halfblood',
     create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (character_id),
     UNIQUE KEY uk_characters_nickname (nickname),

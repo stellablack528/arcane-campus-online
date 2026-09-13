@@ -6,6 +6,8 @@
 #include "application/service/MapService.hpp"
 #include "application/service/SessionService.hpp"
 #include "application/service/SocialService.hpp"
+#include "application/world/WorldClock.hpp"
+#include "application/world/WorldEvent.hpp"
 
 #include <QObject>
 #include <QString>
@@ -24,7 +26,8 @@ public:
 
     // Inject the database-backed DAOs. Safe to call with nullptr to run in demo mode.
     void configureSessionService(std::shared_ptr<arcane::database::UserDAO> userDao,
-                                 std::shared_ptr<arcane::database::CharacterDAO> characterDao);
+                                 std::shared_ptr<arcane::database::CharacterDAO> characterDao,
+                                 std::shared_ptr<arcane::database::InventoryDAO> inventoryDao);
     void configureChatService(std::shared_ptr<arcane::database::MessageDAO> messageDao);
     void configureInventoryService(std::shared_ptr<arcane::database::InventoryDAO> inventoryDao);
     void configureMapService(std::shared_ptr<arcane::database::InventoryDAO> inventoryDao,
@@ -33,6 +36,8 @@ public:
                                 std::shared_ptr<arcane::database::NPCDAO> npcDao);
     void configureSocialService(std::shared_ptr<arcane::database::FriendDAO> friendDao,
                                 std::shared_ptr<arcane::database::CharacterDAO> characterDao);
+    // 入学注册：从 EnrollmentDialog 获取请求后直接调用（非信号槽驱动）。
+    void handleEnrollment(const dto::EnrollmentRequestDTO& request);
 
 public slots:
     void handleLogin(const QString& studentName, const QString& house);
@@ -53,6 +58,9 @@ public slots:
     void handleRefreshInventory();
     void onAiReplyReceived(const QString& channel, const QString& speaker, const QString& text);
     void onAiErrorOccurred(const QString& message);
+    void onTimePeriodChanged(int period);
+    // 夜游入口：targetId 为空表示独自夜游，非空表示邀请 NPC 或玩家朋友。
+    void handleStartNightPatrol(const QString& targetId);
 
 signals:
     void loginAccepted(const QString& studentName, const QString& house);
@@ -63,10 +71,14 @@ signals:
                               std::uint32_t onlineCount,
                               const std::vector<arcane::application::vo::MapPlayerVO>& players);
     void inventoryRefreshed(const std::vector<arcane::application::vo::InventoryItemVO>& items);
+    // 学院积分变化（delta 正=加分，负=扣分）。
+    void housePointsChanged(const QString& house, int delta, const QString& reason);
 
 private:
     [[nodiscard]] do_model::PlayerSessionDO* activeSession();
     void publish(const vo::OperationResultVO& result);
+    // 统一的学院积分变化出口：emit housePointsChanged 信号。
+    void applyHousePointsChange(const std::string& house, int delta, const std::string& reason);
 
     std::unique_ptr<service::SessionService> sessionService_;
     std::unique_ptr<service::CampusService> campusService_;

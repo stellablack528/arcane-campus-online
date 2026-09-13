@@ -26,9 +26,19 @@ void TcpConnection::setMessageCallback(
     std::function<void(std::string)> callback
 )//传入的就是参数为string返回值为void的函数，这里是类似定义int x的x一样 不过这里的x更复杂所以要用一个函数盒子来预处理
 {
-    messageCallback_ = std::move(callback);//这里就是表明这个注入进来的函数里面的资源是可以移动的，这里就是注册
-}
+    messageCallback_ = std::move(callback);//收到消息以后要调用的函数注册给TcpConnection
 
+}
+ void TcpConnection::setCloseCallback(std::function<void()> callback)
+ {
+    closeCallback_ = std::move(callback);//告诉我连接断掉的时候应该调用哪个函数
+ }
+ 
+ void TcpConnection::setErrorCallback(std::function<void(const std::string&)> callback)
+ {
+   errorCallback_ =std::move(callback);//出错时调用谁
+   
+ }
 
 bool TcpConnection::send(const std::string& message)//发送消息
 {
@@ -152,7 +162,10 @@ void TcpConnection::processMessages()
         }
     }
 }
-
+int TcpConnection::fd() const
+{
+    return socket_.fd();
+}
 
 void TcpConnection::close()
 {

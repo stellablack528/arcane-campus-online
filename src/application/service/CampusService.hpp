@@ -23,6 +23,8 @@ public:
 
     [[nodiscard]] vo::OperationResultVO moveTo(do_model::PlayerSessionDO& session,
                                                 const dto::LocationMoveRequestDTO& request) const;
+    // 检查某地点对应的房间是否为限制区域（禁书区/禁林/天文塔等）。
+    [[nodiscard]] bool checkRoomRestricted(const std::string& locationId) const;
     [[nodiscard]] vo::OperationResultVO joinCourse(do_model::PlayerSessionDO& session,
                                                     const dto::CourseActionRequestDTO& request) const;
     [[nodiscard]] vo::OperationResultVO describeCourse(const dto::CourseActionRequestDTO& request) const;

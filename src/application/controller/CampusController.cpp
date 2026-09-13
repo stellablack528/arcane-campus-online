@@ -69,6 +69,8 @@ void CampusController::handleEnrollment(const dto::EnrollmentRequestDTO& request
                                 QStringLiteral("Breakfast"));
     emit campusMessageProduced(QStringLiteral("System"), QStringLiteral("Campus Notice"),
                                QString::fromStdString(result.message));
+    // 入学成功后自动刷新背包，新角色立刻看到初始物品。
+    handleRefreshInventory();
 }
 
 void CampusController::configureChatService(std::shared_ptr<arcane::database::MessageDAO> messageDao)
@@ -113,6 +115,8 @@ void CampusController::handleLogin(const QString& studentName, const QString& ho
     emit playerLocationChanged(QString::fromStdString(result.location), QStringLiteral("Breakfast"));
     emit campusMessageProduced(QStringLiteral("System"), QStringLiteral("Campus Notice"),
                                QString::fromStdString(result.message));
+    // 登录成功后自动刷新背包，无需用户手动点菜单。
+    handleRefreshInventory();
 }
 
 void CampusController::handleChat(const QString& channel, const QString& text)

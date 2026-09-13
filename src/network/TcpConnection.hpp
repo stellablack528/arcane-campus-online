@@ -21,7 +21,7 @@ namespace Hogwarts
     class TcpConnection
     {
     public:
-        explicit TcpConnection(int fd);
+        explicit TcpConnection(int fd);//禁止隐式类型转换
 
         ~TcpConnection();
 

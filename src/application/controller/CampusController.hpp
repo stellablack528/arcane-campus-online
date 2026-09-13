@@ -6,6 +6,7 @@
 #include "application/service/MapService.hpp"
 #include "application/service/SessionService.hpp"
 #include "application/service/SocialService.hpp"
+#include "application/narrative/NarrativeService.hpp"
 #include "application/world/WorldClock.hpp"
 #include "application/world/WorldEvent.hpp"
 
@@ -61,10 +62,18 @@ public slots:
     void onTimePeriodChanged(int period);
     // 夜游入口：targetId 为空表示独自夜游，非空表示邀请 NPC 或玩家朋友。
     void handleStartNightPatrol(const QString& targetId);
+    // 学院积分手动增减槽（供 UI/剧情模块调用）。
+    void slotAddHousePoints(const QString& house, int points);
+    void slotDeductHousePoints(const QString& house, int points);
+    // 剧情模块入口：做出选择 / 查询风评。
+    void handleMakeChoice(const QString& choiceId);
+    void handleQueryReputation();
 
 signals:
     void loginAccepted(const QString& studentName, const QString& house);
     void campusMessageProduced(const QString& channel, const QString& speaker, const QString& text);
+    // 富文本广播：body 原样插入 ChatEventWidget（学院色日志、剧情回馈等可信内容）。
+    void richCampusMessageProduced(const QString& channel, const QString& speaker, const QString& htmlBody);
     void playerLocationChanged(const QString& location, const QString& state);
     void feedbackProduced(const QString& text);
     void maraudersMapRevealed(const QString& spellQuote,
@@ -86,6 +95,7 @@ private:
     std::unique_ptr<service::InventoryService> inventoryService_;
     std::unique_ptr<service::SocialService> socialService_;
     std::unique_ptr<service::MapService> mapService_;
+    std::unique_ptr<service::NarrativeService> narrativeService_;
     std::unique_ptr<core::DeepSeekClient> deepSeekClient_;
 };
 

@@ -32,6 +32,8 @@ public slots:
                              const std::vector<arcane::application::vo::MapPlayerVO> &players);
     void refreshInventory(const std::vector<arcane::application::vo::InventoryItemVO> &items);
     void onHousePointsChanged(const QString &house, int delta, const QString &reason);
+    // 富文本广播通道：body 原样插入聊天面板（学院色日志/剧情回馈）。
+    void appendRichCampusMessage(const QString &channel, const QString &speaker, const QString &htmlBody);
 
 signals:
     void sendChatRequested(const QString &channel, const QString &text);
@@ -51,6 +53,9 @@ signals:
     void refreshInventoryRequested();
     void timePeriodChanged(int period);
     void nightPatrolRequested(const QString &targetId);
+    // 剧情模块：做出选择 / 查询风评。
+    void storyChoiceRequested(const QString &choiceId);
+    void reputationQueryRequested();
 
 private:
     void buildMenu();

@@ -26,6 +26,13 @@ void ChatEventWidget::appendMessage(const QString &channel, const QString &speak
                             .arg(time, channel.toHtmlEscaped(), speaker.toHtmlEscaped(), text.toHtmlEscaped()));
 }
 
+void ChatEventWidget::appendRichMessage(const QString &channel, const QString &speaker, const QString &htmlBody)
+{
+    const QString time = QTime::currentTime().toString("hh:mm");
+    m_eventView->append(QString("<p><span class='time'>%1</span> <b>[%2]</b> <b>%3:</b><br>%4</p>")
+                            .arg(time, channel.toHtmlEscaped(), speaker.toHtmlEscaped(), htmlBody));
+}
+
 void ChatEventWidget::buildUi()
 {
     auto *layout = new QVBoxLayout(this);

@@ -22,6 +22,8 @@ signals:
 
 public slots:
     void appendMessage(const QString &channel, const QString &speaker, const QString &text);
+    // 追加富文本消息：channel/speaker 会转义，htmlBody 原样插入（供学院色日志等可信内容）。
+    void appendRichMessage(const QString &channel, const QString &speaker, const QString &htmlBody);
 
 private slots:
     void onSendClicked();

@@ -1,26 +1,58 @@
 #include "ui/widgets/HouseRankingWidget.h"
 
+#include <QEasingCurve>
 #include <QFont>
 #include <QHash>
 #include <QLabel>
-#include <QListWidget>
-#include <QListWidgetItem>
+#include <QProgressBar>
+#include <QPropertyAnimation>
 #include <QStringList>
 #include <QVBoxLayout>
+#include <QGridLayout>
+#include <QPair>
 
 #include <algorithm>
+#include <array>
+
+namespace {
+
+struct HouseMeta {
+    const char* name;
+    const char* barObject;
+    const char* emoji;
+    int seed;
+};
+
+// 固定展示顺序：格兰芬多、斯莱特林、拉文克劳、赫奇帕奇。
+const std::array<HouseMeta, 4> kHouses = {{
+    {"Gryffindor", "GryffindorBar", "\xf0\x9f\xa6\x81", 132},
+    {"Slytherin",  "SlytherinBar",  "\xf0\x9f\x90\x8d", 109},
+    {"Ravenclaw",  "RavenclawBar",  "\xf0\x9f\xa6\x85", 145},
+    {"Hufflepuff", "HufflepuffBar", "\xf0\x9f\xa6\xa1", 118},
+}};
+
+QString rankSuffix(int rank)
+{
+    switch (rank) {
+        case 1: return QStringLiteral("st");
+        case 2: return QStringLiteral("nd");
+        case 3: return QStringLiteral("rd");
+        default: return QStringLiteral("th");
+    }
+}
+
+} // namespace
 
 HouseRankingWidget::HouseRankingWidget(QWidget *parent)
     : QWidget(parent)
 {
     setObjectName("HouseRankingWidget");
-    // 初始分数（与种子数据一致）。
-    m_points["Ravenclaw"] = 145;
-    m_points["Gryffindor"] = 132;
-    m_points["Hufflepuff"] = 118;
-    m_points["Slytherin"] = 109;
+    for (const auto& h : kHouses) {
+        m_houseOrder << QString::fromLatin1(h.name);
+        m_points[QString::fromLatin1(h.name)] = h.seed;
+    }
     buildUi();
-    refreshList();
+    refreshRanks();
 }
 
 void HouseRankingWidget::buildUi()
@@ -29,69 +61,116 @@ void HouseRankingWidget::buildUi()
     layout->setContentsMargins(14, 14, 14, 14);
     layout->setSpacing(10);
 
-    auto *title = new QLabel("House Cup", this);
+    auto *title = new QLabel(QStringLiteral("House Cup \xe2\x8f\xb3"), this);
     title->setObjectName("PanelTitle");
 
-    m_list = new QListWidget(this);
-    m_list->setObjectName("RankingList");
+    auto *grid = new QGridLayout;
+    grid->setContentsMargins(0, 0, 0, 0);
+    grid->setHorizontalSpacing(8);
+    grid->setVerticalSpacing(10);
 
-    m_recentChangeLabel = new QLabel("No recent point changes.", this);
-    m_recentChangeLabel->setWordWrap(true);
-    m_recentChangeLabel->setObjectName("ValueLabel");
+    int row = 0;
+    for (const auto& h : kHouses) {
+        const QString house = QString::fromLatin1(h.name);
+
+        auto *rank = new QLabel(QStringLiteral("4th"), this);
+        rank->setObjectName("RankBadge");
+        rank->setAlignment(Qt::AlignCenter);
+
+        auto *name = new QLabel(QString::fromUtf8(h.emoji) + QStringLiteral("  ") + house, this);
+        name->setObjectName("HouseName");
+        QFont nameFont = name->font();
+        nameFont.setPointSize(11);
+        nameFont.setWeight(QFont::DemiBold);
+        name->setFont(nameFont);
+
+        auto *bar = new QProgressBar(this);
+        bar->setObjectName(QString::fromLatin1(h.barObject));
+        bar->setRange(0, kMaxBar);
+        bar->setAlignment(Qt::AlignCenter);
+        bar->setFormat(QStringLiteral("%p%"));
+        bar->setValue(std::clamp(m_points[house], 0, kMaxBar));
+
+        auto *points = new QLabel(QString::number(m_points[house]), this);
+        points->setObjectName("ValueLabel");
+        points->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+        auto *delta = new QLabel(QStringLiteral("\xe2\x80\x94"), this);
+        delta->setObjectName("DeltaLabel");
+        delta->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+
+        grid->addWidget(rank,   row, 0);
+        grid->addWidget(name,   row, 1);
+        grid->addWidget(bar,    row, 2);
+        grid->addWidget(points, row, 3);
+        grid->addWidget(delta,  row, 4);
+
+        grid->setColumnStretch(2, 1);
+
+        m_rankLabels[house] = rank;
+        m_bars[house] = bar;
+        m_pointsLabels[house] = points;
+        m_deltaLabels[house] = delta;
+
+        ++row;
+    }
 
     layout->addWidget(title);
-    layout->addWidget(m_list, 1);
-    layout->addWidget(m_recentChangeLabel);
+    layout->addLayout(grid, 1);
 }
 
-void HouseRankingWidget::refreshList()
+void HouseRankingWidget::refreshRanks()
 {
-    m_list->clear();
-
-    static const QHash<QString, QString> emojis = {
-        {"Ravenclaw",   QString::fromUtf8("\xf0\x9f\xa6\x85")},
-        {"Gryffindor",  QString::fromUtf8("\xf0\x9f\xa6\x81")},
-        {"Hufflepuff",  QString::fromUtf8("\xf0\x9f\xa6\xa1")},
-        {"Slytherin",   QString::fromUtf8("\xf0\x9f\x90\x8d")},
-    };
-
-    // 按分数降序排列
-    QStringList houses = m_points.keys();
-    std::sort(houses.begin(), houses.end(),
-              [this](const QString &a, const QString &b) {
-                  return m_points[a] > m_points[b];
-              });
+    // 按分数降序得出名次。
+    QStringList ranked = m_houseOrder;
+    std::sort(ranked.begin(), ranked.end(),
+        [this](const QString &a, const QString &b) {
+            return m_points[a] > m_points[b];
+        });
 
     int rank = 1;
-    for (const auto &house : houses) {
-        const int pts = m_points[house];
-        const QString emoji = emojis.value(house, QStringLiteral("\xe2\x9c\xa8"));
-        auto *item = new QListWidgetItem(
-            QString("%1. %2  %3  \xe2\x80\x94  %4 pts").arg(rank).arg(emoji).arg(house).arg(pts, 3),
-            m_list);
-        QFont font = item->font();
-        font.setPointSize(12);
-        item->setFont(font);
-        item->setSizeHint(QSize(0, 32));
+    for (const auto &house : ranked) {
+        m_rankLabels[house]->setText(QString::number(rank) + rankSuffix(rank));
+        m_pointsLabels[house]->setText(QString::number(m_points[house]));
         ++rank;
     }
 }
 
+void HouseRankingWidget::animateBarTo(const QString &house, int value)
+{
+    const int clamped = std::clamp(value, 0, kMaxBar);
+    auto *bar = m_bars[house];
+    if (!bar) return;
+
+    auto *&anim = m_anims[house];
+    if (!anim) {
+        anim = new QPropertyAnimation(bar, "value", this);
+        anim->setDuration(380);
+        anim->setEasingCurve(QEasingCurve::OutCubic);
+    } else {
+        anim->stop();
+    }
+    anim->setStartValue(bar->value());
+    anim->setEndValue(clamped);
+    anim->start();
+}
+
 void HouseRankingWidget::onHousePointsChanged(const QString &house, int delta, const QString &reason)
 {
-    // 更新分数
-    if (m_points.contains(house)) {
-        m_points[house] += delta;
-    }
+    if (!m_points.contains(house)) return;
 
-    // 更新最近变化 label（显示"学院 +X/-X pts — 原因"）
+    m_points[house] += delta;
+
+    // 沙漏积分条平滑动画到新值。
+    animateBarTo(house, m_points[house]);
+
+    // 最近变化标签：带 +/- 与原因。
     const QString sign = delta >= 0 ? QStringLiteral("+") : QString();
-    m_recentChangeLabel->setText(
-        QString("%1 %2%3 pts \xe2\x80\x94 %4")
-            .arg(house)
-            .arg(sign)
-            .arg(delta)
-            .arg(reason));
+    const QString color = delta >= 0 ? QStringLiteral("#7ec88a") : QStringLiteral("#e08a8a");
+    m_deltaLabels[house]->setText(
+        QString("<span style='color:%1;'>%2%3</span> \xe2\x80\x94 %4")
+            .arg(color, sign, QString::number(delta), reason.toHtmlEscaped()));
+    m_deltaLabels[house]->setTextFormat(Qt::RichText);
 
-    refreshList();
+    refreshRanks();
 }

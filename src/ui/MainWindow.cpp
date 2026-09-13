@@ -90,6 +90,11 @@ void MainWindow::onHousePointsChanged(const QString &house, int delta, const QSt
     m_houseRanking->onHousePointsChanged(house, delta, reason);
 }
 
+void MainWindow::appendRichCampusMessage(const QString &channel, const QString &speaker, const QString &htmlBody)
+{
+    m_chatEvents->appendRichMessage(channel, speaker, htmlBody);
+}
+
 void MainWindow::buildMenu()
 {
     auto *roleMenu = menuBar()->addMenu("Character");
@@ -103,6 +108,23 @@ void MainWindow::buildMenu()
     connect(nightPatrolAction, &QAction::triggered, this, [this] { emit nightPatrolRequested({}); });
     campusMenu->addAction("Courses");
     campusMenu->addAction("Activities");
+
+    // 剧情菜单：每个选择都会真实影响风评与人际关系。
+    auto *storyMenu = menuBar()->addMenu("Story");
+    auto *reputationAction = storyMenu->addAction("View Reputation");
+    connect(reputationAction, &QAction::triggered, this, [this] { emit reputationQueryRequested(); });
+    storyMenu->addSeparator();
+    auto addChoice = [&](const QString &id, const QString &label) {
+        auto *a = storyMenu->addAction(label);
+        connect(a, &QAction::triggered, this, [this, id] { emit storyChoiceRequested(id); });
+    };
+    addChoice("share_notes",        "Share notes with Hermione");
+    addChoice("restricted_section", "Sneak into the Restricted Section");
+    addChoice("stand_up_for_friend","Stand up for a friend");
+    addChoice("cheat_potions_exam", "Cheat on the Potions exam");
+    addChoice("help_hagrid",       "Help Hagrid with creatures");
+    addChoice("duel_malfoy",        "Duel Draco Malfoy");
+    addChoice("study_late_library","Study late in the library");
 
     auto *socialMenu = menuBar()->addMenu("Social");
     socialMenu->addAction("Friends");

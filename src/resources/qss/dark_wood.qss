@@ -469,3 +469,80 @@ QToolTip {
     border-radius: 3px;
     padding: 6px 10px;
 }
+
+/* ============================================================
+ * 学院沙漏积分条 — HouseRankingWidget
+ *
+ * 四学院代表色：
+ *   Gryffindor 金红 | Slytherin 银绿 | Ravenclaw 蓝铜 | Hufflepuff 黄黑
+ * 每个学院的 ::chunk 用渐变填充模拟"沙漏流沙"质感。
+ * ============================================================ */
+
+#HouseRankingWidget #RankBadge {
+    background-color: #232c25;
+    border: 1px solid #364239;
+    border-radius: 10px;
+    color: #e8d5a4;
+    font-family: Georgia, "Times New Roman";
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 34px;
+    max-width: 34px;
+    padding: 2px 0;
+}
+
+#HouseRankingWidget #HouseName {
+    color: #e8ece0;
+}
+
+#HouseRankingWidget #DeltaLabel {
+    color: #9aa49a;
+    font-size: 11px;
+}
+
+QProgressBar#GryffindorBar,
+QProgressBar#SlytherinBar,
+QProgressBar#RavenclawBar,
+QProgressBar#HufflepuffBar {
+    background-color: #141814;
+    border: 1px solid #2a342d;
+    border-radius: 4px;
+    text-align: center;
+    color: #f5ead0;
+    font-family: Georgia, "Times New Roman";
+    font-weight: 600;
+    min-height: 22px;
+    max-height: 26px;
+}
+
+/* 格兰芬多 — 暗红底 + 金红流沙 */
+#GryffindorBar { background-color: #2a1414; border-color: #5a2a1a; }
+#GryffindorBar::chunk {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #ae0001, stop:0.55 #d4302a, stop:1 #ffcc00);
+    border-radius: 3px;
+}
+
+/* 斯莱特林 — 暗绿底 + 银绿流沙 */
+#SlytherinBar { background-color: #13241a; border-color: #1f4030; }
+#SlytherinBar::chunk {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #1a472a, stop:0.55 #3a6e4f, stop:1 #b8c8b0);
+    border-radius: 3px;
+}
+
+/* 拉文克劳 — 暗蓝底 + 蓝铜流沙 */
+#RavenclawBar { background-color: #0f1830; border-color: #1f2a4d; }
+#RavenclawBar::chunk {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #0e1a40, stop:0.55 #2f4a8f, stop:1 #cd7f32);
+    border-radius: 3px;
+}
+
+/* 赫奇帕奇 — 暗黄底 + 黄黑流沙 */
+#HufflepuffBar { background-color: #241c08; border-color: #4a3a14; }
+#HufflepuffBar::chunk {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #2a2410, stop:0.55 #b89010, stop:1 #ecb939);
+    border-radius: 3px;
+}

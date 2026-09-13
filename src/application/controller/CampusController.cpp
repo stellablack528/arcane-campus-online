@@ -30,6 +30,107 @@ NpcPersona npcForChannel(const std::string& channel)
             "A patient senior student who explains how things work at Hogwarts."};
 }
 
+// 学院代表色（与 QSS 沙漏条配色呼应）。
+const char* houseAccentColor(const std::string& house)
+{
+    if (house == "Gryffindor") return "#e0a020"; // 金红 — 金
+    if (house == "Slytherin")  return "#5d7d6a"; // 银绿 — 银
+    if (house == "Ravenclaw")  return "#cd7f32"; // 蓝铜 — 铜青铜
+    if (house == "Hufflepuff") return "#ecb939"; // 黄黑 — 黄
+    return "#b89860";
+}
+
+const char* houseBgColor(const std::string& house)
+{
+    if (house == "Gryffindor") return "#2a1414"; // 暗红底
+    if (house == "Slytherin")  return "#13241a"; // 暗绿底
+    if (house == "Ravenclaw")  return "#0f1830"; // 暗蓝底
+    if (house == "Hufflepuff") return "#241c08"; // 暗黄底
+    return "#1a201c";
+}
+
+// 拼接学院积分变动的富文本日志。
+QString buildHousePointsHtml(const std::string& house, int delta, const std::string& reason)
+{
+    const QString houseQ = QString::fromStdString(house).toHtmlEscaped();
+    const QString reasonQ = QString::fromStdString(reason).toHtmlEscaped();
+    const QString sign = delta >= 0 ? QStringLiteral("+") : QString();
+    const QString verb = delta >= 0 ? QStringLiteral("earns") : QStringLiteral("loses");
+    const QString color = QString::fromLatin1(houseAccentColor(house));
+    const QString bg = QString::fromLatin1(houseBgColor(house));
+    return QStringLiteral(
+        "<div style='background:%1; border-left:4px solid %2; border-radius:4px;"
+        " padding:8px 10px; margin:4px 0;'>"
+        "<span style='color:%2; font-weight:700; font-size:13px;'>%3</span> "
+        "<span style='color:#d4d8cc;'>%4 </span>"
+        "<span style='color:%5; font-weight:700;'>%6%7</span>"
+        "<span style='color:#9aa49a;'> pts \xe2\x80\x94 %8</span>"
+        "</div>")
+        .arg(bg, color, houseQ, verb,
+             delta >= 0 ? QStringLiteral("#7ec88a") : QStringLiteral("#e08a8a"),
+             sign, QString::number(delta), reasonQ);
+}
+
+// 拼接剧情选择结果的富文本日志。
+QString buildNarrativeHtml(const vo::NarrativeResultVO& result)
+{
+    const QString msg = QString::fromStdString(result.message).toHtmlEscaped();
+    const QString summary = QString::fromStdString(result.consequenceSummary).toHtmlEscaped();
+    QString html = QStringLiteral(
+        "<div style='background:#1c231e; border-left:4px solid #b89860; border-radius:4px;"
+        " padding:8px 10px; margin:4px 0;'>"
+        "<span style='color:#e8d5a4; font-weight:700;'>\xf0\x9f\x93\x9c Choice</span><br>"
+        "<span style='color:#d4d8cc;'>%1</span>")
+        .arg(msg);
+    if (!summary.isEmpty()) {
+        html.append(QStringLiteral("<br><span style='color:#8a948a; font-size:11px;'>"
+                                   "Consequence: </span>"
+                                   "<span style='color:#9aa49a; font-size:11px;'>%1</span>")
+                        .arg(summary));
+    }
+    html.append(QStringLiteral("</div>"));
+    return html;
+}
+
+// 拼接风评卡片的富文本日志。
+QString buildReputationHtml(const vo::ReputationVO& rep)
+{
+    auto statLine = [](const QString& label, int v, const QString& standing) {
+        const QString color = v >= 0 ? QStringLiteral("#7ec88a") : QStringLiteral("#e08a8a");
+        return QStringLiteral(
+            "<div style='margin:2px 0;'>"
+            "<span style='color:#9aa49a;'>%1: </span>"
+            "<span style='color:%2; font-weight:700;'>%3</span> "
+            "<span style='color:#8a948a;'>(%4)</span></div>")
+            .arg(label, color, QString::number(v), standing.toHtmlEscaped());
+    };
+    QString html = QStringLiteral(
+        "<div style='background:#1c231e; border:1px solid #364239; border-radius:4px;"
+        " padding:8px 10px; margin:4px 0;'>"
+        "<span style='color:#e8d5a4; font-weight:700;'>\xf0\x9f\x93\x96 Reputation</span><br>");
+    html.append(statLine(QStringLiteral("Peers"), rep.peerReputation,
+                         QString::fromStdString(rep.peerStanding)));
+    html.append(statLine(QStringLiteral("Teachers"), rep.teacherReputation,
+                         QString::fromStdString(rep.teacherStanding)));
+    html.append(statLine(QStringLiteral("Housemates"), rep.houseReputation,
+                         QString::fromStdString(rep.houseStanding)));
+    html.append(QStringLiteral(
+        "<hr style='border:0; border-top:1px solid #2a342d; margin:6px 0;'>"
+        "<span style='color:#9aa49a; font-size:11px;'>Relationships:</span>"));
+    for (const auto& r : rep.relationships) {
+        const QString name = QString::fromStdString(r.displayName).toHtmlEscaped();
+        const QString role = QString::fromStdString(r.role).toHtmlEscaped();
+        const QString standing = QString::fromStdString(r.standing).toHtmlEscaped();
+        html.append(QStringLiteral(
+            "<div style='margin:1px 0; color:#d4d8cc;'>"
+            "%1 <span style='color:#8a948a; font-size:11px;'>(%2)</span> "
+            "<span style='color:#b89860;'>%3</span></div>")
+            .arg(name, role, standing));
+    }
+    html.append(QStringLiteral("</div>"));
+    return html;
+}
+
 } // namespace
 
 CampusController::CampusController(QObject* parent)
@@ -39,6 +140,7 @@ CampusController::CampusController(QObject* parent)
     , chatService_(std::make_unique<service::ChatService>(nullptr))
     , inventoryService_(std::make_unique<service::InventoryService>(nullptr))
     , socialService_(std::make_unique<service::SocialService>(nullptr, nullptr))
+    , narrativeService_(std::make_unique<service::NarrativeService>())
     , deepSeekClient_(std::make_unique<core::DeepSeekClient>(this))
 {
     connect(deepSeekClient_.get(), &core::DeepSeekClient::replyReceived,
@@ -238,6 +340,66 @@ void CampusController::applyHousePointsChange(const std::string& house, int delt
         QString::fromStdString(house),
         delta,
         QString::fromStdString(reason));
+    // 同步把带学院颜色的富文本日志推送到聊天/事件面板。
+    emit richCampusMessageProduced(
+        QStringLiteral("House Cup"),
+        QStringLiteral("House Points"),
+        buildHousePointsHtml(house, delta, reason));
+}
+
+void CampusController::slotAddHousePoints(const QString& house, int points)
+{
+    if (points <= 0) {
+        publish({false, "Points to add must be positive."});
+        return;
+    }
+    applyHousePointsChange(house.toStdString(), points, "Manual house points award");
+    publish({true, house.toStdString() + " +" + std::to_string(points) + " pts."});
+}
+
+void CampusController::slotDeductHousePoints(const QString& house, int points)
+{
+    if (points <= 0) {
+        publish({false, "Points to deduct must be positive."});
+        return;
+    }
+    applyHousePointsChange(house.toStdString(), -points, "Manual house points deduction");
+    publish({true, house.toStdString() + " -" + std::to_string(points) + " pts."});
+}
+
+void CampusController::handleMakeChoice(const QString& choiceId)
+{
+    auto* session = activeSession();
+    if (!session) {
+        publish({false, "Enter the campus before making story choices."});
+        return;
+    }
+    const dto::ChoiceRequestDTO request{session->characterId, choiceId.toStdString()};
+    const auto result = narrativeService_->applyChoice(request);
+    if (!result.success) {
+        publish({false, result.message});
+        return;
+    }
+    emit richCampusMessageProduced(
+        QStringLiteral("Story"), QStringLiteral("Narrative"), buildNarrativeHtml(result));
+    publish({true, result.message});
+}
+
+void CampusController::handleQueryReputation()
+{
+    auto* session = activeSession();
+    if (!session) {
+        publish({false, "Enter the campus to view your reputation."});
+        return;
+    }
+    const auto rep = narrativeService_->queryReputation({session->characterId});
+    if (!rep.success) {
+        publish({false, rep.message});
+        return;
+    }
+    emit richCampusMessageProduced(
+        QStringLiteral("Story"), QStringLiteral("Reputation"), buildReputationHtml(rep));
+    publish({true, rep.message});
 }
 
 void CampusController::handleMove(const QString& locationId)

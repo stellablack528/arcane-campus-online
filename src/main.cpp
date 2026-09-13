@@ -142,6 +142,13 @@ int main(int argc, char *argv[])
                      campusController, &arcane::application::controller::CampusController::handleStartNightPatrol);
     QObject::connect(campusController, &arcane::application::controller::CampusController::housePointsChanged,
                      mainWindow, &MainWindow::onHousePointsChanged);
+    // 剧情模块接线
+    QObject::connect(mainWindow, &MainWindow::storyChoiceRequested,
+                     campusController, &arcane::application::controller::CampusController::handleMakeChoice);
+    QObject::connect(mainWindow, &MainWindow::reputationQueryRequested,
+                     campusController, &arcane::application::controller::CampusController::handleQueryReputation);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::richCampusMessageProduced,
+                     mainWindow, &MainWindow::appendRichCampusMessage);
 
     QObject::connect(campusController, &arcane::application::controller::CampusController::campusMessageProduced,
                      mainWindow, &MainWindow::appendCampusMessage);

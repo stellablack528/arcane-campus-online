@@ -113,6 +113,11 @@ qt_add_executable(HogwartsOnline
     src/application/service/SocialService.cpp
     src/application/service/QuestService.hpp
     src/application/service/QuestService.cpp
+    src/application/narrative/NarrativeDO.hpp
+    src/application/narrative/NarrativeVO.hpp
+    src/application/narrative/NarrativeDTO.hpp
+    src/application/narrative/NarrativeService.hpp
+    src/application/narrative/NarrativeService.cpp
     src/application/controller/CampusController.hpp
     src/application/controller/CampusController.cpp
     src/application/router/ClientCommandRouter.hpp

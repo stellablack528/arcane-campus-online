@@ -1,6 +1,7 @@
 #include "TcpConnection.hpp"
 
 #include <sys/socket.h>
+#include <sys/types.h>   // ssize_t 严格说需要它（<sys/socket.h> 通常间接带，但不保险）
 #include <unistd.h>
 
 #include <cerrno>
@@ -64,7 +65,7 @@ bool TcpConnection::send(const std::string& message)//发送消息
             return false;
         }
 
-        if (errno == EINTR)
+        if (result < 0 && errno == EINTR)
         {
             continue;
         }
@@ -113,12 +114,12 @@ void TcpConnection::receive()
             return;
         }
 
-        if (errno == EINTR)
+        if (result < 0 && errno == EINTR)
         {
             continue;
         }
 
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        if (result < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
         {
             // 当前已经没有更多数据可读
             return;

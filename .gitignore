@@ -2,8 +2,11 @@ build/
 .qtcreator/
 .vscode/
 .idea/
+.vs/
 *.obj
 *.o
 *.exe
 *.user
 database.ini
+src/server/HogwartsServer
+src/server/server.log

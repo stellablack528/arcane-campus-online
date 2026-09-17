@@ -26,6 +26,8 @@ namespace Hogwarts
         void close();
         // 获取文件描述符
         int fd() const;
+        //把当前Socket对应的文件描述符设置为非阻塞模式，否则阻塞socket调用recv()时如果暂时没有数据，她会一直卡在那里
+        bool setNonBlocking();
 
     private:
         int fd_;

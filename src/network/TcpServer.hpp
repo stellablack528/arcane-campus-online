@@ -18,7 +18,7 @@ namespace Hogwarts
         bool Start();
         int acceptClient();
         std::size_t connectionCount() const; // 获取当前连接数
-
+     
     private:
         uint16_t port_;
         std::string bindAddress_;

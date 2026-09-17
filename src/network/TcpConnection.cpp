@@ -7,6 +7,8 @@
 #include <cerrno>
 #include <cstring>
 #include <iostream>
+#include <utility>
+#include <stdexcept>
 
 namespace Hogwarts
 {
@@ -15,6 +17,12 @@ TcpConnection::TcpConnection(int fd)
     :
     socket_(fd)
 {
+     if(!socket_.setNonBlocking())
+     {
+        throw std::runtime_error(
+            "Failed to set client socket to non-blocking mode"
+        );
+     }
 }
 
 

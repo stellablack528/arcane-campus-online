@@ -14,6 +14,8 @@ TcpServer::~TcpServer()
     // 释放监听 socket，避免 fd 泄漏（虽然进程退出 OS 会回收，但显式关闭更规范）。
     listenSocket_.close();
 }
+
+
 //start完成对服务器的监听Socket做创建、绑定和监听
 bool TcpServer::Start()
 //Socket listenSocket_是TcpServer中的Socket的实例化
@@ -22,6 +24,11 @@ bool TcpServer::Start()
 {
     return false;
 }
+if(!listenSocket_.setNonBlocking())
+{
+    return false;
+}
+
  if(!listenSocket_.bind(bindAddress_, port_))
 {
     return false;
@@ -30,7 +37,9 @@ if(!listenSocket_.listen())
 {
     return false;
 }
-return true;}
+
+return true;
+}
 //接受一个客户端的连接
 
 int TcpServer::acceptClient()
@@ -40,14 +49,25 @@ int TcpServer::acceptClient()
    {
         return -1;
    }
-    auto connection = std::make_shared<TcpConnection>(fd);
-    connectionManager_.add(connection);
-
-    return fd;
+   //要让TcpConnection内部的socket_调用setNonBlocking()
+   try
+   {
+        auto connection = std::make_shared<TcpConnection>(fd);
+        connectionManager_.add(connection);
+        return fd;
+   }
+   catch(const std::exception& e)
+   {
+    std::cerr<<"Failed to create TcpConnection:"
+             <<e.what()
+             <<std::endl;
+             return -1;
+   }
 }
 
 std::size_t TcpServer::connectionCount() const
 {
     return connectionManager_.size();
 }
+
 }

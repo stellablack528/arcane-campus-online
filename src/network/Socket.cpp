@@ -1,6 +1,6 @@
 //把我们在.hpp里声明的抽象接口，落到具体的 linux api，数据结构，错误处理和资源管理上
 #include "Socket.hpp"
-
+#include <fcntl.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -91,6 +91,30 @@ namespace Hogwarts
         }
         return clientFd;
     }
+    //将socket设置为非阻塞状态
+    bool Socket::setNonBlocking()
+    {
+        if(fd_<0)
+        {
+            return false;
+        }
+
+        int flags = fcntl(fd_,F_GETFL);
+
+         if(flags==-1)
+         {
+            return false;
+         }
+        
+            flags |= O_NONBLOCK;
+            if(fcntl(fd_, F_SETFL, flags)==-1)
+            {
+                return false;
+            }
+
+            return true;
+         }
+    
 
     void Socket::close()
     {

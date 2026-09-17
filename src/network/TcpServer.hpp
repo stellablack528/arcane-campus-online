@@ -3,12 +3,16 @@
 #include "Socket.hpp"
 #include "ConnectionManager.hpp"
 
+#include <string>
+
 namespace Hogwarts
 {
     class TcpServer
     {
     public:
-        TcpServer(uint16_t port);
+        // bindAddress 默认 "0.0.0.0"：监听所有网卡，云服务器外部可连。
+        // 想只允许本机连，传 "127.0.0.1"。
+        explicit TcpServer(uint16_t port, const std::string& bindAddress = "0.0.0.0");
         ~TcpServer();
 
         bool Start();
@@ -17,6 +21,7 @@ namespace Hogwarts
 
     private:
         uint16_t port_;
+        std::string bindAddress_;
         Socket listenSocket_;
 
         // TcpServer 接收到客户端连接后，

@@ -3,8 +3,9 @@
 namespace Hogwarts
 {
 
-TcpServer::TcpServer(uint16_t port)
+TcpServer::TcpServer(uint16_t port, const std::string& bindAddress)
     : port_(port)
+    , bindAddress_(bindAddress)
 {
 }
 
@@ -21,7 +22,7 @@ bool TcpServer::Start()
 {
     return false;
 }
- if(!listenSocket_.bind("127.0.0.1", port_))
+ if(!listenSocket_.bind(bindAddress_, port_))
 {
     return false;
 }

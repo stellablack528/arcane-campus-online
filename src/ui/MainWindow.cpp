@@ -8,19 +8,19 @@
 #include "ui/widgets/CourseScheduleWidget.h"
 #include "ui/widgets/HouseRankingWidget.h"
 #include "ui/widgets/InventoryWidget.h"
-#include "ui/widgets/LocationActionBar.h"
 #include "ui/widgets/LocationPanel.h"
-#include "ui/widgets/MemberListWidget.h"
 
+#include <QAction>
 #include <QComboBox>
+#include <QFrame>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QMenuBar>
-#include <QSplitter>
 #include <QStatusBar>
+#include <QTabWidget>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <QAction>
-#include <QLabel>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
     setObjectName("MainWindow");
     setWindowTitle(TR("title.app"));
     resize(1440, 900);
-    setMinimumSize(1180, 760);
+    setMinimumSize(1040, 720);
 
     buildMenu();
     buildUi();
@@ -171,20 +171,49 @@ void MainWindow::buildMenu()
 void MainWindow::buildUi()
 {
     auto *central = new QWidget(this);
+    central->setObjectName("WorldShell");
     central->setContentsMargins(0, 0, 0, 0);
     auto *rootLayout = new QVBoxLayout(central);
-    rootLayout->setContentsMargins(10, 10, 10, 10);
-    rootLayout->setSpacing(8);
+    rootLayout->setContentsMargins(14, 12, 14, 14);
+    rootLayout->setSpacing(12);
 
-    // ===== 顶部条：标题 + 时钟 + 语言切换 =====
+    // ===== 世界抬头：抽屉入口 + 世界标题 + 时间 =====
     auto *topBar = new QWidget(central);
+    topBar->setObjectName("WorldHeader");
     auto *topBarLayout = new QHBoxLayout(topBar);
-    topBarLayout->setContentsMargins(0, 0, 0, 0);
-    topBarLayout->setSpacing(10);
+    topBarLayout->setContentsMargins(14, 10, 14, 10);
+    topBarLayout->setSpacing(12);
+
+    m_leftDrawerButton = new QToolButton(topBar);
+    m_leftDrawerButton->setObjectName("DrawerToggle");
+    m_leftDrawerButton->setCheckable(true);
+    m_leftDrawerButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+
+    auto *worldHeading = new QWidget(topBar);
+    worldHeading->setObjectName("WorldHeading");
+    auto *worldHeadingLayout = new QVBoxLayout(worldHeading);
+    worldHeadingLayout->setContentsMargins(0, 0, 0, 0);
+    worldHeadingLayout->setSpacing(1);
+
+    auto *eyebrow = new QLabel(QStringLiteral("ARCANE CAMPUS ONLINE"), worldHeading);
+    eyebrow->setObjectName("WorldEyebrow");
+    m_worldTitleLabel = new QLabel(worldHeading);
+    m_worldTitleLabel->setObjectName("WorldTitle");
+    m_worldSubtitleLabel = new QLabel(worldHeading);
+    m_worldSubtitleLabel->setObjectName("WorldSubtitle");
+    worldHeadingLayout->addWidget(eyebrow);
+    worldHeadingLayout->addWidget(m_worldTitleLabel);
+    worldHeadingLayout->addWidget(m_worldSubtitleLabel);
 
     m_campusTime = new CampusTimeWidget(topBar);
+    m_campusTime->setObjectName("HeaderCampusTime");
+    m_campusTime->setMaximumWidth(390);
 
-    // 语言切换 ComboBox（右对齐）
+    m_rightDrawerButton = new QToolButton(topBar);
+    m_rightDrawerButton->setObjectName("DrawerToggle");
+    m_rightDrawerButton->setCheckable(true);
+    m_rightDrawerButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+
     m_languageCombo = new QComboBox(topBar);
     m_languageCombo->setObjectName("LanguageCombo");
     m_languageCombo->addItem(QStringLiteral("中文"), static_cast<int>(arcane::ui::I18n::Lang::Chinese));
@@ -197,51 +226,126 @@ void MainWindow::buildUi()
                     static_cast<arcane::ui::I18n::Lang>(m_languageCombo->itemData(index).toInt()));
             });
 
-    topBarLayout->addWidget(m_campusTime, 1);
-    topBarLayout->addWidget(m_languageCombo, 0, Qt::AlignRight | Qt::AlignVCenter);
+    topBarLayout->addWidget(m_leftDrawerButton, 0, Qt::AlignVCenter);
+    topBarLayout->addWidget(worldHeading, 1);
+    topBarLayout->addWidget(m_campusTime, 0, Qt::AlignVCenter);
+    topBarLayout->addWidget(m_rightDrawerButton, 0, Qt::AlignVCenter);
+    topBarLayout->addWidget(m_languageCombo, 0, Qt::AlignVCenter);
 
     rootLayout->addWidget(topBar);
 
-    // ===== 主体三栏：左（地点动作）| 中（聊天）| 右（信息+沙漏+课程+背包） =====
-    auto *mainSplitter = new QSplitter(Qt::Horizontal, central);
-    mainSplitter->setObjectName("MainSplitter");
+    // ===== 主舞台：中央叙事始终优先，左右功能按需唤出 =====
+    auto *stageLayout = new QHBoxLayout;
+    stageLayout->setContentsMargins(0, 0, 0, 0);
+    stageLayout->setSpacing(10);
 
-    // 左侧：地点面板
-    m_locationPanel = new LocationPanel(mainSplitter);
-    mainSplitter->addWidget(m_locationPanel);
+    m_leftDrawer = new QFrame(central);
+    m_leftDrawer->setObjectName("AuxDrawer");
+    m_leftDrawer->setFixedWidth(300);
+    auto *leftDrawerLayout = new QVBoxLayout(m_leftDrawer);
+    leftDrawerLayout->setContentsMargins(8, 8, 8, 8);
+    leftDrawerLayout->setSpacing(8);
 
-    // 中间：聊天与事件
-    m_chatEvents = new ChatEventWidget(mainSplitter);
-    mainSplitter->addWidget(m_chatEvents);
+    auto *leftHeader = new QWidget(m_leftDrawer);
+    leftHeader->setObjectName("DrawerHeader");
+    auto *leftHeaderLayout = new QHBoxLayout(leftHeader);
+    leftHeaderLayout->setContentsMargins(8, 4, 4, 4);
+    m_leftDrawerTitle = new QLabel(leftHeader);
+    m_leftDrawerTitle->setObjectName("DrawerTitle");
+    auto *leftClose = new QToolButton(leftHeader);
+    leftClose->setObjectName("DrawerCloseButton");
+    leftClose->setText(QStringLiteral("\u00d7"));
+    leftClose->setToolTip(TR("drawer.close"));
+    leftHeaderLayout->addWidget(m_leftDrawerTitle, 1);
+    leftHeaderLayout->addWidget(leftClose);
 
-    // 右侧：信息概述（顶）+ 学院沙漏 + 课程 + 背包
-    auto *rightColumn = new QWidget(mainSplitter);
-    auto *rightLayout = new QVBoxLayout(rightColumn);
-    rightLayout->setContentsMargins(0, 0, 0, 0);
-    rightLayout->setSpacing(10);
+    m_locationPanel = new LocationPanel(m_leftDrawer);
+    m_locationPanel->setMinimumWidth(0);
+    m_locationPanel->setMaximumWidth(QWIDGETSIZE_MAX);
+    leftDrawerLayout->addWidget(leftHeader);
+    leftDrawerLayout->addWidget(m_locationPanel, 1);
 
-    m_characterStatus = new CharacterStatusWidget(rightColumn);   // 右上：信息概述
-    m_houseRanking = new HouseRankingWidget(rightColumn);         // 右中：学院沙漏
-    m_courses = new CourseScheduleWidget(rightColumn);            // 右下：今日课程
-    m_inventory = new InventoryWidget(rightColumn);               // 右下：背包
+    m_chatEvents = new ChatEventWidget(central);
+    m_chatEvents->setObjectName("NarrativeStage");
 
-    rightLayout->addWidget(m_characterStatus, 4);
-    rightLayout->addWidget(m_houseRanking, 3);
-    rightLayout->addWidget(m_courses, 2);
-    rightLayout->addWidget(m_inventory, 2);
+    m_rightDrawer = new QFrame(central);
+    m_rightDrawer->setObjectName("AuxDrawer");
+    m_rightDrawer->setFixedWidth(380);
+    auto *rightDrawerLayout = new QVBoxLayout(m_rightDrawer);
+    rightDrawerLayout->setContentsMargins(8, 8, 8, 8);
+    rightDrawerLayout->setSpacing(8);
 
-    mainSplitter->addWidget(rightColumn);
-    mainSplitter->setSizes({300, 760, 360});
-    mainSplitter->setStretchFactor(1, 1);
+    auto *rightHeader = new QWidget(m_rightDrawer);
+    rightHeader->setObjectName("DrawerHeader");
+    auto *rightHeaderLayout = new QHBoxLayout(rightHeader);
+    rightHeaderLayout->setContentsMargins(8, 4, 4, 4);
+    m_rightDrawerTitle = new QLabel(rightHeader);
+    m_rightDrawerTitle->setObjectName("DrawerTitle");
+    auto *rightClose = new QToolButton(rightHeader);
+    rightClose->setObjectName("DrawerCloseButton");
+    rightClose->setText(QStringLiteral("\u00d7"));
+    rightClose->setToolTip(TR("drawer.close"));
+    rightHeaderLayout->addWidget(m_rightDrawerTitle, 1);
+    rightHeaderLayout->addWidget(rightClose);
 
-    rootLayout->addWidget(mainSplitter, 1);
+    m_rightTabs = new QTabWidget(m_rightDrawer);
+    m_rightTabs->setObjectName("JournalTabs");
+    m_rightTabs->setDocumentMode(true);
+    m_characterStatus = new CharacterStatusWidget(m_rightTabs);
+    m_houseRanking = new HouseRankingWidget(m_rightTabs);
+    m_courses = new CourseScheduleWidget(m_rightTabs);
+    m_inventory = new InventoryWidget(m_rightTabs);
+    m_rightTabs->addTab(m_characterStatus, QString());
+    m_rightTabs->addTab(m_houseRanking, QString());
+    m_rightTabs->addTab(m_courses, QString());
+    m_rightTabs->addTab(m_inventory, QString());
+    rightDrawerLayout->addWidget(rightHeader);
+    rightDrawerLayout->addWidget(m_rightTabs, 1);
 
-    // 不再使用顶部 LocationActionBar（已合并到 LocationPanel 左栏）。
-    // 但保留成员指针以兼容旧信号连接（通过 connectWidgetSignals 转发到 LocationPanel）。
-    m_actionBar = new LocationActionBar(this);  // 隐藏备用
-    m_actionBar->hide();
+    stageLayout->addWidget(m_leftDrawer);
+    stageLayout->addWidget(m_chatEvents, 1);
+    stageLayout->addWidget(m_rightDrawer);
+    rootLayout->addLayout(stageLayout, 1);
+
+    connect(m_leftDrawerButton, &QToolButton::clicked,
+            this, [this] { setLeftDrawerVisible(!m_leftDrawer->isVisible()); });
+    connect(m_rightDrawerButton, &QToolButton::clicked,
+            this, [this] { setRightDrawerVisible(!m_rightDrawer->isVisible()); });
+    connect(leftClose, &QToolButton::clicked,
+            this, [this] { setLeftDrawerVisible(false); });
+    connect(rightClose, &QToolButton::clicked,
+            this, [this] { setRightDrawerVisible(false); });
+
+    m_leftDrawer->hide();
+    m_rightDrawer->hide();
+    updateDrawerControls();
+    retranslateUi();
 
     setCentralWidget(central);
+}
+
+void MainWindow::setLeftDrawerVisible(bool visible)
+{
+    if (!m_leftDrawer) return;
+    if (visible && m_rightDrawer) m_rightDrawer->hide();
+    m_leftDrawer->setVisible(visible);
+    updateDrawerControls();
+}
+
+void MainWindow::setRightDrawerVisible(bool visible)
+{
+    if (!m_rightDrawer) return;
+    if (visible && m_leftDrawer) m_leftDrawer->hide();
+    m_rightDrawer->setVisible(visible);
+    updateDrawerControls();
+}
+
+void MainWindow::updateDrawerControls()
+{
+    const bool leftVisible = m_leftDrawer && m_leftDrawer->isVisible();
+    const bool rightVisible = m_rightDrawer && m_rightDrawer->isVisible();
+    if (m_leftDrawerButton) m_leftDrawerButton->setChecked(leftVisible);
+    if (m_rightDrawerButton) m_rightDrawerButton->setChecked(rightVisible);
 }
 
 void MainWindow::connectWidgetSignals()
@@ -291,6 +395,18 @@ void MainWindow::updateCurrentLocationPanel(const QString &location)
 void MainWindow::retranslateUi()
 {
     setWindowTitle(TR("title.app"));
+    if (m_worldTitleLabel) m_worldTitleLabel->setText(TR("shell.world.title"));
+    if (m_worldSubtitleLabel) m_worldSubtitleLabel->setText(TR("shell.world.subtitle"));
+    if (m_leftDrawerTitle) m_leftDrawerTitle->setText(TR("drawer.scene.title"));
+    if (m_rightDrawerTitle) m_rightDrawerTitle->setText(TR("drawer.journal.title"));
+    if (m_leftDrawerButton) m_leftDrawerButton->setText(TR("drawer.scene.toggle"));
+    if (m_rightDrawerButton) m_rightDrawerButton->setText(TR("drawer.journal.toggle"));
+    if (m_rightTabs && m_rightTabs->count() == 4) {
+        m_rightTabs->setTabText(0, TR("drawer.tab.status"));
+        m_rightTabs->setTabText(1, TR("drawer.tab.house"));
+        m_rightTabs->setTabText(2, TR("drawer.tab.classes"));
+        m_rightTabs->setTabText(3, TR("drawer.tab.inventory"));
+    }
     if (statusBar()) {
         statusBar()->showMessage(TR("chat.feedback.disconnected"));
     }

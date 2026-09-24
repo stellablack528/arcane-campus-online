@@ -37,7 +37,7 @@ QString I18n::tr(const QString& key, const QStringList& args) const
 {
     QString template_ = tr(key);
     for (int i = 0; i < args.size(); ++i) {
-        template_ = template_.arg(args.at(i));
+        template_.replace(QStringLiteral("{%1}").arg(i), args.at(i));
     }
     return template_;
 }
@@ -61,7 +61,7 @@ void I18n::seed()
     seedPair("title.app",       "霍格沃兹在线",       "Hogwarts Online");
     seedPair("title.housecup",  "学院杯 ⏳",          "House Cup ⏳");
     seedPair("title.status",    "学生状态",           "Student Status");
-    seedPair("title.chat",      "校园聊天与事件",     "Campus Chat & Events");
+    seedPair("title.chat",      "正在发生",           "The Living Story");
     seedPair("title.inventory", "背包",               "Inventory");
     seedPair("title.classes",   "今日课程",           "Today Classes");
     seedPair("title.members",   "在线校园",           "Online Campus");
@@ -69,6 +69,20 @@ void I18n::seed()
     seedPair("title.actions",   "快捷动作",           "Quick Actions");
     seedPair("title.move",      "前往",               "Move To");
     seedPair("title.here",      "此地角色",           "People Here");
+
+    // ---------------- 世界主界面 / 辅助抽屉 ----------------
+    seedPair("shell.world.title",       "魔法世界",                 "The Wizarding World");
+    seedPair("shell.world.subtitle",    "你所看见、听见和选择的一切，都会留在这里。",
+                                             "Everything you witness, say, and choose leaves a trace.");
+    seedPair("drawer.scene.title",      "此刻与此地",               "Here & Now");
+    seedPair("drawer.journal.title",    "随身册",                   "Field Journal");
+    seedPair("drawer.scene.toggle",     "\u2630  场景",             "\u2630  Scene");
+    seedPair("drawer.journal.toggle",   "随身册  \u2630",           "Journal  \u2630");
+    seedPair("drawer.close",            "收起",                     "Close");
+    seedPair("drawer.tab.status",       "状态",                     "Status");
+    seedPair("drawer.tab.house",        "学院",                     "House");
+    seedPair("drawer.tab.classes",      "课程",                     "Classes");
+    seedPair("drawer.tab.inventory",    "背包",                     "Bag");
 
     // ---------------- 菜单 ----------------
     seedPair("menu.character", "角色",          "Character");
@@ -205,24 +219,28 @@ void I18n::seed()
     seedPair("chat.channel.world",   "世界",                  "World");
     seedPair("chat.channel.party",   "组队",                  "Party");
     seedPair("chat.system",          "[系统]",                "[System]");
+    seedPair("chat.you",             "我",                    "You");
+    seedPair("chat.kind.narration",  "旁白",                  "Narration");
+    seedPair("chat.kind.world",      "世界",                  "World");
+    seedPair("chat.kind.notice",     "校园通知",              "Campus Notice");
     seedPair("chat.feedback.disconnected", "已断开 · 网络层预留", "Disconnected · Network layer reserved");
 
     // ---------------- 聊天种子消息 ----------------
     seedPair("chat.seed.breakfast",
-             "[系统]<br>早餐时间已开始。<br>大礼堂现已开放。",
-             "[System]<br>Breakfast time has started.<br>Great Hall is now open.");
+             "早餐时间已经开始，大礼堂的长桌正在等待学生入席。",
+             "Breakfast has begun. The long tables in the Great Hall await the students.");
     seedPair("chat.seed.class",
-             "麦格教授：变形课还有十五分钟开始。<br>地点：变形术教室。",
-             "Professor McGonagall: Transfiguration class begins in fifteen minutes.<br>Location: Transfiguration Classroom.");
+             "变形课还有十五分钟开始。别让我看见任何人迟到。",
+             "Transfiguration begins in fifteen minutes. I expect no one to be late.");
     seedPair("chat.seed.library",
-             "[图书馆] 赫敏·格兰杰：<br>今天图书馆格外安静。",
-             "[Library] Hermione Granger:<br>The library is unusually quiet today.");
+             "今天图书馆格外安静……如果你在找魔咒史资料，我旁边还有位置。",
+             "The library is unusually quiet today... If you need Charms history, there is a seat beside me.");
     seedPair("chat.seed.enter_class",
-             "{0} 加雷斯·韦斯莱 走进了变形术教室。",
-             "{0} Gareth Weasley entered the Transfiguration Classroom.");
+             "加雷斯·韦斯莱推开教室的门，匆匆在后排坐下。",
+             "Gareth Weasley slips through the classroom door and takes a seat at the back.");
     seedPair("chat.seed.lesson_start",
-             "{0} 麦格教授开始授课。",
-             "{0} Professor McGonagall started the lesson.");
+             "教室门在身后轻轻合拢。麦格教授抬起魔杖，谈话声随即安静下来。",
+             "The classroom door clicks shut. Professor McGonagall raises her wand, and the murmurs fade.");
 
     // ---------------- 学院沙漏 / 学院排名 ----------------
     seedPair("ranking.recent",        "暂无最新变化",         "No recent point changes.");

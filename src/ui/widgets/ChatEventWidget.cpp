@@ -3,7 +3,6 @@
 #include "ui/I18n.hpp"
 
 #include <QComboBox>
-#include <QDateTime>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -12,6 +11,26 @@
 #include <QTextDocument>
 #include <QTime>
 #include <QVBoxLayout>
+
+namespace {
+
+QString escapedBody(QString text)
+{
+    text = text.toHtmlEscaped();
+    return text.replace(QStringLiteral("\n"), QStringLiteral("<br>"));
+}
+
+bool equalsAny(const QString &value, std::initializer_list<const char *> candidates)
+{
+    for (const char *candidate : candidates) {
+        if (value.compare(QString::fromLatin1(candidate), Qt::CaseInsensitive) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+} // namespace
 
 ChatEventWidget::ChatEventWidget(QWidget *parent)
     : QWidget(parent)
@@ -23,16 +42,112 @@ ChatEventWidget::ChatEventWidget(QWidget *parent)
 
 void ChatEventWidget::appendMessage(const QString &channel, const QString &speaker, const QString &text)
 {
-    const QString time = QTime::currentTime().toString("hh:mm");
-    m_eventView->append(QString("<p><span class='time'>%1</span> <b>[%2]</b> <b>%3:</b><br>%4</p>")
-                            .arg(time, channel.toHtmlEscaped(), speaker.toHtmlEscaped(), text.toHtmlEscaped()));
+    appendEntry(classifyMessage(channel, speaker), channel, speaker, text);
 }
 
 void ChatEventWidget::appendRichMessage(const QString &channel, const QString &speaker, const QString &htmlBody)
 {
+    appendEntry(classifyMessage(channel, speaker), channel, speaker, htmlBody, true);
+}
+
+ChatEventWidget::MessageKind ChatEventWidget::classifyMessage(const QString &channel,
+                                                              const QString &speaker) const
+{
+    const QString normalizedChannel = channel.trimmed();
+    const QString normalizedSpeaker = speaker.trimmed();
+
+    if (equalsAny(normalizedSpeaker, {"You", "Me", "Player"})
+        || normalizedSpeaker == QStringLiteral("我")) {
+        return MessageKind::PlayerDialogue;
+    }
+    if (equalsAny(normalizedSpeaker, {"Narrator", "Narrative"})
+        || equalsAny(normalizedChannel, {"Prologue", "Story"})) {
+        return MessageKind::Narration;
+    }
+    if (equalsAny(normalizedSpeaker, {"System", "Campus Notice", "House Points"})
+        || normalizedSpeaker == QStringLiteral("系统")) {
+        return MessageKind::SystemNotice;
+    }
+    if (equalsAny(normalizedSpeaker,
+                  {"World", "Library", "Patrol", "Night Patrol", "Marauder's Map", "Reveal"})
+        || equalsAny(normalizedChannel, {"Map", "House Cup"})) {
+        return MessageKind::WorldEvent;
+    }
+    return MessageKind::NpcDialogue;
+}
+
+void ChatEventWidget::appendEntry(MessageKind kind,
+                                  const QString &channel,
+                                  const QString &speaker,
+                                  const QString &body,
+                                  bool bodyIsTrustedHtml)
+{
     const QString time = QTime::currentTime().toString("hh:mm");
-    m_eventView->append(QString("<p><span class='time'>%1</span> <b>[%2]</b> <b>%3:</b><br>%4</p>")
-                            .arg(time, channel.toHtmlEscaped(), speaker.toHtmlEscaped(), htmlBody));
+    const QString safeChannel = channel.toHtmlEscaped();
+    const QString safeSpeaker = speaker.toHtmlEscaped();
+    const QString safeBody = bodyIsTrustedHtml ? body : escapedBody(body);
+    const QString context = safeChannel.isEmpty()
+        ? time
+        : QStringLiteral("%1 &nbsp;&middot;&nbsp; %2").arg(safeChannel, time);
+
+    QString html;
+    switch (kind) {
+    case MessageKind::Narration:
+        html = QStringLiteral(
+            "<table width='96%' align='center' cellspacing='0' cellpadding='14' bgcolor='#29261d'>"
+            "<tr><td style='border-left:3px solid #b89860;'>"
+            "<span style='color:#b89860; font-size:10px; font-weight:700; letter-spacing:1px;'>"
+            "&#10022;&nbsp; %1</span>"
+            "<span style='color:#7f887d; font-size:10px;'>&nbsp;&nbsp;%2</span><br><br>"
+            "<span style='color:#ded4bd; font-family:Georgia; font-size:15px;'>%3</span>"
+            "</td></tr></table>")
+            .arg(TR("chat.kind.narration"), time, safeBody);
+        break;
+    case MessageKind::NpcDialogue:
+        html = QStringLiteral(
+            "<table width='82%' align='left' cellspacing='0' cellpadding='12' bgcolor='#20271f'>"
+            "<tr><td style='border-left:3px solid #667b69;'>"
+            "<span style='color:#ead6a2; font-size:13px; font-weight:700;'>%1</span>"
+            "<span style='color:#7f887d; font-size:10px;'>&nbsp;&middot;&nbsp; %2</span><br><br>"
+            "<span style='color:#d6d9cf; font-size:14px;'>%3</span>"
+            "</td></tr></table>")
+            .arg(safeSpeaker, context, safeBody);
+        break;
+    case MessageKind::PlayerDialogue:
+        html = QStringLiteral(
+            "<table width='76%' align='right' cellspacing='0' cellpadding='12' bgcolor='#26342b'>"
+            "<tr><td align='right' style='border-right:3px solid #b89860;'>"
+            "<span style='color:#e8d5a4; font-size:12px; font-weight:700;'>%1</span>"
+            "<span style='color:#88938a; font-size:10px;'>&nbsp;&middot;&nbsp; %2</span><br><br>"
+            "<span style='color:#edf0e8; font-size:14px;'>%3</span>"
+            "</td></tr></table>")
+            .arg(TR("chat.you"), context, safeBody);
+        break;
+    case MessageKind::WorldEvent:
+        html = QStringLiteral(
+            "<table width='90%' align='center' cellspacing='0' cellpadding='10' bgcolor='#1d2927'>"
+            "<tr><td align='center' style='border-top:1px solid #38544f; border-bottom:1px solid #38544f;'>"
+            "<span style='color:#8db0a5; font-size:11px; font-weight:700;'>&#9671;&nbsp; %1</span>"
+            "<span style='color:#71847d; font-size:10px;'>&nbsp;&middot;&nbsp; %2</span><br><br>"
+            "<span style='color:#c7d5cf; font-size:13px;'>%3</span>"
+            "</td></tr></table>")
+            .arg(safeSpeaker.isEmpty() ? TR("chat.kind.world") : safeSpeaker,
+                 context,
+                 safeBody);
+        break;
+    case MessageKind::SystemNotice:
+        html = QStringLiteral(
+            "<table width='84%' align='center' cellspacing='0' cellpadding='9' bgcolor='#191d19'>"
+            "<tr><td align='center' style='border:1px solid #333d35;'>"
+            "<span style='color:#9a8b68; font-size:10px; font-weight:700;'>&#9670;&nbsp; %1</span>"
+            "<span style='color:#777f76; font-size:10px;'>&nbsp;&nbsp;%2</span><br>"
+            "<span style='color:#aeb6aa; font-size:12px;'>%3</span>"
+            "</td></tr></table>")
+            .arg(TR("chat.kind.notice"), time, safeBody);
+        break;
+    }
+
+    m_eventView->append(html);
 }
 
 void ChatEventWidget::setSceneHeader(const QString &title)
@@ -80,8 +195,8 @@ void ChatEventWidget::presentChoices(const QStringList &labels)
 void ChatEventWidget::buildUi()
 {
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(14, 14, 14, 14);
-    layout->setSpacing(10);
+    layout->setContentsMargins(22, 20, 22, 18);
+    layout->setSpacing(12);
 
     auto *title = new QLabel(TR("title.chat"), this);
     title->setObjectName("PanelTitle");
@@ -90,10 +205,11 @@ void ChatEventWidget::buildUi()
     m_eventView = new QTextEdit(this);
     m_eventView->setObjectName("ParchmentView");
     m_eventView->setReadOnly(true);
+    m_eventView->document()->setDocumentMargin(18);
     m_eventView->document()->setDefaultStyleSheet(
-        "p { margin: 8px 0; line-height: 140%; color: #d0c8b4; }"
-        ".time { color: #8a7e62; font-size: 11px; }"
-        "b { color: #e8d5a4; font-weight: 600; }"
+        "p { margin: 7px 0; color: #d0c8b4; }"
+        "table { margin-top: 7px; margin-bottom: 7px; }"
+        "b { color: #efdca8; font-weight: 700; }"
     );
 
     auto *inputLayout = new QHBoxLayout;
@@ -149,17 +265,26 @@ void ChatEventWidget::buildUi()
 
 void ChatEventWidget::seedMessages()
 {
-    const QString now = QTime::currentTime().toString(QStringLiteral("hh:mm"));
-    m_eventView->append(QStringLiteral("<p><b>%1</b><br>%2</p>")
-                            .arg(TR("chat.system"), TR("chat.seed.breakfast")));
-    m_eventView->append(QStringLiteral("<p><b>%1</b><br>%2</p>")
-                            .arg(TR("npc.mcgonagall"), TR("chat.seed.class")));
-    m_eventView->append(QStringLiteral("<p><b>[Library]</b> <b>%1:</b><br>%2</p>")
-                            .arg(TR("npc.hermione"), TR("chat.seed.library")));
-    m_eventView->append(QStringLiteral("<p><span class='time'>08:55</span> %1</p>")
-                            .arg(TR("chat.seed.enter_class").arg(now)));
-    m_eventView->append(QStringLiteral("<p><span class='time'>09:03</span> %1</p>")
-                            .arg(TR("chat.seed.lesson_start").arg(now)));
+    appendEntry(MessageKind::SystemNotice,
+                QStringLiteral("System"),
+                QStringLiteral("Campus Notice"),
+                TR("chat.seed.breakfast"));
+    appendEntry(MessageKind::NpcDialogue,
+                TR("chat.channel.location"),
+                TR("npc.mcgonagall"),
+                TR("chat.seed.class"));
+    appendEntry(MessageKind::NpcDialogue,
+                TR("loc.library"),
+                TR("npc.hermione"),
+                TR("chat.seed.library"));
+    appendEntry(MessageKind::WorldEvent,
+                TR("chat.channel.location"),
+                TR("chat.kind.world"),
+                TR("chat.seed.enter_class"));
+    appendEntry(MessageKind::WorldEvent,
+                TR("chat.channel.location"),
+                TR("npc.mcgonagall"),
+                TR("chat.seed.lesson_start"));
 }
 
 void ChatEventWidget::retranslateUi()

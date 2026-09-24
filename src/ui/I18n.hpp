@@ -27,7 +27,7 @@ public:
     // 按 key 查表。找不到则原样返回 key 便于排错。
     [[nodiscard]] QString tr(const QString& key) const;
 
-    // 带占位符 {0}/{1}/... 的翻译，使用 QString::arg 格式化。
+    // 带占位符 {0}/{1}/... 的翻译。
     [[nodiscard]] QString tr(const QString& key, const QStringList& args) const;
 
 signals:

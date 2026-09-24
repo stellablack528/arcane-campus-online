@@ -39,10 +39,25 @@ private slots:
     void onSendClicked();
 
 private:
+    enum class MessageKind {
+        Narration,
+        NpcDialogue,
+        PlayerDialogue,
+        WorldEvent,
+        SystemNotice,
+    };
+
     void buildUi();
     void seedMessages();
     void retranslateUi();
     void clearChoices();
+    [[nodiscard]] MessageKind classifyMessage(const QString &channel,
+                                              const QString &speaker) const;
+    void appendEntry(MessageKind kind,
+                     const QString &channel,
+                     const QString &speaker,
+                     const QString &body,
+                     bool bodyIsTrustedHtml = false);
 
     QTextEdit *m_eventView = nullptr;
     QComboBox *m_channelCombo = nullptr;

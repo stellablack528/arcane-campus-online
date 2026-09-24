@@ -12,10 +12,12 @@ class ChatEventWidget;
 class CourseScheduleWidget;
 class HouseRankingWidget;
 class InventoryWidget;
-class LocationActionBar;
 class LocationPanel;
-class MemberListWidget;
 class QComboBox;
+class QFrame;
+class QLabel;
+class QTabWidget;
+class QToolButton;
 
 class MainWindow : public QMainWindow
 {
@@ -73,15 +75,25 @@ private:
     void buildUi();
     void connectWidgetSignals();
     void retranslateUi();
+    void setLeftDrawerVisible(bool visible);
+    void setRightDrawerVisible(bool visible);
+    void updateDrawerControls();
 
-    MemberListWidget *m_memberList = nullptr;
     ChatEventWidget *m_chatEvents = nullptr;
     CharacterStatusWidget *m_characterStatus = nullptr;
     InventoryWidget *m_inventory = nullptr;
     CourseScheduleWidget *m_courses = nullptr;
     CampusTimeWidget *m_campusTime = nullptr;
     HouseRankingWidget *m_houseRanking = nullptr;
-    LocationActionBar *m_actionBar = nullptr;
     LocationPanel *m_locationPanel = nullptr;
     QComboBox *m_languageCombo = nullptr;
+    QFrame *m_leftDrawer = nullptr;
+    QFrame *m_rightDrawer = nullptr;
+    QLabel *m_worldTitleLabel = nullptr;
+    QLabel *m_worldSubtitleLabel = nullptr;
+    QLabel *m_leftDrawerTitle = nullptr;
+    QLabel *m_rightDrawerTitle = nullptr;
+    QTabWidget *m_rightTabs = nullptr;
+    QToolButton *m_leftDrawerButton = nullptr;
+    QToolButton *m_rightDrawerButton = nullptr;
 };

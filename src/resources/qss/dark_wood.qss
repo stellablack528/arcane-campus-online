@@ -719,3 +719,192 @@ QProgressBar#HufflepuffBar {
     background-color: #1a221c;
     border-color: #4a6052;
 }
+
+/* ============================================================
+ * 世界主舞台 — 叙事优先，功能面板按需展开
+ * ============================================================ */
+
+#WorldShell {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #0d120f, stop:0.45 #111713, stop:1 #0b0f0c);
+}
+
+#WorldHeader {
+    background-color: #151b17;
+    border: 1px solid #29342c;
+    border-radius: 9px;
+}
+
+#WorldHeading {
+    background: transparent;
+}
+
+#WorldEyebrow {
+    color: #758176;
+    font-family: "Segoe UI", "Microsoft YaHei";
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+#WorldTitle {
+    color: #eadcb8;
+    font-family: Georgia, "Times New Roman", "Microsoft YaHei";
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+}
+
+#WorldSubtitle {
+    color: #869087;
+    font-size: 11px;
+}
+
+#HeaderCampusTime {
+    background: transparent;
+    border: 0;
+    border-left: 1px solid #29342c;
+    border-right: 1px solid #29342c;
+    border-radius: 0;
+}
+
+#HeaderCampusTime #TimePrimary {
+    font-size: 14px;
+}
+
+QToolButton#DrawerToggle {
+    background-color: #1c241f;
+    border: 1px solid #36443a;
+    border-radius: 6px;
+    color: #b9c2b6;
+    min-width: 92px;
+    min-height: 34px;
+    padding: 7px 12px;
+    font-weight: 600;
+}
+
+QToolButton#DrawerToggle:hover {
+    background-color: #263129;
+    border-color: #7e8f78;
+    color: #efe1bc;
+}
+
+QToolButton#DrawerToggle:checked {
+    background-color: #6c5635;
+    border-color: #b89459;
+    color: #fff2cf;
+}
+
+#AuxDrawer {
+    background-color: #141a16;
+    border: 1px solid #2e3a32;
+    border-radius: 9px;
+}
+
+#DrawerHeader {
+    background-color: #1b231e;
+    border: 0;
+    border-bottom: 1px solid #2e3a32;
+}
+
+#DrawerTitle {
+    color: #d9c89e;
+    font-family: Georgia, "Times New Roman", "Microsoft YaHei";
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+QToolButton#DrawerCloseButton {
+    background: transparent;
+    border: 0;
+    border-radius: 12px;
+    color: #7d897e;
+    font-size: 20px;
+    min-width: 26px;
+    min-height: 26px;
+}
+
+QToolButton#DrawerCloseButton:hover {
+    background-color: #29342c;
+    color: #eadcb8;
+}
+
+#NarrativeStage {
+    background-color: #171c18;
+    border: 1px solid #39473d;
+    border-radius: 10px;
+}
+
+#NarrativeStage #PanelTitle {
+    color: #f0dfb2;
+    font-size: 20px;
+    letter-spacing: 0.8px;
+    padding: 0 2px 4px 2px;
+}
+
+#NarrativeStage #ParchmentView {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #252219, stop:0.52 #211f18, stop:1 #1c1b16);
+    border: 1px solid #413b2b;
+    border-radius: 8px;
+    color: #ddd4bd;
+    font-family: Georgia, "Times New Roman", "Microsoft YaHei";
+    font-size: 14px;
+    padding: 6px;
+}
+
+#NarrativeStage #SceneHeader {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #26342b, stop:1 #1b241e);
+    border: 1px solid #506554;
+    border-radius: 7px;
+    color: #f2dfae;
+    font-size: 16px;
+    padding: 11px 14px;
+}
+
+#JournalTabs::pane {
+    background-color: #171d19;
+    border: 1px solid #2d3931;
+    border-radius: 6px;
+    top: -1px;
+}
+
+#JournalTabs QTabBar::tab {
+    background-color: #171d19;
+    border: 1px solid #2d3931;
+    border-bottom: 0;
+    color: #899389;
+    padding: 8px 10px;
+    min-width: 58px;
+}
+
+#JournalTabs QTabBar::tab:first {
+    border-top-left-radius: 5px;
+}
+
+#JournalTabs QTabBar::tab:last {
+    border-top-right-radius: 5px;
+}
+
+#JournalTabs QTabBar::tab:selected {
+    background-color: #263129;
+    color: #ead9ae;
+    border-color: #526454;
+}
+
+#JournalTabs QTabBar::tab:hover:!selected {
+    background-color: #202922;
+    color: #c8d0c3;
+}
+
+#AuxDrawer #LocationPanel,
+#JournalTabs #CharacterStatusWidget,
+#JournalTabs #HouseRankingWidget,
+#JournalTabs #CourseScheduleWidget,
+#JournalTabs #InventoryWidget {
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+}

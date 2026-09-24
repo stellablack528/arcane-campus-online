@@ -199,7 +199,7 @@ void LocationPanel::retranslateUi()
 
     for (const auto& target : kMoveTargets) {
         if (auto *btn = m_moveButtons.value(QString::fromLatin1(target.locationId), nullptr)) {
-            btn->setText(TRQ(target.labelKey));
+            btn->setText(TRQ(QString::fromLatin1(target.labelKey)));
         }
     }
 
@@ -207,7 +207,7 @@ void LocationPanel::retranslateUi()
     auto it = std::find_if(kMoveTargets.begin(), kMoveTargets.end(),
         [this](const MoveTarget& t) { return QString::fromLatin1(t.locationId) == m_currentLocationId; });
     if (it != kMoveTargets.end()) {
-        m_currentLocationName->setText(TRQ(it->labelKey));
+        m_currentLocationName->setText(TRQ(QString::fromLatin1(it->labelKey)));
     }
 }
 
@@ -218,7 +218,7 @@ void LocationPanel::setCurrentLocation(const QString &locationId)
     auto it = std::find_if(kMoveTargets.begin(), kMoveTargets.end(),
         [this](const MoveTarget& t) { return QString::fromLatin1(t.locationId) == m_currentLocationId; });
     if (it != kMoveTargets.end()) {
-        m_currentLocationName->setText(TRQ(it->labelKey));
+        m_currentLocationName->setText(TRQ(QString::fromLatin1(it->labelKey)));
     } else {
         m_currentLocationName->setText(locationId);
     }
@@ -237,7 +237,7 @@ void LocationPanel::refreshPeopleHere()
     const auto it = map.constFind(m_currentLocationId);
     if (it == map.constEnd()) return;
     for (const auto& p : *it) {
-        auto *item = new QListWidgetItem(TRQ(p.nameKey), m_peopleList);
+        auto *item = new QListWidgetItem(TRQ(QString::fromLatin1(p.nameKey)), m_peopleList);
         item->setData(Qt::UserRole, QString::fromLatin1(p.memberId));
     }
 }

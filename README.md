@@ -41,6 +41,10 @@ The platform aims to provide an immersive text-based social experience while ser
 | 🪄 登录系统 | 选择学院、定制魔杖、真实数据库验证 |
 | 🏠 主界面 | 8 个功能 Widget + 暗色魔法主题 |
 | 💬 聊天事件面板 | 羊皮纸风格，支持多频道（Location / World / Party）|
+| 📖 对角巷序章 | 四家商店自由探索、采购闭环、断点续玩 |
+| ⌨️ 自由行动输入 | 中英文动作解析；按钮是建议而非唯一路径 |
+| 🧠 NPC 记忆 | 交谈与忽略会改变好感和之后的招呼 |
+| 📦 数据驱动剧情 | 商店、NPC、商品与双语叙事由 JSON 内容包提供 |
 | 🎒 背包系统 | **真实数据库对接**（InventoryDAO）|
 | 🗺️ 活点地图 | **真实数据库对接**（InventoryDAO + LocationDAO）|
 | 📋 任务系统 | **真实数据库对接**（QuestDAO）|
@@ -59,7 +63,7 @@ DeepSeek 密钥只从本机设置或环境变量读取，不进入源码与 Git�
 | 真实 MySQL 驱动（MySqlDatabaseDriver） | ✅ 动态加载 libmysql.dll |
 | 数据库连接池（RAII） | ✅ |
 | INI 配置加载（DatabaseConfigLoader） | ✅ |
-| 11 张表完整 Schema（含 player_locations） | ✅ |
+| 15 张表完整 Schema（含剧情状态、魔杖与 NPC 记忆） | ✅ |
 | 种子数据（3 个测试用户 + 4 个角色 + 活点地图道具） | ✅ |
 
 ---
@@ -162,17 +166,17 @@ HogwartsOnline/
 │   │   ├── DatabaseConfigLoader.hpp
 │   │   ├── RecordMapper.hpp
 │   │   └── User/Character/Room/Friend/Message/NPC/
-│   │       Inventory/Quest/LocationDAO.hpp
+│   │       Inventory/Quest/Location/StoryDAO.hpp
 │   │
 │   ├── src/                            # DAO + 驱动实现（全部真实 SQL）
 │   │   ├── MySqlDatabaseDriver.cpp     # MySQL C API（动态加载 libmysql.dll）
 │   │   ├── NoopDatabaseDriver.cpp
-│   │   └── 9 个 DAO.cpp
+│   │   └── 10 个 DAO.cpp
 │   │
 │   ├── sql/                            # 数据库脚本
-│   │   ├── init_mysql.sql              # 11 张表建表
+│   │   ├── init_mysql.sql              # 完整数据库建表
 │   │   ├── seed_mysql.sql              # 种子数据（用户、角色、活点地图道具等）
-│   │   └── migrate_v1.sql
+│   │   └── migrate_v1/v2/v3*.sql       # 增量迁移（v3：本地剧情运行时）
 │   │
 │   ├── scripts/                        # PowerShell 脚本
 │   │   ├── import_mysql.ps1
@@ -199,6 +203,10 @@ HogwartsOnline/
 │   │   ├── prologue/
 │   │   │   ├── PrologueService         # ✅ 新生创建 → 对角巷 → 魔杖领取闭环
 │   │   │   └── WandLoreService         # ✅ DeepSeek 解读 + 本地降级档案
+│   │   ├── diagon_alley/
+│   │   │   ├── DiagonAlleyCatalog       # ✅ JSON 内容包读取与查询
+│   │   │   ├── DiagonAlleyActionParser  # ✅ 中英文自由行动解析
+│   │   │   └── DiagonAlleyService       # ✅ 商店、采购、NPC 记忆与完成条件
 │   │   ├── controller/
 │   │   │   └── CampusController        # 信号槽枢纽（16 slots + 6 signals）
 │   │   └── router/
@@ -220,12 +228,16 @@ HogwartsOnline/
 │   │
 │   └── resources/
 │       ├── resources.qrc
+│       ├── data/diagon_alley.json       # 对角巷双语剧情内容包
 │       └── qss/dark_wood.qss           # 墨绿炭黑主题（Quiet Library Theme）
 │
 ├── docs/
-│   └── AI_CONFIGURATION.md             # DeepSeek 本地安全配置说明
+│   ├── AI_CONFIGURATION.md             # DeepSeek 本地安全配置说明
+│   └── CONTENT_PACKS.md                 # 剧情内容包格式与扩展边界
 │
 ├── tests/                              # 单元测试
+│   ├── application/
+│   │   └── DiagonAlleyRuntimeTest.cpp  # 内容包、解析、记忆与采购闭环
 │   └── database/
 │       ├── DatabaseSmokeTest.cpp       # 冒烟测试（无需数据库）
 │       └── MySqlIntegrationTest.cpp    # MySQL 集成测试
@@ -251,6 +263,10 @@ HogwartsOnline/
 - [x] **任务系统** (任务列表 + 进度更新)
 - [x] **聊天持久化** (MessageDAO 写入)
 - [x] **AI NPC 系统** (DeepSeek API 集成)
+- [x] **新生对角巷闭环** (魔杖、四店采购、金币与背包)
+- [x] **剧情断点续玩** (章节、场景、采购状态、魔杖与 NPC 记忆)
+- [x] **自由行动解析** (中英文自然输入 → 确定性剧情动作)
+- [x] **数据驱动内容包** (剧情文案与配置从 JSON 加载)
 
 ### 🚧 进行中 / In Progress
 

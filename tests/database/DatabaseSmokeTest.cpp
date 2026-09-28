@@ -5,6 +5,7 @@
 #include "MessageDAO.hpp"
 #include "RoomDAO.hpp"
 #include "QuestDAO.hpp"
+#include "StoryDAO.hpp"
 #include "UserDAO.hpp"
 
 #include <cassert>
@@ -52,6 +53,35 @@ int main()
         .title = "Tester",
     }));
     assert(characterDao.updateCharacterRoom(1, 2));
+    assert(characterDao.updateCharacterGold(1, 40));
+
+    StoryDAO storyDao(connection);
+    assert(storyDao.upsertStoryState(StoryStateRecord{
+        .characterId = 1,
+        .chapterId = "diagon_alley",
+        .sceneId = "street",
+        .stage = "exploring",
+        .flags = "wand;books",
+    }));
+    assert(storyDao.upsertWand(CharacterWandRecord{
+        .characterId = 1,
+        .woodId = "oak",
+        .coreId = "phoenix_feather",
+        .woodName = "Oak",
+        .coreName = "Phoenix Feather",
+        .lengthInches = 11.5,
+        .flexibility = "Supple",
+        .handleStyle = "Classic",
+        .finish = "Satin",
+        .colorTone = "Warm brown",
+    }));
+    assert(storyDao.markWandClaimed(1));
+    assert(storyDao.upsertNpcMemory(NpcMemoryRecord{
+        .characterId = 1,
+        .npcId = "bookseller_merrythought",
+        .affinity = 1,
+        .memoryFlags = "talked",
+    }));
 
     MessageDAO messageDao(connection);
     assert(messageDao.saveMessage(MessageRecord{

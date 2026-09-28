@@ -34,6 +34,7 @@ add_library(ArcaneCampusDatabase STATIC
     database/include/InventoryDAO.hpp
     database/include/LocationDAO.hpp
     database/include/QuestDAO.hpp
+    database/include/StoryDAO.hpp
     database/src/DBConnection.cpp
     database/src/DatabaseConfigLoader.cpp
     database/src/MySqlDatabaseDriver.hpp
@@ -50,6 +51,7 @@ add_library(ArcaneCampusDatabase STATIC
     database/src/InventoryDAO.cpp
     database/src/LocationDAO.cpp
     database/src/QuestDAO.cpp
+    database/src/StoryDAO.cpp
 )
 
 target_include_directories(ArcaneCampusDatabase PUBLIC
@@ -75,6 +77,29 @@ if(BUILD_TESTING)
 
     add_test(NAME ArcaneCampusDatabaseSmokeTest
         COMMAND ArcaneCampusDatabaseSmokeTest
+    )
+
+    add_executable(ArcaneCampusDiagonAlleyRuntimeTest
+        tests/application/DiagonAlleyRuntimeTest.cpp
+        src/application/diagon_alley/DiagonAlleyCatalog.hpp
+        src/application/diagon_alley/DiagonAlleyCatalog.cpp
+        src/application/diagon_alley/DiagonAlleyActionParser.hpp
+        src/application/diagon_alley/DiagonAlleyActionParser.cpp
+        src/application/diagon_alley/DiagonAlleyService.hpp
+        src/application/diagon_alley/DiagonAlleyService.cpp
+        src/ui/I18n.hpp
+        src/ui/I18n.cpp
+        src/resources/resources.qrc
+    )
+
+    target_include_directories(ArcaneCampusDiagonAlleyRuntimeTest PRIVATE src)
+    target_link_libraries(ArcaneCampusDiagonAlleyRuntimeTest PRIVATE Qt6::Widgets)
+
+    add_test(NAME ArcaneCampusDiagonAlleyRuntimeTest
+        COMMAND ArcaneCampusDiagonAlleyRuntimeTest
+    )
+    set_tests_properties(ArcaneCampusDiagonAlleyRuntimeTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 endif()
 
@@ -113,6 +138,8 @@ qt_add_executable(HogwartsOnline
     src/application/service/SocialService.cpp
     src/application/service/QuestService.hpp
     src/application/service/QuestService.cpp
+    src/application/service/StoryProgressService.hpp
+    src/application/service/StoryProgressService.cpp
     src/application/narrative/NarrativeDO.hpp
     src/application/narrative/NarrativeVO.hpp
     src/application/narrative/NarrativeDTO.hpp
@@ -122,6 +149,12 @@ qt_add_executable(HogwartsOnline
     src/application/prologue/PrologueService.cpp
     src/application/prologue/WandLoreService.hpp
     src/application/prologue/WandLoreService.cpp
+    src/application/diagon_alley/DiagonAlleyCatalog.hpp
+    src/application/diagon_alley/DiagonAlleyCatalog.cpp
+    src/application/diagon_alley/DiagonAlleyActionParser.hpp
+    src/application/diagon_alley/DiagonAlleyActionParser.cpp
+    src/application/diagon_alley/DiagonAlleyService.hpp
+    src/application/diagon_alley/DiagonAlleyService.cpp
     src/application/controller/CampusController.hpp
     src/application/controller/CampusController.cpp
     src/application/router/ClientCommandRouter.hpp

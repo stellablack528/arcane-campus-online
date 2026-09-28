@@ -3,6 +3,8 @@
 #include <QString>
 #include <QWidget>
 
+#include <cstdint>
+
 class QLabel;
 
 class CharacterStatusWidget : public QWidget
@@ -15,6 +17,7 @@ public:
 public slots:
     void setIdentity(const QString &studentName, const QString &houseName);
     void setCampusState(const QString &location, const QString &state);
+    void setGold(std::uint64_t gold);
 
 private:
     void buildUi();

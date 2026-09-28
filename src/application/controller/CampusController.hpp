@@ -8,6 +8,8 @@
 #include "application/service/SocialService.hpp"
 #include "application/narrative/NarrativeService.hpp"
 #include "application/prologue/PrologueService.hpp"
+#include "application/diagon_alley/DiagonAlleyService.hpp"
+#include "application/service/StoryProgressService.hpp"
 #include "application/world/WorldClock.hpp"
 #include "application/world/WorldEvent.hpp"
 
@@ -38,6 +40,8 @@ public:
                                 std::shared_ptr<arcane::database::NPCDAO> npcDao);
     void configureSocialService(std::shared_ptr<arcane::database::FriendDAO> friendDao,
                                 std::shared_ptr<arcane::database::CharacterDAO> characterDao);
+    void configureStoryProgressService(std::shared_ptr<arcane::database::StoryDAO> storyDao,
+                                       std::shared_ptr<arcane::database::CharacterDAO> characterDao);
     // 入学注册：从 EnrollmentDialog 获取请求后直接调用（非信号槽驱动）。
     void handleEnrollment(const dto::EnrollmentRequestDTO& request);
 
@@ -82,6 +86,7 @@ signals:
     void inputHintChanged(const QString& hint);
     void choicesPresented(const QStringList& labels);
     void playerLocationChanged(const QString& location, const QString& state);
+    void playerGoldChanged(std::uint64_t gold);
     void feedbackProduced(const QString& text);
     void maraudersMapRevealed(const QString& spellQuote,
                               std::uint32_t onlineCount,
@@ -95,6 +100,9 @@ private:
     void publish(const vo::OperationResultVO& result);
     // 统一的学院积分变化出口：emit housePointsChanged 信号。
     void applyHousePointsChange(const std::string& house, int delta, const std::string& reason);
+    void beginDiagonAlley(const QString& sceneId = QStringLiteral("street"),
+                          const QStringList& flags = {});
+    void resumeSavedStory();
 
     std::unique_ptr<service::SessionService> sessionService_;
     std::unique_ptr<service::CampusService> campusService_;
@@ -104,6 +112,8 @@ private:
     std::unique_ptr<service::MapService> mapService_;
     std::unique_ptr<service::NarrativeService> narrativeService_;
     std::unique_ptr<prologue::PrologueService> prologueService_;
+    std::unique_ptr<diagon_alley::DiagonAlleyService> diagonAlleyService_;
+    std::unique_ptr<service::StoryProgressService> storyProgressService_;
     std::unique_ptr<core::DeepSeekClient> deepSeekClient_;
 };
 

@@ -42,6 +42,27 @@ void PrologueService::begin(const WandConfig& selectedWand)
     enterDiagonAlley();
 }
 
+void PrologueService::resume(const WandConfig& selectedWand, PrologueStage savedStage)
+{
+    selectedWand_ = selectedWand;
+    switch (savedStage) {
+    case PrologueStage::Ollivanders:
+        enterOllivanders();
+        break;
+    case PrologueStage::WandReading:
+        revealWand();
+        break;
+    case PrologueStage::DiagonAlleyArrival:
+    case PrologueStage::Idle:
+        enterDiagonAlley();
+        break;
+    case PrologueStage::DiagonAlleyOpen:
+    case PrologueStage::Completed:
+        setStage(PrologueStage::Completed);
+        break;
+    }
+}
+
 void PrologueService::setStage(PrologueStage stage)
 {
     stage_ = stage;

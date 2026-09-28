@@ -321,6 +321,11 @@ void MainWindow::buildUi()
     setCentralWidget(central);
 }
 
+void MainWindow::updatePlayerGold(std::uint64_t gold)
+{
+    m_characterStatus->setGold(gold);
+}
+
 void MainWindow::setLeftDrawerVisible(bool visible)
 {
     if (!m_leftDrawer) return;

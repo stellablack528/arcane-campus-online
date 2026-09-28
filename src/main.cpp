@@ -18,6 +18,7 @@
 #include "NPCDAO.hpp"
 #include "RoomDAO.hpp"
 #include "FriendDAO.hpp"
+#include "StoryDAO.hpp"
 
 #include <filesystem>
 #include <memory>
@@ -79,6 +80,7 @@ int main(int argc, char *argv[])
         auto roomDao = std::make_shared<arcane::database::RoomDAO>(connection);
         auto npcDao = std::make_shared<arcane::database::NPCDAO>(connection);
         auto friendDao = std::make_shared<arcane::database::FriendDAO>(connection);
+        auto storyDao = std::make_shared<arcane::database::StoryDAO>(connection);
 
         campusController->configureSessionService(userDao, characterDao, inventoryDao);
         campusController->configureChatService(messageDao);
@@ -86,6 +88,7 @@ int main(int argc, char *argv[])
         campusController->configureMapService(inventoryDao, locationDao);
         campusController->configureCampusService(roomDao, npcDao);
         campusController->configureSocialService(friendDao, characterDao);
+        campusController->configureStoryProgressService(storyDao, characterDao);
     }
 
     QObject::connect(loginWindow, &LoginWindow::loginRequested,
@@ -163,6 +166,8 @@ int main(int argc, char *argv[])
                      mainWindow, &MainWindow::appendCampusMessage);
     QObject::connect(campusController, &arcane::application::controller::CampusController::playerLocationChanged,
                      mainWindow, &MainWindow::updatePlayerLocation);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::playerGoldChanged,
+                     mainWindow, &MainWindow::updatePlayerGold);
     QObject::connect(campusController, &arcane::application::controller::CampusController::feedbackProduced,
                      mainWindow, &MainWindow::showFeedback);
     QObject::connect(campusController, &arcane::application::controller::CampusController::maraudersMapRevealed,

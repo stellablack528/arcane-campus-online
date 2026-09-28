@@ -5,6 +5,7 @@
 
 class QComboBox;
 class QHBoxLayout;
+class QGridLayout;
 class QLabel;
 class QLineEdit;
 class QPushButton;
@@ -65,6 +66,6 @@ private:
     QLabel *m_titleLabel = nullptr;
     QLabel *m_sceneHeaderLabel = nullptr;
     QWidget *m_choiceBar = nullptr;
-    QHBoxLayout *m_choiceLayout = nullptr;
+    QGridLayout *m_choiceLayout = nullptr;
     QStringList m_channelLabels;
 };

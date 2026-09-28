@@ -34,6 +34,7 @@ public:
     [[nodiscard]] std::optional<CharacterRecord> getCharacterById(std::uint64_t characterId) const;
     [[nodiscard]] std::optional<CharacterRecord> getCharacterByUserId(std::uint64_t userId) const;
     [[nodiscard]] bool updateCharacterRoom(std::uint64_t characterId, std::uint64_t roomId);
+    [[nodiscard]] bool updateCharacterGold(std::uint64_t characterId, std::uint64_t gold);
     [[nodiscard]] bool deleteCharacter(std::uint64_t characterId);
 
 private:

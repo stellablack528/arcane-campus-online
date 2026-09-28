@@ -3,6 +3,7 @@
 #include "ui/I18n.hpp"
 
 #include <QComboBox>
+#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -173,8 +174,7 @@ void ChatEventWidget::setInputHint(const QString &hint)
 void ChatEventWidget::clearChoices()
 {
     if (!m_choiceLayout) return;
-    // 移除按钮（保留末尾 stretch）。
-    while (m_choiceLayout->count() > 1) {
+    while (m_choiceLayout->count() > 0) {
         auto *item = m_choiceLayout->takeAt(0);
         if (auto *w = item ? item->widget() : nullptr) w->deleteLater();
         delete item;
@@ -190,7 +190,7 @@ void ChatEventWidget::presentChoices(const QStringList &labels)
         auto *btn = new QPushButton(labels.at(i), m_choiceBar);
         btn->setObjectName("ChoiceButton");
         connect(btn, &QPushButton::clicked, this, [this, i] { emit choiceSelected(i); });
-        m_choiceLayout->insertWidget(m_choiceLayout->count() - 1, btn);  // 插在 stretch 前
+        m_choiceLayout->addWidget(btn, i / 3, i % 3);
     }
     if (m_choiceBar) m_choiceBar->show();
 }
@@ -251,10 +251,9 @@ void ChatEventWidget::buildUi()
     // 选项按钮栏（开局剧情用，默认隐藏）。
     m_choiceBar = new QWidget(this);
     m_choiceBar->setObjectName("ChoiceBar");
-    m_choiceLayout = new QHBoxLayout(m_choiceBar);
+    m_choiceLayout = new QGridLayout(m_choiceBar);
     m_choiceLayout->setContentsMargins(0, 0, 0, 0);
     m_choiceLayout->setSpacing(8);
-    m_choiceLayout->addStretch();
     m_choiceBar->hide();
     layout->addWidget(m_choiceBar);
 

@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "chapter_id": "diagon_alley_shopping",
+  "chapter_title": {
+    "zh": "对角巷 · 新生采购",
+    "en": "Diagon Alley · First-Year Shopping"
+  },
+  "street": {
+    "title": {
+      "zh": "对角巷 · 自由探索",
+      "en": "Diagon Alley · Free Exploration"
+    },
+    "intro": {
+      "zh": "你把新魔杖仔细收进衣袖，重新站回阳光斜照的鹅卵石街道。书页翻动、剪刀咔嗒、玻璃瓶碰撞和动物低鸣从四扇门后传来。<br><br>你可以点击商店，也可以直接输入想做的事。这里开始，按钮只是建议，而不是唯一的路。",
+      "en": "You tuck your new wand safely into your sleeve and step back onto the sunlit cobbles. Turning pages, clicking scissors, chiming bottles, and animal calls spill from four open doors.<br><br>You may use the suggested actions or simply type what you want to do. From here on, buttons are suggestions—not the only path."
+    },
+    "revisit": {
+      "zh": "人流从你身边分开又合拢。四家商店仍亮着灯，已经买好的包裹在你手中轻轻碰撞。",
+      "en": "The crowd parts and closes around you. Four shopfronts remain lit, and the parcels you have already bought knock softly together."
+    },
+    "completion": {
+      "zh": "最后一件物品被放进你的行李。羊皮纸清单上的墨迹自行连成一枚小小的星形印章：<b>新生用品已经备齐。</b><br><br>对角巷仍可继续探索，而通往下一章的路也已经打开。",
+      "en": "The final purchase settles into your luggage. Ink curls across your parchment list and forms a small star-shaped seal: <b>first-year supplies complete.</b><br><br>Diagon Alley remains open to explore, and the road to the next chapter is ready."
+    }
+  },
+  "shops": [
+    {
+      "id": "flourish_and_blotts",
+      "title": {"zh": "丽痕书店", "en": "Flourish and Blotts"},
+      "keywords": ["丽痕", "书店", "课本", "books", "bookshop", "flourish"],
+      "intro": {
+        "zh": "推门时，一摞过高的书摇晃着从你面前经过——下面只露出店员的一双鞋。空气里满是墨水、旧皮革与新羊皮纸的味道。",
+        "en": "As you enter, a dangerously tall stack of books walks past—only the clerk's shoes visible beneath it. The air smells of ink, old leather, and fresh parchment."
+      },
+      "revisit": {
+        "zh": "书架间仍有细碎的翻页声。一支羽毛笔追着写错价格的标签，在柜台上气急败坏地划线。",
+        "en": "Pages continue to whisper between the shelves. A quill chases a mispriced label across the counter, crossing things out furiously."
+      },
+      "npc": {
+        "id": "bookseller_merrythought",
+        "name": {"zh": "梅里索特先生", "en": "Mr. Merrythought"},
+        "greeting": {"zh": "“一年级书单？我已经替你按课程顺序放好了。”", "en": "“First-year list? I have already arranged it in timetable order.”"},
+        "warm_greeting": {"zh": "“又见面了。你上次认真听我讲旧版课本的事，我给你留了纸张最好的一套。”", "en": "“Back again. You listened to my old-edition story, so I saved the set with the finest paper for you.”"},
+        "wary_greeting": {"zh": "他认出了你，只简短地点点头，把价签转向你的方向。", "en": "He recognises you, offers only a brief nod, and turns the price label towards you."},
+        "talk": {"zh": "他压低声音告诉你：同一本教材的旧版批注有时比正文更有价值。说完，他在你的《魔法史》里夹了一张空白索引卡。", "en": "He quietly tells you that notes in an old edition can be more valuable than the printed text, then slips a blank index card into your History of Magic volume."},
+        "followup": {"zh": "“先读目录，再读脚注。迷路的时候，书会告诉你从哪一页重新开始。”", "en": "“Read the contents first, then the footnotes. When you are lost, a book will tell you where to begin again.”"},
+        "ignored": {"zh": "你没有回应。梅里索特先生停顿了一瞬，把那张原本准备送你的书签收回了抽屉。", "en": "You do not answer. Mr. Merrythought pauses, then returns the bookmark he meant to give you to its drawer."}
+      },
+      "purchases": [
+        {
+          "id": "first_year_books",
+          "label": {"zh": "购买一年级课本与羽毛笔", "en": "Buy first-year books and a quill"},
+          "keywords": ["课本", "书", "羽毛笔", "book", "books", "quill"],
+          "item_id": 12,
+          "price": 12,
+          "completion_flag": "books",
+          "success": {"zh": "梅里索特先生用墨绿色纸绳捆好整套课本，又把一支新羽毛笔插在最上面。“别让它替你写作业——它会养成坏习惯。”", "en": "Mr. Merrythought ties the full set with dark-green cord and tucks a new quill beneath it. “Do not let it write your homework for you—it will develop bad habits.”"}
+        }
+      ]
+    },
+    {
+      "id": "madam_malkins",
+      "title": {"zh": "摩金夫人长袍专卖店", "en": "Madam Malkin's Robes"},
+      "keywords": ["摩金", "长袍", "校服", "衣服", "robe", "robes", "malkin"],
+      "intro": {
+        "zh": "卷尺像温顺的小蛇一样从衣架上滑下来，绕过你的肩、袖口和脚踝。几排深色长袍在镜子里显得比店里实际更多。",
+        "en": "Measuring tapes slip from their hooks like tame little snakes, circling your shoulders, sleeves, and ankles. Rows of dark robes multiply in the mirrors."
+      },
+      "revisit": {
+        "zh": "一只针线盒自动跳到工作台上，银针们整齐地转向你，像是在等待检阅。",
+        "en": "A sewing box hops onto the worktable. Its silver needles turn towards you in a neat row, as if awaiting inspection."
+      },
+      "npc": {
+        "id": "madam_malkin",
+        "name": {"zh": "摩金夫人", "en": "Madam Malkin"},
+        "greeting": {"zh": "“站到矮凳上来，亲爱的。会长大的孩子，衣摆必须留一点聪明的余量。”", "en": "“Up on the stool, dear. Growing children need a clever little allowance in the hem.”"},
+        "warm_greeting": {"zh": "“回来得正好。我记得你的肩线——不用再量第二次。”", "en": "“Perfect timing. I remember your shoulder line—no need to measure twice.”"},
+        "wary_greeting": {"zh": "摩金夫人礼貌地笑了笑，卷尺却保持着职业性的距离。", "en": "Madam Malkin smiles politely, though the measuring tape keeps a professional distance."},
+        "talk": {"zh": "她一边别住袖口一边告诉你，真正合身的长袍不会让人变得勇敢，却能让人忘记自己正在害怕。", "en": "As she pins a sleeve, she says that a well-fitted robe cannot make someone brave, but it can help them forget they are afraid."},
+        "followup": {"zh": "“口袋加固过了。学生总会往里面装比口袋更重的秘密。”", "en": "“The pockets are reinforced. Students always put secrets in them heavier than the pockets were made to hold.”"},
+        "ignored": {"zh": "你避开了她的问候。卷尺啪地缩回去，之后量尺寸时明显没有刚才那么温柔。", "en": "You pass over her greeting. The measuring tape snaps back and is noticeably less gentle when it resumes its work."}
+      },
+      "purchases": [
+        {
+          "id": "school_robes",
+          "label": {"zh": "购买霍格沃茨校服长袍", "en": "Buy Hogwarts school robes"},
+          "keywords": ["长袍", "校服", "衣服", "robe", "robes", "uniform"],
+          "item_id": 11,
+          "price": 10,
+          "completion_flag": "robes",
+          "success": {"zh": "最后一根线头自行缩进衣摆，长袍像一片安静的夜色落在你肩上。摩金夫人满意地抚平领口。", "en": "The final loose thread draws itself into the hem, and the robe settles over your shoulders like a quiet piece of night. Madam Malkin smooths the collar approvingly."}
+        }
+      ]
+    },
+    {
+      "id": "apothecary",
+      "title": {"zh": "斯拉格与吉格斯药材店", "en": "Slug & Jiggers Apothecary"},
+      "keywords": ["药材", "魔药", "坩埚", "瓶子", "apothecary", "potion", "cauldron"],
+      "intro": {
+        "zh": "店里比街上凉得多。天花板垂下成束草药，玻璃罐里装着会缓慢呼吸的根茎；黄铜秤盘正独自校准分量。",
+        "en": "The shop is much cooler than the street. Bundles of herbs hang from the ceiling, roots breathe slowly inside glass jars, and brass scales calibrate themselves on the counter."
+      },
+      "revisit": {
+        "zh": "研钵仍在角落里规律地捣碎种子。苦涩、清凉和一点烧焦糖浆的气味分层停在空气中。",
+        "en": "A mortar continues crushing seeds in the corner. Bitter, cooling, and faintly burnt-syrup scents hang in distinct layers in the air."
+      },
+      "npc": {
+        "id": "apothecary_clerk_ives",
+        "name": {"zh": "艾夫斯先生", "en": "Mr. Ives"},
+        "greeting": {"zh": "“一年级套装在右边。别打开银色盖子的罐子，它比你好奇。”", "en": "“First-year kits are on the right. Do not open the silver-lidded jar—it is more curious than you are.”"},
+        "warm_greeting": {"zh": "“你回来了。很好，至少有人愿意先问标签是什么意思，再把东西倒进锅里。”", "en": "“You came back. Good—someone willing to ask what a label means before tipping it into a cauldron.”"},
+        "wary_greeting": {"zh": "艾夫斯先生把几只易碎瓶推远了一寸，才问你需要什么。", "en": "Mr. Ives moves several fragile bottles an inch farther away before asking what you need."},
+        "talk": {"zh": "他教你用指节轻敲玻璃瓶：清脆声代表干燥，闷响则说明材料已经受潮。这可能会在第一堂魔药课救下一口坩埚。", "en": "He teaches you to tap a phial with one knuckle: a clear note means dry ingredients; a dull one means damp. It may save a cauldron in your first Potions lesson."},
+        "followup": {"zh": "“记住，冒烟不一定是失败。尖叫才通常是。”", "en": "“Remember: smoke does not always mean failure. Screaming usually does.”"},
+        "ignored": {"zh": "你径直越过他的提醒。一只银盖罐子在货架上轻轻碰了碰玻璃，像是记住了你。", "en": "You walk past his warning. A silver-lidded jar taps softly against the shelf, as though remembering you."}
+      },
+      "purchases": [
+        {
+          "id": "potion_kit",
+          "label": {"zh": "购买坩埚与魔药材料套装", "en": "Buy a cauldron and potion kit"},
+          "keywords": ["魔药套装", "坩埚", "材料", "药材", "potion kit", "cauldron", "ingredients"],
+          "item_id": 13,
+          "price": 8,
+          "completion_flag": "potions",
+          "success": {"zh": "艾夫斯先生逐一检查瓶塞，把材料按危险程度排进坩埚。“最麻烦的放最下面——这样你会记得别把包倒过来。”", "en": "Mr. Ives checks every stopper and nests the ingredients inside the cauldron by danger. “Worst ones at the bottom—so you remember not to turn the bag upside down.”"}
+        }
+      ]
+    },
+    {
+      "id": "magical_menagerie",
+      "title": {"zh": "神奇动物商店", "en": "Magical Menagerie"},
+      "keywords": ["动物", "宠物", "猫头鹰", "猫", "蟾蜍", "menagerie", "pet", "owl", "cat", "toad"],
+      "intro": {
+        "zh": "门一开，各种声音立刻叠在一起：翅膀拍动、猫爪轻敲木板、蟾蜍低鸣，还有什么东西在后屋模仿收银铃。三双眼睛几乎同时望向你。",
+        "en": "The moment the door opens, sounds pile together: wings, cat paws on wood, a toad's low croak, and something in the back room imitating the till bell. Three pairs of eyes turn towards you at once."
+      },
+      "revisit": {
+        "zh": "动物们似乎比店主更早认出你。笼门、尾巴和一双鼓起的眼睛分别做出了自己的反应。",
+        "en": "The animals seem to recognise you before the keeper does. A cage door, a tail, and a pair of round eyes each offer their own reaction."
+      },
+      "npc": {
+        "id": "menagerie_keeper_wren",
+        "name": {"zh": "瑞恩女士", "en": "Ms. Wren"},
+        "greeting": {"zh": "“别只看最漂亮的那只。先看看是谁一直在看你。”", "en": "“Do not choose only the prettiest one. First notice which animal has been watching you.”"},
+        "warm_greeting": {"zh": "“它们记得你的脚步声。看来你给大家留下了不错的第一印象。”", "en": "“They remember your footsteps. It seems you made a good first impression.”"},
+        "wary_greeting": {"zh": "瑞恩女士挡在最近的笼门前。“今天请慢一点。它们也会判断人。”", "en": "Ms. Wren steps between you and the nearest cage. “Move slowly today. They judge people too.”"},
+        "talk": {"zh": "她没有替你推荐，而是教你观察：猫头鹰先看方向，猫先看手，蟾蜍则要等四周安静后才会决定是否靠近。", "en": "Rather than recommend one, she teaches you what to notice: an owl watches direction, a cat watches hands, and a toad waits for quiet before deciding whether to approach."},
+        "followup": {"zh": "“伙伴不是装饰。你心情最糟的那天，才会知道彼此究竟选对了没有。”", "en": "“A companion is not decoration. On your worst day, you will learn whether you truly chose each other.”"},
+        "ignored": {"zh": "你没有理会她的话。那只原本向前挪动的动物停了下来，重新审视着你。", "en": "You disregard her advice. The animal that had edged closer stops and studies you again."}
+      },
+      "purchases": [
+        {
+          "id": "adopt_owl",
+          "label": {"zh": "选择一只猫头鹰", "en": "Choose an owl"},
+          "keywords": ["猫头鹰", "owl"],
+          "item_id": 8,
+          "price": 10,
+          "completion_flag": "pet",
+          "success": {"zh": "猫头鹰低下头，让你系好脚环，随后轻轻啄了一下你的手指——不疼，更像一份正式确认。", "en": "The owl lowers its head for the leg band, then taps your finger with its beak—not painfully, but like a formal confirmation."}
+        },
+        {
+          "id": "adopt_cat",
+          "label": {"zh": "选择一只猫", "en": "Choose a cat"},
+          "keywords": ["猫", "cat"],
+          "item_id": 9,
+          "price": 8,
+          "completion_flag": "pet",
+          "success": {"zh": "猫从架子上跃下，绕着你的行李走了一圈，然后理所当然地坐在最上面。看来它已经替双方作出了决定。", "en": "The cat jumps down, circles your luggage once, and sits on top as if it belongs there. It appears to have decided for both of you."}
+        },
+        {
+          "id": "adopt_toad",
+          "label": {"zh": "选择一只蟾蜍", "en": "Choose a toad"},
+          "keywords": ["蟾蜍", "toad"],
+          "item_id": 10,
+          "price": 5,
+          "completion_flag": "pet",
+          "success": {"zh": "蟾蜍安静地跳进软垫盒里，只在盖子合上前叫了一声。瑞恩女士说，那已经是它非常热烈的赞同。", "en": "The toad hops calmly into its padded carrier and croaks once before the lid closes. Ms. Wren says that counts as enthusiastic approval."}
+        }
+      ]
+    }
+  ]
+}

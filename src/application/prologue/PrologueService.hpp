@@ -31,6 +31,8 @@ public:
     // Starts at the entrance to Diagon Alley. The selected wand stays sealed in
     // story state until the player completes Ollivander's ceremony.
     void begin(const WandConfig& selectedWand);
+    // Re-enters the last safe scene after a local save is loaded.
+    void resume(const WandConfig& selectedWand, PrologueStage savedStage);
 
 public slots:
     void submitChoice(int index);

@@ -4,6 +4,12 @@ CREATE DATABASE IF NOT EXISTS arcane_campus_online
 
 USE arcane_campus_online;
 
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version VARCHAR(64) NOT NULL,
+    applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS users (
     user_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     username VARCHAR(64) NOT NULL,
@@ -178,5 +184,51 @@ CREATE TABLE IF NOT EXISTS player_locations (
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_player_locations_room_id
         FOREIGN KEY (room_id) REFERENCES rooms(room_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS character_story_states (
+    character_id BIGINT UNSIGNED NOT NULL,
+    chapter_id VARCHAR(64) NOT NULL,
+    scene_id VARCHAR(64) NOT NULL,
+    stage VARCHAR(64) NOT NULL,
+    flags TEXT NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (character_id),
+    CONSTRAINT fk_story_state_character
+        FOREIGN KEY (character_id) REFERENCES characters(character_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS character_wands (
+    character_id BIGINT UNSIGNED NOT NULL,
+    wood_id VARCHAR(64) NOT NULL,
+    core_id VARCHAR(64) NOT NULL,
+    wood_name VARCHAR(96) NOT NULL,
+    core_name VARCHAR(96) NOT NULL,
+    length_inches DECIMAL(5,2) NOT NULL,
+    flexibility VARCHAR(96) NOT NULL,
+    handle_style VARCHAR(96) NOT NULL,
+    finish VARCHAR(96) NOT NULL,
+    color_tone VARCHAR(96) NOT NULL,
+    engraving VARCHAR(64) NOT NULL DEFAULT '',
+    claimed BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (character_id),
+    CONSTRAINT fk_character_wand_character
+        FOREIGN KEY (character_id) REFERENCES characters(character_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS npc_memories (
+    character_id BIGINT UNSIGNED NOT NULL,
+    npc_id VARCHAR(64) NOT NULL,
+    affinity INT NOT NULL DEFAULT 0,
+    memory_flags TEXT NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (character_id, npc_id),
+    KEY idx_npc_memories_npc_id (npc_id),
+    CONSTRAINT fk_npc_memory_character
+        FOREIGN KEY (character_id) REFERENCES characters(character_id)
         ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

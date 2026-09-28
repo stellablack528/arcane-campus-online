@@ -30,6 +30,7 @@ public slots:
     void setPlayerIdentity(const QString &studentName, const QString &houseName);
     void appendCampusMessage(const QString &channel, const QString &speaker, const QString &text);
     void updatePlayerLocation(const QString &location, const QString &state);
+    void updatePlayerGold(std::uint64_t gold);
     void showFeedback(const QString &text);
     // 触发左栏"当前地点"刷新 + 此地角色列表更新。
     void updateCurrentLocationPanel(const QString &location);

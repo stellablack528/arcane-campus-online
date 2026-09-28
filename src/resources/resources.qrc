@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>qss/dark_wood.qss</file>
         <file>data/wand_customization.json</file>
+        <file>data/diagon_alley.json</file>
     </qresource>
 </RCC>

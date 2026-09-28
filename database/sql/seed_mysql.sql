@@ -20,7 +20,8 @@ VALUES
     (5, 'Slytherin Common Room', 'house_common_room', 'A green-lit stone common room beneath the lake.', 80, FALSE),
     (6, 'Hufflepuff Common Room', 'house_common_room', 'A cozy common room near the kitchens with plants and round doors.', 80, FALSE),
     (7, 'Ravenclaw Common Room', 'house_common_room', 'An airy tower room with blue accents, books, and riddles.', 80, FALSE),
-    (8, 'Forbidden Forest', 'danger', 'A dark and ancient forest at the edge of the grounds. Centaurs, acromantulas, and things best left undisturbed.', 30, TRUE)
+    (8, 'Forbidden Forest', 'danger', 'A dark and ancient forest at the edge of the grounds. Centaurs, acromantulas, and things best left undisturbed.', 30, TRUE),
+    (9, 'Diagon Alley', 'shopping', 'A winding wizarding street of shops, voices, owls, and first-year discoveries.', 120, FALSE)
 ON DUPLICATE KEY UPDATE
     room_type = VALUES(room_type),
     description = VALUES(description),
@@ -75,7 +76,9 @@ VALUES
     (8, 'Owl', 'pet', 'A loyal feathered companion for mail delivery and nighttime company.', FALSE),
     (9, 'Cat', 'pet', 'A feline familiar with keen senses and independent charm.', FALSE),
     (10, 'Toad', 'pet', 'A humble amphibian companion, favored by traditionalists.', FALSE),
-    (11, 'School Robe', 'equipment', 'Standard Hogwarts robes in your house colors.', FALSE)
+    (11, 'School Robe', 'equipment', 'Standard Hogwarts robes in your house colors.', FALSE),
+    (12, 'First-Year Book and Writing Set', 'school_supply', 'The complete first-year reading list and a new quill from Flourish and Blotts.', FALSE),
+    (13, 'First-Year Potion Kit', 'school_supply', 'A brass cauldron, glass phials, scales, and a starter bundle of potion ingredients.', FALSE)
 ON DUPLICATE KEY UPDATE
     item_type = VALUES(item_type),
     description = VALUES(description),

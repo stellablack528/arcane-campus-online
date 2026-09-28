@@ -38,6 +38,11 @@ void CharacterStatusWidget::setCampusState(const QString &location, const QStrin
     }
 }
 
+void CharacterStatusWidget::setGold(std::uint64_t gold)
+{
+    m_galleonValue->setText(QString::number(gold));
+}
+
 void CharacterStatusWidget::buildUi()
 {
     auto *layout = new QVBoxLayout(this);

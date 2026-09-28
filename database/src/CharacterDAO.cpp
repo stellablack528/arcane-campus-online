@@ -85,6 +85,12 @@ bool CharacterDAO::updateCharacterRoom(std::uint64_t characterId, std::uint64_t 
                                 {std::to_string(roomId), std::to_string(characterId)});
 }
 
+bool CharacterDAO::updateCharacterGold(std::uint64_t characterId, std::uint64_t gold)
+{
+    return connection_->execute("UPDATE characters SET gold = ? WHERE character_id = ?",
+                                {std::to_string(gold), std::to_string(characterId)});
+}
+
 bool CharacterDAO::deleteCharacter(std::uint64_t characterId)
 {
     return connection_->execute("DELETE FROM characters WHERE character_id = ?",

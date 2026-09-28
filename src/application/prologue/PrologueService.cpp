@@ -1,79 +1,51 @@
 #include "application/prologue/PrologueService.hpp"
 
-#include <QString>
+#include "ui/I18n.hpp"
 
 namespace arcane::application::prologue {
 
 namespace {
 
-// 选项标签 → 数据 id 的映射表。
-struct Option {
-    const char* label;
-    const char* id;
-};
-
-// 阶段1：宠物
-constexpr Option kPets[] = {
-    {"Owl",  "owl"},
-    {"Cat",  "cat"},
-    {"Toad", "toad"},
-};
-
-// 阶段2a：魔杖木材（精选 6 种，对应 wand_customization.json 的 id）
-constexpr Option kWoods[] = {
-    {"Holly",   "holly"},
-    {"Yew",     "yew"},
-    {"Oak",     "english_oak"},
-    {"Elder",   "elder"},
-    {"Vine",    "vine"},
-    {"Willow",  "willow"},
-};
-
-// 阶段2b：杖芯
-constexpr Option kCores[] = {
-    {"Phoenix Feather",    "phoenix_feather"},
-    {"Dragon Heartstring", "dragon_heartstring"},
-    {"Unicorn Hair",       "unicorn_hair"},
-};
-
-// 阶段2c：长度（英寸）
-constexpr double kLengths[] = {9.0, 10.0, 11.0, 12.0, 13.0, 14.0};
-
-// 阶段2d：柔韧度
-constexpr Option kFlexes[] = {
-    {"Unyielding", "Unyielding"},
-    {"Rigid",      "Rigid"},
-    {"Supple",     "Supple"},
-    {"Pliant",     "Pliant"},
-};
-
-// 富文本叙事包装：统一羊皮纸风格的段落。
-QString narrative(const QString& speaker, const QString& body)
+bool isChinese()
 {
-    return QStringLiteral(
-        "<div style='margin:6px 0; padding:6px 0; border-bottom:1px dotted #3a3528;'>"
-        "<span style='color:#e8d5a4; font-weight:700;'>%1</span><br>"
-        "<span style='color:#d8d0bc;'>%2</span></div>")
-        .arg(speaker, body);
+    return arcane::ui::I18n::instance().language() == arcane::ui::I18n::Lang::Chinese;
 }
 
-QStringList labelsOf(const Option* opts, int count)
+QString localized(const char* chinese, const char* english)
 {
-    QStringList out;
-    for (int i = 0; i < count; ++i) out << QString::fromLatin1(opts[i].label);
-    return out;
+    return isChinese() ? QString::fromUtf8(chinese) : QString::fromUtf8(english);
+}
+
+QString safeParagraph(QString text)
+{
+    return text.toHtmlEscaped().replace(QStringLiteral("\n"), QStringLiteral("<br>"));
 }
 
 } // namespace
 
 PrologueService::PrologueService(QObject* parent)
-    : QObject(parent) {}
-
-void PrologueService::begin()
+    : QObject(parent)
+    , loreService_(this)
 {
-    stage_ = PrologueStage::DiagonAlleyPet;
+    connect(&loreService_, &WandLoreService::readingReady,
+            this, &PrologueService::finishWandReading);
+}
+
+bool PrologueService::isActive() const noexcept
+{
+    return stage_ != PrologueStage::Idle && stage_ != PrologueStage::Completed;
+}
+
+void PrologueService::begin(const WandConfig& selectedWand)
+{
+    selectedWand_ = selectedWand;
+    enterDiagonAlley();
+}
+
+void PrologueService::setStage(PrologueStage stage)
+{
+    stage_ = stage;
     emit stageChanged(stage_);
-    enterPetStage();
 }
 
 void PrologueService::setScene(const QString& title, const QString& hint)
@@ -82,214 +54,155 @@ void PrologueService::setScene(const QString& title, const QString& hint)
     emit inputHintChanged(hint);
 }
 
-void PrologueService::emitNarrative(const QString& html)
+void PrologueService::enterDiagonAlley()
 {
-    emit narrativeProduced(html);
+    setStage(PrologueStage::DiagonAlleyArrival);
+    setScene(localized("对角巷 · 新生采购日", "Diagon Alley · First-Year Shopping"),
+             localized("先去取得你的魔杖……", "First, claim your wand..."));
+
+    const QString body = isChinese()
+        ? QStringLiteral(
+            "砖墙在身后合拢，午后的光落在蜿蜒的鹅卵石街面上。猫头鹰的叫声、坩埚碰撞声与商贩的吆喝混在一起——你第一次真正站进了魔法世界。<br><br>"
+            "左侧的<b>丽痕书店</b>出售课本、地图和会自己改错的羽毛笔；<b>摩金夫人长袍专卖店</b>正在给新生量尺寸；"
+            "前方的<b>药材店</b>堆满干燥草药、魔药材料与黄铜坩埚；<b>神奇动物商店</b>里传来猫、蟾蜍和猫头鹰的动静。<br><br>"
+            "而街道深处那块褪色的金字招牌写着：<b>奥利凡德：自公元前382年即制作精良魔杖</b>。你的第一站已经决定。")
+        : QStringLiteral(
+            "The brick wall seals behind you, and afternoon light spills across the winding cobbles. Owl calls, clattering cauldrons, and shopkeepers' cries mingle around you—your first real step into the wizarding world.<br><br>"
+            "<b>Flourish and Blotts</b> sells textbooks, maps, and self-correcting quills; <b>Madam Malkin's</b> is measuring first-years for robes. "
+            "Ahead, the <b>Apothecary</b> offers dried herbs, potion ingredients, and brass cauldrons, while cats, toads, and owls stir inside the <b>Magical Menagerie</b>.<br><br>"
+            "Farther down the street, a faded gold sign reads: <b>Ollivanders: Makers of Fine Wands since 382 B.C.</b> Your first stop is already decided.");
+
+    emit narrativeProduced(localized("旁白", "Narrator"), body);
+    emit choicesPresented({localized("走进奥利凡德魔杖店", "Enter Ollivanders")});
 }
 
-void PrologueService::emitChoices(const QStringList& labels)
+void PrologueService::enterOllivanders()
 {
-    emit choicesPresented(labels);
+    setStage(PrologueStage::Ollivanders);
+    setScene(localized("奥利凡德魔杖店 · 尘封的长匣", "Ollivanders · Dusty Wand Boxes"),
+             localized("让魔杖作出选择……", "Let the wand make its choice..."));
+
+    const QString body = isChinese()
+        ? QStringLiteral(
+            "门铃轻响。狭长店铺的墙壁从地板一直堆到天花板，全是覆着薄尘的细长盒子。<br><br>"
+            "奥利凡德先生从货架间无声地出现，苍白的眼睛在你与那张提前送来的定制单之间移动。"
+            "“木材、杖芯、长度、柔韧度……这些只是让我们找到它的线索。”他抽出一只盒子，吹去盒盖上的灰。"
+            "“真正的答案，要由魔杖来给。”<br><br>"
+            "盒中正躺着你在入学登记时选定的那根魔杖。")
+        : QStringLiteral(
+            "A bell whispers above the door. The narrow shop is stacked floor to ceiling with slender boxes filmed in dust.<br><br>"
+            "Mr. Ollivander appears silently between the shelves, pale eyes moving from you to the order slip sent ahead. "
+            "\"Wood, core, length, flexibility... merely clues that help us find it.\" He draws out one box and blows the dust from its lid. "
+            "\"The wand must give us the true answer.\"<br><br>"
+            "Inside lies the wand you specified during enrollment.");
+
+    emit narrativeProduced(localized("奥利凡德先生", "Mr. Ollivander"), body);
+    emit choicesPresented({localized("伸手握住魔杖", "Take the wand")});
 }
 
-// ---------- 阶段1：对角巷·宠物 ----------
-
-void PrologueService::enterPetStage()
+void PrologueService::revealWand()
 {
-    setScene(QStringLiteral("Diagon Alley \xe2\x80\x94 Magical Menagerie"),
-             QStringLiteral("Choose your companion..."));
-    emitNarrative(narrative(
-        QStringLiteral("Narrator"),
-        QStringLiteral(
-            "The cobblestones of Diagon Alley thrum with wizarding life \xe2\x80\x94 "
-            "owls hoot from the post office, cauldrons clatter, and the sweet smell "
-            "of Sugar Quills drifts from Honeydukes.<br><br>"
-            "You step into the Magical Menagerie. cages line the walls: a purple toad "
-            "croaks lazily, a tabby cat watches you with knowing eyes, and a snowy owl "
-            "ruffles its feathers and gives a soft hoot.<br><br>"
-            "<i>Which companion calls to you?</i>")));
-    emitChoices(labelsOf(kPets, static_cast<int>(sizeof(kPets) / sizeof(kPets[0]))));
+    setStage(PrologueStage::WandReading);
+    emit choicesPresented({});
+    setScene(localized("奥利凡德魔杖店 · 魔杖的回答", "Ollivanders · The Wand's Answer"),
+             localized("金色火花正在消散……", "Golden sparks are settling..."));
+
+    const QString body = isChinese()
+        ? QStringLiteral(
+            "你的手指刚刚合拢，杖尖便迸出一束温暖的金色火花。它们沿着天花板旋转一周，照亮成百上千只沉睡的魔杖盒，最后像萤火一样落在你的肩头。<br><br>"
+            "“就是它。”奥利凡德先生的嘴角露出一丝笑意。“不是你挑中了它——是它认出了你。”<br><br>"
+            "你的魔杖：<b>%1</b>木，<b>%2</b>杖芯，<b>%3 英寸</b>，<b>%4</b>。")
+              .arg(selectedWand_.woodName.toHtmlEscaped(),
+                   selectedWand_.coreName.toHtmlEscaped(),
+                   QString::number(selectedWand_.lengthInches, 'f', 2),
+                   selectedWand_.flexibility.toHtmlEscaped())
+        : QStringLiteral(
+            "The instant your fingers close, warm golden sparks burst from the tip. They circle the ceiling, waking hundreds of sleeping wand boxes, then settle over your shoulders like fireflies.<br><br>"
+            "\"This is the one.\" A faint smile touches Mr. Ollivander's face. \"You did not choose it—it recognised you.\"<br><br>"
+            "Your wand: <b>%1</b> wood, <b>%2</b> core, <b>%3 inches</b>, <b>%4</b>.")
+              .arg(selectedWand_.woodName.toHtmlEscaped(),
+                   selectedWand_.coreName.toHtmlEscaped(),
+                   QString::number(selectedWand_.lengthInches, 'f', 2),
+                   selectedWand_.flexibility.toHtmlEscaped());
+
+    emit narrativeProduced(localized("旁白", "Narrator"), body);
+    emit wandConfigured(selectedWand_);
+    emit narrativeProduced(
+        localized("奥利凡德先生", "Mr. Ollivander"),
+        localized("奥利凡德先生端详着仍在发光的杖尖，像是在听一段只有他能听见的低语……",
+                  "Mr. Ollivander studies the glowing tip as though listening to a whisper meant for him alone..."));
+    loreService_.requestReading(selectedWand_);
 }
 
-// ---------- 阶段2：奥利凡德魔杖店 ----------
-
-void PrologueService::enterWandStage()
+void PrologueService::finishWandReading(const QString& reading, bool generatedByAi)
 {
-    stage_ = PrologueStage::DiagonAlleyWand;
-    wandStep_ = WandStep::Wood;
-    emit stageChanged(stage_);
-    setScene(QStringLiteral("Ollivanders \xe2\x80\x94 Makers of Fine Wands"),
-             QStringLiteral("Let the wand choose you..."));
-
-    emitNarrative(narrative(
-        QStringLiteral("Mr. Ollivander"),
-        QStringLiteral(
-            "A bell tinkles as you enter the narrow, shabby shop. The walls are lined "
-            "floor to ceiling with dusty wand boxes. An old wizard with pale eyes "
-            "surveys you from behind the counter.<br><br>"
-            "\xe2\x80\x9cCurious\xe2\x80\xa6 very curious,\xe2\x80\x9d he murmurs. "
-            "\xe2\x80\x9cI remember every wand I've ever sold. The wand chooses the "
-            "wizard, you know. Let us see which wood is meant for you.\xe2\x80\x9d")));
-    emitChoices(labelsOf(kWoods, static_cast<int>(sizeof(kWoods) / sizeof(kWoods[0]))));
-}
-
-void PrologueService::advanceWandStep()
-{
-    switch (wandStep_) {
-    case WandStep::Wood:
-        // 已选木材，进入杖芯。
-        wandStep_ = WandStep::Core;
-        setScene(QStringLiteral("Ollivanders \xe2\x80\x94 Core"),
-                 QStringLiteral("Choose the wand core..."));
-        emitNarrative(narrative(
-            QStringLiteral("Mr. Ollivander"),
-            QStringLiteral(
-                "\xe2\x80\x9cAh, an excellent wood. Now \xe2\x80\x94 the heart of the "
-                "wand. The core gives the wand its temperament. Each is unique.\xe2\x80\x9d")));
-        emitChoices(labelsOf(kCores, static_cast<int>(sizeof(kCores) / sizeof(kCores[0]))));
-        break;
-
-    case WandStep::Core:
-        wandStep_ = WandStep::Length;
-        setScene(QStringLiteral("Ollivanders \xe2\x80\x94 Length"),
-                 QStringLiteral("Choose the wand length..."));
-        emitNarrative(narrative(
-            QStringLiteral("Mr. Ollivander"),
-            QStringLiteral(
-                "\xe2\x80\x9cA fine pairing. Now the length \xe2\x80\x94 it must suit "
-                "your style of spellwork. Shorter wands favour precision; longer ones, "
-                "grandeur.\xe2\x80\x9d")));
-        {
-            QStringList lens;
-            for (double l : kLengths) lens << QString::number(l, 'f', 1) + QStringLiteral("\"");
-            emitChoices(lens);
-        }
-        break;
-
-    case WandStep::Length:
-        wandStep_ = WandStep::Flex;
-        setScene(QStringLiteral("Ollivanders \xe2\x80\x94 Flexibility"),
-                 QStringLiteral("Choose the flexibility..."));
-        emitNarrative(narrative(
-            QStringLiteral("Mr. Ollivander"),
-            QStringLiteral(
-                "\xe2\x80\x9cAnd finally, the flexibility. Rigid wands favour those "
-                "of stubborn will; supple ones grow with their master.\xe2\x80\x9d")));
-        emitChoices(labelsOf(kFlexes, static_cast<int>(sizeof(kFlexes) / sizeof(kFlexes[0]))));
-        break;
-
-    case WandStep::Flex:
-        wandStep_ = WandStep::Reveal;
-        finishWandConfig();
-        break;
-
-    case WandStep::Reveal:
-        break;
+    if (stage_ != PrologueStage::WandReading) {
+        return;
     }
+
+    emit narrativeProduced(
+        localized("奥利凡德先生", "Mr. Ollivander"),
+        safeParagraph(reading));
+
+    setStage(PrologueStage::DiagonAlleyOpen);
+    setScene(localized("对角巷 · 新世界仍在展开", "Diagon Alley · A World Still Unfolding"),
+             localized("收好魔杖，继续你的采购……", "Pocket your wand and continue shopping..."));
+
+    const QString sourceNote = generatedByAi
+        ? localized("那段判断像刚从魔杖的火花里生长出来。", "The reading seems to have grown from the wand's own sparks.")
+        : localized("店内的古老魔杖档案替它留下了这段判断。", "The shop's old wand archive supplies the reading.");
+    const QString body = isChinese()
+        ? QStringLiteral(
+            "%1<br><br>你带着第一件真正属于自己的魔法物品重新踏上街道。丽痕书店、摩金夫人长袍店、药材店与神奇动物商店仍然开着门；"
+            "远处还有更多招牌在雾蒙蒙的玻璃后闪烁。<br><br><b>新生创建与魔杖领取已经完成。</b>从此刻起，你可以继续探索对角巷，之后的每一家店都能独立接入新的剧情。")
+              .arg(sourceNote)
+        : QStringLiteral(
+            "%1<br><br>You step back onto the street carrying the first magical object that is truly yours. Flourish and Blotts, Madam Malkin's, the Apothecary, and the Magical Menagerie still have their doors open; "
+            "more signs glimmer behind misted windows farther along.<br><br><b>Character creation and wand collection are complete.</b> From here, Diagon Alley is open for exploration, and each remaining shop can become its own chapter.")
+              .arg(sourceNote);
+    emit narrativeProduced(localized("旁白", "Narrator"), body);
+    emit choicesPresented({localized("收好魔杖，继续探索对角巷", "Pocket the wand and explore Diagon Alley")});
 }
 
-void PrologueService::finishWandConfig()
+void PrologueService::completeChapter()
 {
-    // 输出"魔杖选择你"的叙事 + 发出配置。
-    emitNarrative(narrative(
-        QStringLiteral("Mr. Ollivander"),
-        QStringLiteral(
-            "\xe2\x80\x9cYes\xe2\x80\xa6 yes, this is the one.\xe2\x80\x9d He presses "
-            "the wand into your palm. <b>The wand blazes with a sudden golden light "
-            "\xe2\x80\x94 warmth floods up your arm.</b> Sparks dance along its "
-            "length like fireflies.<br><br>"
-            "\xe2\x80\x9cCurious indeed how these things happen. The wand chose you, "
-            "and you it. Treat it well.\xe2\x80\x9d<br><br>"
-            "Your wand: <b>%1</b> wood, <b>%2</b> core, <b>%3\"</b>, <b>%4</b>.")
-            .arg(config_.woodId,
-                 config_.coreId,
-                 QString::number(config_.lengthInches, 'f', 1),
-                 config_.flexibility)));
-
-    emit wandConfigured(config_);
-
-    // 推进到 EXPRESS（本批到此暂停，后续实现）。
-    stage_ = PrologueStage::Express;
-    emit stageChanged(stage_);
-    setScene(QStringLiteral("Platform 9\xc2\xbe \xe2\x80\x94 Coming Soon"),
-             QStringLiteral("The Hogwarts Express awaits (next stage)"));
-    emitChoices({});  // 清空选项栏
-    emitNarrative(narrative(
-        QStringLiteral("Narrator"),
-        QStringLiteral(
-            "<i>The prologue pauses here for now. The Hogwarts Express and Sorting "
-            "Ceremony will continue in the next chapter.</i>")));
+    setStage(PrologueStage::Completed);
+    emit choicesPresented({});
+    setScene(localized("对角巷 · 自由探索", "Diagon Alley · Free Exploration"),
+             localized("描述你接下来想做什么……", "Describe what you want to do next..."));
+    emit narrativeProduced(
+        localized("世界", "World"),
+        localized("对角巷不再只是一段引导剧情。街上的每扇门、每道声音，现在都可以成为你的下一步。",
+                  "Diagon Alley is no longer only an introduction. Every door and every voice can now become your next step."));
 }
-
-// ---------- 选项处理 ----------
 
 void PrologueService::submitChoice(int index)
 {
-    if (stage_ == PrologueStage::Idle) return;
-
-    if (stage_ == PrologueStage::DiagonAlleyPet) {
-        const int n = static_cast<int>(sizeof(kPets) / sizeof(kPets[0]));
-        if (index < 0 || index >= n) return;
-        config_.petType = QString::fromLatin1(kPets[index].id);
-        emitNarrative(narrative(
-            QStringLiteral("Narrator"),
-            QStringLiteral("You cradle your new <b>%1</b>. It seems pleased with its "
-                           "choice of wizard. Diagon Alley awaits one last stop.")
-                .arg(QString::fromLatin1(kPets[index].label))));
-        enterWandStage();
+    if (index != 0) {
         return;
     }
 
-    if (stage_ == PrologueStage::DiagonAlleyWand) {
-        switch (wandStep_) {
-        case WandStep::Wood: {
-            const int n = static_cast<int>(sizeof(kWoods) / sizeof(kWoods[0]));
-            if (index < 0 || index >= n) return;
-            config_.woodId = QString::fromLatin1(kWoods[index].id);
-            advanceWandStep();
-            return;
-        }
-        case WandStep::Core: {
-            const int n = static_cast<int>(sizeof(kCores) / sizeof(kCores[0]));
-            if (index < 0 || index >= n) return;
-            config_.coreId = QString::fromLatin1(kCores[index].id);
-            advanceWandStep();
-            return;
-        }
-        case WandStep::Length: {
-            const int n = static_cast<int>(sizeof(kLengths) / sizeof(kLengths[0]));
-            if (index < 0 || index >= n) return;
-            config_.lengthInches = kLengths[index];
-            advanceWandStep();
-            return;
-        }
-        case WandStep::Flex: {
-            const int n = static_cast<int>(sizeof(kFlexes) / sizeof(kFlexes[0]));
-            if (index < 0 || index >= n) return;
-            config_.flexibility = QString::fromLatin1(kFlexes[index].id);
-            advanceWandStep();
-            return;
-        }
-        case WandStep::Reveal:
-            return;
-        }
-    }
-
-    // EXPRESS 阶段：输入"继续"可推进（但本批不做后续）。
-    if (stage_ == PrologueStage::Express) {
-        return;
+    switch (stage_) {
+    case PrologueStage::DiagonAlleyArrival:
+        enterOllivanders();
+        break;
+    case PrologueStage::Ollivanders:
+        revealWand();
+        break;
+    case PrologueStage::DiagonAlleyOpen:
+        completeChapter();
+        break;
+    default:
+        break;
     }
 }
 
 void PrologueService::submitText(const QString& text)
 {
-    // 自由文本输入：尝试解析为选项序号（1-based）。
-    const QString t = text.trimmed();
-    if (t.isEmpty()) return;
     bool ok = false;
-    int n = t.toInt(&ok);
-    if (ok && n >= 1) {
-        submitChoice(n - 1);
+    const int choice = text.trimmed().toInt(&ok);
+    if (ok && choice >= 1) {
+        submitChoice(choice - 1);
     }
 }
 

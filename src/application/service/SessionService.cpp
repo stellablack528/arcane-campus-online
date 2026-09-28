@@ -137,37 +137,21 @@ vo::LoginVO SessionService::registerStudent(const dto::EnrollmentRequestDTO& req
         return {false, "Your character was created but could not be found.", {}, {}, {}};
     }
 
-    // 4. Initialize the inventory: wand + pet + school robe.
-    if (inventoryDao_) {
-        // Wand (item_id = 1)
-        inventoryDao_->addInventoryItem(
-            database::InventoryRecord{0, character->characterId, 1, 1});
-        // Pet
-        std::uint64_t petItemId = 0;
-        if (request.petType == "owl") petItemId = 8;
-        else if (request.petType == "cat") petItemId = 9;
-        else if (request.petType == "toad") petItemId = 10;
-        if (petItemId != 0) {
-            inventoryDao_->addInventoryItem(
-                database::InventoryRecord{0, character->characterId, petItemId, 1});
-        }
-        // School Robe (item_id = 11)
-        inventoryDao_->addInventoryItem(
-            database::InventoryRecord{0, character->characterId, 11, 1});
-    }
+    // 4. Do not pre-fill the inventory. The wand, robes, books and companion are
+    // granted by their respective Diagon Alley story beats.
 
-    // 5. Update last login and establish the session.
+    // 5. Update last login and establish the prologue session.
     (void)userDao_->updateLastLogin(user->userId);
 
     session_ = do_model::PlayerSessionDO{user->userId,
                                          character->characterId,
                                          character->nickname,
                                          character->house,
-                                         "Great Hall",
-                                         "Breakfast",
+                                         "diagon_alley",
+                                         "Shopping for school supplies",
                                          true};
-    return {true, "Welcome to Hogwarts! Your enrollment is complete. You received 50 Galleons, "
-                  "a wand, a school robe, and your chosen pet.",
+    return {true, "Your enrollment record is sealed. You arrive in Diagon Alley with 50 Galleons "
+                  "and a school shopping list.",
             session_->nickname, session_->house, session_->currentLocation};
 }
 

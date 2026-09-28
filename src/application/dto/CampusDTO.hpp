@@ -51,7 +51,8 @@ struct NightPatrolRequestDTO {
     std::string targetId;
 };
 
-// 入学请求：角色信息 + 魔杖选择 + 动物选择（对角巷购物后确认入学）。
+// 入学请求：角色信息 + 预先登记的魔杖参数。魔杖与动物都不会在
+// 创建界面直接发放；实际获得时机由对角巷剧情决定。
 struct EnrollmentRequestDTO {
     // 角色基本信息
     std::string username;      // 登录用户名
@@ -64,6 +65,8 @@ struct EnrollmentRequestDTO {
     // 魔杖选择（基于 wand_customization.json）
     std::string wandWoodId;    // 木材 id (如 "holly")
     std::string wandCoreId;    // 核心 id (如 "phoenix_feather")
+    std::string wandWoodName;  // 当前语言下用于剧情展示的名称
+    std::string wandCoreName;
     double wandLength = 11.0;  // 长度 (9.0-14.0)
     std::string wandFlexibility;
     std::string wandHandleStyle;
@@ -72,8 +75,7 @@ struct EnrollmentRequestDTO {
     std::string wandEngraving; // 可选刻字
     std::string wandName;      // 可选自定义魔杖名
     std::string wandDescription;
-    // 动物选择
-    std::string petType;       // "owl" / "cat" / "toad" / "none"
+    std::string petType = "none"; // 宠物留给后续商店剧情
 };
 
 } // namespace arcane::application::dto

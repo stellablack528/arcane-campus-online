@@ -27,6 +27,15 @@ constexpr std::array<MoveTarget, 5> kMoveTargets = {{
     {"hogsmeade",               "loc.hogsmeade"},
 }};
 
+constexpr std::array<MoveTarget, 6> kLocationLabels = {{
+    {"diagon_alley",             "loc.diagonalley"},
+    {"great_hall",               "loc.greathall"},
+    {"transfiguration_classroom", "loc.classroom"},
+    {"library",                  "loc.library"},
+    {"courtyard",                "loc.courtyard"},
+    {"hogsmeade",                "loc.hogsmeade"},
+}};
+
 // 此地角色：locationId -> [(memberId, npcNameKey)]
 struct Person {
     const char* memberId;
@@ -52,6 +61,9 @@ const QHash<QString, std::vector<Person>>& peopleByLocation()
             {"ghost_gray_lady", "npc.grey"},
         }},
         {"hogsmeade", {
+            {"shop_ollivander", "npc.ollivander"},
+        }},
+        {"diagon_alley", {
             {"shop_ollivander", "npc.ollivander"},
         }},
     };
@@ -204,9 +216,9 @@ void LocationPanel::retranslateUi()
     }
 
     // 更新当前地点名显示。
-    auto it = std::find_if(kMoveTargets.begin(), kMoveTargets.end(),
+    auto it = std::find_if(kLocationLabels.begin(), kLocationLabels.end(),
         [this](const MoveTarget& t) { return QString::fromLatin1(t.locationId) == m_currentLocationId; });
-    if (it != kMoveTargets.end()) {
+    if (it != kLocationLabels.end()) {
         m_currentLocationName->setText(TRQ(QString::fromLatin1(it->labelKey)));
     }
 }
@@ -215,9 +227,9 @@ void LocationPanel::setCurrentLocation(const QString &locationId)
 {
     m_currentLocationId = locationId;
 
-    auto it = std::find_if(kMoveTargets.begin(), kMoveTargets.end(),
+    auto it = std::find_if(kLocationLabels.begin(), kLocationLabels.end(),
         [this](const MoveTarget& t) { return QString::fromLatin1(t.locationId) == m_currentLocationId; });
-    if (it != kMoveTargets.end()) {
+    if (it != kLocationLabels.end()) {
         m_currentLocationName->setText(TRQ(QString::fromLatin1(it->labelKey)));
     } else {
         m_currentLocationName->setText(locationId);

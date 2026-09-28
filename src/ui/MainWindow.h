@@ -66,8 +66,7 @@ signals:
     // 剧情模块：做出选择 / 查询风评。
     void storyChoiceRequested(const QString &choiceId);
     void reputationQueryRequested();
-    // 开局剧情：开始 / 选项点击。
-    void startPrologueRequested();
+    // 开局剧情选项点击。
     void prologueChoiceSelected(int index);
 
 private:

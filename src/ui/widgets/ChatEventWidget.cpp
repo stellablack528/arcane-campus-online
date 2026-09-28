@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QTextDocument>
+#include <QTextCursor>
 #include <QTime>
 #include <QVBoxLayout>
 
@@ -37,7 +38,6 @@ ChatEventWidget::ChatEventWidget(QWidget *parent)
 {
     setObjectName("ChatEventWidget");
     buildUi();
-    seedMessages();
 }
 
 void ChatEventWidget::appendMessage(const QString &channel, const QString &speaker, const QString &text)
@@ -61,7 +61,8 @@ ChatEventWidget::MessageKind ChatEventWidget::classifyMessage(const QString &cha
         return MessageKind::PlayerDialogue;
     }
     if (equalsAny(normalizedSpeaker, {"Narrator", "Narrative"})
-        || equalsAny(normalizedChannel, {"Prologue", "Story"})) {
+        || normalizedSpeaker == QStringLiteral("旁白")
+        || normalizedChannel.compare(QStringLiteral("Story"), Qt::CaseInsensitive) == 0) {
         return MessageKind::Narration;
     }
     if (equalsAny(normalizedSpeaker, {"System", "Campus Notice", "House Points"})
@@ -148,6 +149,8 @@ void ChatEventWidget::appendEntry(MessageKind kind,
     }
 
     m_eventView->append(html);
+    m_eventView->moveCursor(QTextCursor::End);
+    m_eventView->ensureCursorVisible();
 }
 
 void ChatEventWidget::setSceneHeader(const QString &title)
@@ -261,30 +264,6 @@ void ChatEventWidget::buildUi()
     // 语言切换时刷新标题、placeholder、按钮、频道下拉。
     connect(&arcane::ui::I18n::instance(), &arcane::ui::I18n::languageChanged,
             this, [this](arcane::ui::I18n::Lang) { retranslateUi(); });
-}
-
-void ChatEventWidget::seedMessages()
-{
-    appendEntry(MessageKind::SystemNotice,
-                QStringLiteral("System"),
-                QStringLiteral("Campus Notice"),
-                TR("chat.seed.breakfast"));
-    appendEntry(MessageKind::NpcDialogue,
-                TR("chat.channel.location"),
-                TR("npc.mcgonagall"),
-                TR("chat.seed.class"));
-    appendEntry(MessageKind::NpcDialogue,
-                TR("loc.library"),
-                TR("npc.hermione"),
-                TR("chat.seed.library"));
-    appendEntry(MessageKind::WorldEvent,
-                TR("chat.channel.location"),
-                TR("chat.kind.world"),
-                TR("chat.seed.enter_class"));
-    appendEntry(MessageKind::WorldEvent,
-                TR("chat.channel.location"),
-                TR("npc.mcgonagall"),
-                TR("chat.seed.lesson_start"));
 }
 
 void ChatEventWidget::retranslateUi()

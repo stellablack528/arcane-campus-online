@@ -3,7 +3,6 @@
 #include "application/dto/CampusDTO.hpp"
 
 #include <QDialog>
-#include <QHash>
 #include <QString>
 
 class QComboBox;
@@ -25,8 +24,8 @@ public:
 private:
     void buildUi();
     void loadWandData();
-    // 根据当前魔杖选择 + 性格倾向，生成"你的魔杖为什么选择你"描述。
-    [[nodiscard]] QString generateWandLore() const;
+    // 只展示登记摘要；真正的“魔杖选择你”留到奥利凡德剧情中。
+    [[nodiscard]] QString buildWandSummary() const;
 
     QStackedWidget *m_pages = nullptr;
 
@@ -38,7 +37,6 @@ private:
     QLineEdit *m_hairColorEdit = nullptr;
     QLineEdit *m_eyeColorEdit = nullptr;
     QComboBox *m_bloodStatusCombo = nullptr;
-    QComboBox *m_personalityCombo = nullptr;
 
     // Page 2: 魔杖选择
     QComboBox *m_woodCombo = nullptr;
@@ -50,11 +48,6 @@ private:
     QComboBox *m_colorToneCombo = nullptr;
     QLineEdit *m_engravingEdit = nullptr;
 
-    // Page 3: 动物 + 魔杖描述
-    QComboBox *m_petCombo = nullptr;
-    QLabel *m_wandLoreLabel = nullptr;
-
-    // 魔杖数据缓存：id → traits（用于生成描述）
-    QHash<QString, QString> m_woodTraits;
-    QHash<QString, QString> m_coreTraits;
+    // Page 3: 封存魔杖登记单，进入对角巷后才揭晓结果。
+    QLabel *m_wandSummaryLabel = nullptr;
 };

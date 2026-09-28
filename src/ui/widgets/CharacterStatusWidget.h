@@ -39,4 +39,6 @@ private:
     QLabel *m_pointsValue = nullptr;
     QLabel *m_stateValue = nullptr;
     QLabel *m_courseValue = nullptr;
+    QString m_currentLocation;
+    QString m_currentState;
 };

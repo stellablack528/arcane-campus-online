@@ -26,7 +26,7 @@ public:
     // 验证已有用户登录。
     [[nodiscard]] vo::LoginVO enterCampus(const dto::LoginRequestDTO& request);
 
-    // 注册新学生：创建用户 + 角色 + 初始化背包（魔杖+动物+校服+50金加隆）。
+    // 注册新学生：创建用户与角色，随后由对角巷剧情逐件发放物品。
     [[nodiscard]] vo::LoginVO registerStudent(const dto::EnrollmentRequestDTO& request);
 
     [[nodiscard]] std::optional<do_model::PlayerSessionDO> currentSession() const;

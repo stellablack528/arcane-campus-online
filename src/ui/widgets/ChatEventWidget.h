@@ -48,7 +48,6 @@ private:
     };
 
     void buildUi();
-    void seedMessages();
     void retranslateUi();
     void clearChoices();
     [[nodiscard]] MessageKind classifyMessage(const QString &channel,

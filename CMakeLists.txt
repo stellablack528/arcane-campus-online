@@ -120,6 +120,8 @@ qt_add_executable(HogwartsOnline
     src/application/narrative/NarrativeService.cpp
     src/application/prologue/PrologueService.hpp
     src/application/prologue/PrologueService.cpp
+    src/application/prologue/WandLoreService.hpp
+    src/application/prologue/WandLoreService.cpp
     src/application/controller/CampusController.hpp
     src/application/controller/CampusController.cpp
     src/application/router/ClientCommandRouter.hpp

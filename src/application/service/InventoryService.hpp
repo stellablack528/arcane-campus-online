@@ -26,6 +26,12 @@ public:
     [[nodiscard]] vo::OperationResultVO inspectItem(const dto::ItemActionRequestDTO& request) const;
     [[nodiscard]] vo::OperationResultVO giftItem(const dto::ItemActionRequestDTO& request) const;
 
+    // Story rewards enter the inventory only when the player actually receives
+    // them in-world. Existing non-stackable items are not duplicated.
+    [[nodiscard]] vo::OperationResultVO grantItem(std::uint64_t characterId,
+                                                   std::uint64_t itemId,
+                                                   std::uint32_t quantity = 1) const;
+
     // 检查角色背包中是否拥有指定名称的物品（数量 > 0）。
     // 用于宵禁时检查 "Marauder's Map" 等关键道具。
     [[nodiscard]] bool hasItemByName(std::uint64_t characterId, const std::string& itemName) const;

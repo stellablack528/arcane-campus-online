@@ -7,7 +7,9 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QSettings>
+#include <QTimer>
 #include <QUrl>
+#include <QtGlobal>
 
 namespace arcane::core {
 
@@ -30,8 +32,13 @@ bool DeepSeekClient::hasApiKey()
 
 QString DeepSeekClient::loadApiKey()
 {
-    // Read from local settings every call so the key saved by the user in the
-    // dialog takes effect immediately, and no secret ever lives in the code.
+    // Environment configuration is convenient for development and CI, while
+    // QSettings supports the in-app settings screen. Neither source is tracked
+    // by Git, and the key is read afresh for every request.
+    const QString environmentKey = QString::fromUtf8(qgetenv("DEEPSEEK_API_KEY")).trimmed();
+    if (!environmentKey.isEmpty()) {
+        return environmentKey;
+    }
     QSettings settings(QStringLiteral("FanProject"), QStringLiteral("Hogwarts Online"));
     return settings.value(QLatin1String(kSettingsKey)).toString().trimmed();
 }
@@ -65,6 +72,12 @@ void DeepSeekClient::sendChat(const QString& systemPrompt,
     request.setRawHeader("Authorization", "Bearer " + apiKey.toUtf8());
 
     QNetworkReply* reply = networkManager_->post(request, QJsonDocument(body).toJson(QJsonDocument::Compact));
+    // A slow or unreachable API must never trap a story scene indefinitely.
+    QTimer::singleShot(15000, reply, [reply] {
+        if (reply->isRunning()) {
+            reply->abort();
+        }
+    });
     connect(reply, &QNetworkReply::finished, this, [this, reply, channel, speaker] {
         reply->deleteLater();
 

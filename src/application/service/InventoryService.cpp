@@ -95,6 +95,40 @@ vo::OperationResultVO InventoryService::giftItem(const dto::ItemActionRequestDTO
     return {true, "You offered " + name + " to " + request.npcId + "."};
 }
 
+vo::OperationResultVO InventoryService::grantItem(std::uint64_t characterId,
+                                                   std::uint64_t itemId,
+                                                   std::uint32_t quantity) const
+{
+    if (!inventoryDao_ || characterId == 0 || itemId == 0 || quantity == 0) {
+        return {false, "The story reward could not be stored."};
+    }
+
+    const auto item = inventoryDao_->getItemById(itemId);
+    if (!item) {
+        return {false, "The story reward is missing from the item catalogue."};
+    }
+
+    const auto inventory = inventoryDao_->getInventoryByCharacter(characterId);
+    for (const auto& slot : inventory) {
+        if (slot.itemId != itemId) {
+            continue;
+        }
+        if (!item->stackable) {
+            return {true, item->itemName + " is already in your inventory."};
+        }
+        const auto updatedQuantity = slot.quantity + quantity;
+        if (!inventoryDao_->updateInventoryQuantity(slot.inventoryId, updatedQuantity)) {
+            return {false, "The story reward could not be updated."};
+        }
+        return {true, item->itemName + " was added to your inventory."};
+    }
+
+    if (!inventoryDao_->addInventoryItem(database::InventoryRecord{0, characterId, itemId, quantity})) {
+        return {false, "The story reward could not be added to your inventory."};
+    }
+    return {true, item->itemName + " was added to your inventory."};
+}
+
 std::string InventoryService::resolveItemName(const std::string& itemId) const
 {
     const auto key = tryParseItemId(itemId);

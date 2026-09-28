@@ -29,9 +29,10 @@ void ApiKeyDialog::buildUi()
     title->setObjectName("PanelTitle");
 
     auto *hint = new QLabel(
-        "NPC chat replies are generated with the DeepSeek API.\n"
+        "NPC replies and wand readings can use the DeepSeek API.\n"
         "Paste your own API key below — it is stored only on this computer\n"
-        "(local QSettings) and is never bundled with the source code.", this);
+        "(local QSettings) and is never bundled with the source code.\n"
+        "For development, DEEPSEEK_API_KEY can be used instead and takes priority.", this);
     hint->setWordWrap(true);
 
     m_keyEdit = new QLineEdit(this);

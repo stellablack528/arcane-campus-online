@@ -49,6 +49,9 @@ The platform aims to provide an immersive text-based social experience while ser
 | 🏆 学院积分排行 | 4 个学院实时排名 |
 | 🤖 NPC AI 对话 | DeepSeek API 驱动 |
 
+DeepSeek 密钥只从本机设置或环境变量读取，不进入源码与 Git。配置方式与安全边界见
+[docs/AI_CONFIGURATION.md](docs/AI_CONFIGURATION.md)。
+
 ### 🗄️ 后端数据层（MySQL）
 
 | 模块 | 状态 |
@@ -193,6 +196,9 @@ HogwartsOnline/
 │   │   │   ├── MapService              # ✅ 接 InventoryDAO+LocationDAO（活点地图）
 │   │   │   ├── CampusService           # 🔧 硬编码（待接 RoomDAO）
 │   │   │   └── SocialService           # 🔧 硬编码（待接 FriendDAO）
+│   │   ├── prologue/
+│   │   │   ├── PrologueService         # ✅ 新生创建 → 对角巷 → 魔杖领取闭环
+│   │   │   └── WandLoreService         # ✅ DeepSeek 解读 + 本地降级档案
 │   │   ├── controller/
 │   │   │   └── CampusController        # 信号槽枢纽（16 slots + 6 signals）
 │   │   └── router/
@@ -200,6 +206,7 @@ HogwartsOnline/
 │   │
 │   ├── ui/
 │   │   ├── LoginWindow.{h,cpp}         # 登录窗口
+│   │   ├── EnrollmentDialog.{h,cpp}    # 新生档案与魔杖登记
 │   │   ├── MainWindow.{h,cpp}          # 主窗口
 │   │   └── widgets/                    # 8 个功能 Widget
 │   │       ├── CampusTimeWidget
@@ -214,6 +221,9 @@ HogwartsOnline/
 │   └── resources/
 │       ├── resources.qrc
 │       └── qss/dark_wood.qss           # 墨绿炭黑主题（Quiet Library Theme）
+│
+├── docs/
+│   └── AI_CONFIGURATION.md             # DeepSeek 本地安全配置说明
 │
 ├── tests/                              # 单元测试
 │   └── database/

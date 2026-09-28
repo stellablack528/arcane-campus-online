@@ -178,6 +178,7 @@ void I18n::seed()
     seedPair("loc.library",   "图书馆",  "Library");
     seedPair("loc.courtyard", "庭院",    "Courtyard");
     seedPair("loc.hogsmeade", "霍格莫德","Hogsmeade");
+    seedPair("loc.diagonalley", "对角巷", "Diagon Alley");
 
     // ---------------- 课程 ----------------
     seedPair("class.transfiguration", "变形术",             "Transfiguration");
@@ -205,12 +206,15 @@ void I18n::seed()
     seedPair("status.name",         "姓名",        "Name");
     seedPair("status.house",        "学院",        "House");
     seedPair("status.year",         "年级",        "Year");
+    seedPair("status.year1",        "一年级",      "Year 1");
     seedPair("status.location",     "地点",        "Location");
     seedPair("status.galleons",     "加隆",        "Galleons");
     seedPair("status.housepoints",  "学院分",      "House Points");
     seedPair("status.state",        "状态",        "State");
     seedPair("status.currentclass", "当前课程",    "Current Class");
     seedPair("status.breakfast",    "早餐",        "Breakfast");
+    seedPair("status.shopping",     "采购入学用品", "Shopping for school supplies");
+    seedPair("status.none",         "暂无",         "None");
 
     // ---------------- 聊天 ----------------
     seedPair("chat.placeholder",     "向当前校园频道留言...",  "Write to the current campus channel...");

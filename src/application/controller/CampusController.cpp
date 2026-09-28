@@ -151,9 +151,9 @@ CampusController::CampusController(QObject* parent)
 
     // 开局剧情信号 → 转发到 UI。
     connect(prologueService_.get(), &prologue::PrologueService::narrativeProduced,
-            this, [this](const QString& html) {
+            this, [this](const QString& speaker, const QString& html) {
                 emit richCampusMessageProduced(QStringLiteral("Prologue"),
-                                               QStringLiteral("Narrator"), html);
+                                               speaker, html);
             });
     connect(prologueService_.get(), &prologue::PrologueService::sceneHeaderChanged,
             this, &CampusController::sceneHeaderChanged);
@@ -162,12 +162,15 @@ CampusController::CampusController(QObject* parent)
     connect(prologueService_.get(), &prologue::PrologueService::choicesPresented,
             this, &CampusController::choicesPresented);
     connect(prologueService_.get(), &prologue::PrologueService::wandConfigured,
-            this, [this](const prologue::WandConfig& config) {
-                // 阶段2完成：记录魔杖配置，刷新背包（DB 写入留作后续）。
-                publish({true, "Wand configured: " + config.woodId.toStdString()
-                               + "/" + config.coreId.toStdString()
-                               + " " + QString::number(config.lengthInches).toStdString()
-                               + "\". Pet: " + config.petType.toStdString()});
+            this, [this](const prologue::WandConfig&) {
+                auto* session = activeSession();
+                if (!session) {
+                    return;
+                }
+                const auto granted = inventoryService_->grantItem(session->characterId, 1, 1);
+                if (!granted.success) {
+                    publish(granted);
+                }
                 handleRefreshInventory();
             });
 }
@@ -191,11 +194,23 @@ void CampusController::handleEnrollment(const dto::EnrollmentRequestDTO& request
     emit loginAccepted(QString::fromStdString(result.studentName),
                         QString::fromStdString(result.house));
     emit playerLocationChanged(QString::fromStdString(result.location),
-                                QStringLiteral("Breakfast"));
+                                QStringLiteral("Shopping for school supplies"));
     emit campusMessageProduced(QStringLiteral("System"), QStringLiteral("Campus Notice"),
                                QString::fromStdString(result.message));
-    // 入学成功后自动刷新背包，新角色立刻看到初始物品。
     handleRefreshInventory();
+
+    prologue::WandConfig wand;
+    wand.woodId = QString::fromStdString(request.wandWoodId);
+    wand.coreId = QString::fromStdString(request.wandCoreId);
+    wand.woodName = QString::fromStdString(request.wandWoodName);
+    wand.coreName = QString::fromStdString(request.wandCoreName);
+    wand.lengthInches = request.wandLength;
+    wand.flexibility = QString::fromStdString(request.wandFlexibility);
+    wand.handleStyle = QString::fromStdString(request.wandHandleStyle);
+    wand.finish = QString::fromStdString(request.wandFinish);
+    wand.colorTone = QString::fromStdString(request.wandColorTone);
+    wand.engraving = QString::fromStdString(request.wandEngraving);
+    prologueService_->begin(wand);
 }
 
 void CampusController::configureChatService(std::shared_ptr<arcane::database::MessageDAO> messageDao)
@@ -423,17 +438,6 @@ void CampusController::handleQueryReputation()
     emit richCampusMessageProduced(
         QStringLiteral("Story"), QStringLiteral("Reputation"), buildReputationHtml(rep));
     publish({true, rep.message});
-}
-
-void CampusController::startPrologue()
-{
-    auto* session = activeSession();
-    if (!session) {
-        publish({false, "Enter the campus before beginning the prologue."});
-        return;
-    }
-    prologueService_->begin();
-    publish({true, "The prologue begins..."});
 }
 
 void CampusController::handlePrologueChoice(int index)

@@ -150,8 +150,6 @@ int main(int argc, char *argv[])
     QObject::connect(campusController, &arcane::application::controller::CampusController::richCampusMessageProduced,
                      mainWindow, &MainWindow::appendRichCampusMessage);
     // 开局剧情接线
-    QObject::connect(mainWindow, &MainWindow::startPrologueRequested,
-                     campusController, &arcane::application::controller::CampusController::startPrologue);
     QObject::connect(mainWindow, &MainWindow::prologueChoiceSelected,
                      campusController, &arcane::application::controller::CampusController::handlePrologueChoice);
     QObject::connect(campusController, &arcane::application::controller::CampusController::sceneHeaderChanged,

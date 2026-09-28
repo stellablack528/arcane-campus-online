@@ -25,8 +25,17 @@ void CharacterStatusWidget::setIdentity(const QString &studentName, const QStrin
 
 void CharacterStatusWidget::setCampusState(const QString &location, const QString &state)
 {
-    m_locationValue->setText(location);
-    m_stateValue->setText(state);
+    m_currentLocation = location;
+    m_currentState = state;
+    m_locationValue->setText(location == QLatin1String("diagon_alley")
+                                 ? TR("loc.diagonalley")
+                                 : location);
+    m_stateValue->setText(state == QLatin1String("Shopping for school supplies")
+                              ? TR("status.shopping")
+                              : state);
+    if (location == QLatin1String("diagon_alley")) {
+        m_courseValue->setText(TR("status.none"));
+    }
 }
 
 void CharacterStatusWidget::buildUi()
@@ -55,12 +64,12 @@ void CharacterStatusWidget::buildUi()
 
     m_nameValue     = createValue(QStringLiteral("New Student"));
     m_houseValue    = createValue(QStringLiteral("Ravenclaw"));
-    m_yearValue     = createValue(QStringLiteral("Year 5"));
+    m_yearValue     = createValue(QStringLiteral("Year 1"));
     m_locationValue = createValue(QStringLiteral("Great Hall"));
-    m_galleonValue  = createValue(QStringLiteral("32"));
-    m_pointsValue   = createValue(QStringLiteral("120"));
-    m_stateValue    = createValue(QStringLiteral("Breakfast"));
-    m_courseValue   = createValue(QStringLiteral("Transfiguration"));
+    m_galleonValue  = createValue(QStringLiteral("50"));
+    m_pointsValue   = createValue(QStringLiteral("0"));
+    m_stateValue    = createValue(QStringLiteral("—"));
+    m_courseValue   = createValue(QStringLiteral("—"));
 
     form->addRow(m_nameLabel,     m_nameValue);
     form->addRow(m_houseLabel,    m_houseValue);
@@ -82,11 +91,15 @@ void CharacterStatusWidget::retranslateUi()
     if (m_nameLabel)    m_nameLabel->setText(TR("status.name"));
     if (m_houseLabel)   m_houseLabel->setText(TR("status.house"));
     if (m_yearLabel)    m_yearLabel->setText(TR("status.year"));
+    if (m_yearValue)    m_yearValue->setText(TR("status.year1"));
     if (m_locationLabel)m_locationLabel->setText(TR("status.location"));
     if (m_galleonLabel) m_galleonLabel->setText(TR("status.galleons"));
     if (m_pointsLabel)  m_pointsLabel->setText(TR("status.housepoints"));
     if (m_stateLabel)   m_stateLabel->setText(TR("status.state"));
     if (m_courseLabel)  m_courseLabel->setText(TR("status.currentclass"));
+    if (!m_currentLocation.isEmpty()) {
+        setCampusState(m_currentLocation, m_currentState);
+    }
 }
 
 QLabel *CharacterStatusWidget::createValue(const QString &text)

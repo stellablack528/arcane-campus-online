@@ -69,8 +69,7 @@ public slots:
     // 剧情模块入口：做出选择 / 查询风评。
     void handleMakeChoice(const QString& choiceId);
     void handleQueryReputation();
-    // 开局剧情：开始 / 处理选项。
-    void startPrologue();
+    // 开局剧情：处理当前叙事选项。
     void handlePrologueChoice(int index);
 
 signals:

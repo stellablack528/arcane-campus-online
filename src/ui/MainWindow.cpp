@@ -135,9 +135,6 @@ void MainWindow::buildMenu()
 
     // 剧情菜单：每个选择都会真实影响风评与人际关系。
     auto *storyMenu = menuBar()->addMenu(TR("menu.story"));
-    auto *beginPrologueAction = storyMenu->addAction(QStringLiteral("Begin Prologue"));
-    connect(beginPrologueAction, &QAction::triggered, this, [this] { emit startPrologueRequested(); });
-    storyMenu->addSeparator();
     auto *reputationAction = storyMenu->addAction(TR("story.viewrep"));
     connect(reputationAction, &QAction::triggered, this, [this] { emit reputationQueryRequested(); });
     storyMenu->addSeparator();

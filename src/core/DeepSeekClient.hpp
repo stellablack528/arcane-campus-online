@@ -8,15 +8,15 @@ class QNetworkAccessManager;
 namespace arcane::core {
 
 // Calls the DeepSeek chat-completions API (OpenAI-compatible) to produce
-// NPC replies. The API key is never hardcoded: it is read from local
-// QSettings and configured by the user through the ApiKeyDialog.
+// NPC and story replies. The API key is never hardcoded: it is read from the
+// DEEPSEEK_API_KEY process environment or local QSettings.
 class DeepSeekClient final : public QObject {
     Q_OBJECT
 
 public:
     explicit DeepSeekClient(QObject* parent = nullptr);
 
-    // Returns true when the user has saved an API key in local settings.
+    // Returns true when a key is available from either local source.
     [[nodiscard]] static bool hasApiKey();
 
 public slots:

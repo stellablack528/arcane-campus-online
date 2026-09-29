@@ -212,7 +212,9 @@ HogwartsOnline/
 │   │   │   ├── StoryTypes               # ✅ 通用条件、效果、状态与 StoryDelta
 │   │   │   ├── StoryContentLoader        # ✅ JSON 白名单解析
 │   │   │   ├── StoryContentValidator     # ✅ 引用、双语与可达性校验
-│   │   │   └── StoryEngine               # ✅ 确定性条件判断与内存执行
+│   │   │   ├── StoryEngine               # ✅ 确定性条件判断与内存执行
+│   │   │   └── adapters/
+│   │   │       └── DiagonAlleyChapterAdapter # ✅ 旧内容到通用章节的迁移桥
 │   │   ├── controller/
 │   │   │   └── CampusController        # 信号槽枢纽（16 slots + 6 signals）
 │   │   └── router/
@@ -247,7 +249,8 @@ HogwartsOnline/
 │   ├── application/
 │   │   └── DiagonAlleyRuntimeTest.cpp  # 内容包、解析、记忆与采购闭环
 │   ├── story/
-│   │   └── StoryEngineTest.cpp          # 通用加载、校验、执行与安全拒绝
+│   │   ├── StoryEngineTest.cpp          # 通用加载、校验、执行与安全拒绝
+│   │   └── DiagonAlleyParityTest.cpp    # 新旧完整游玩结果等价性
 │   └── database/
 │       ├── DatabaseSmokeTest.cpp       # 冒烟测试（无需数据库）
 │       └── MySqlIntegrationTest.cpp    # MySQL 集成测试

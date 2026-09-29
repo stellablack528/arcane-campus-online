@@ -40,12 +40,14 @@ const QByteArray kValidChapter = R"json(
           "aliases": ["分享巧克力蛙", "share sweets"],
           "conditions": [
             {"type": "has_item", "item_id": 2, "minimum_quantity": 1},
-            {"type": "gold_at_least", "amount": 5}
+            {"type": "gold_at_least", "amount": 5},
+            {"type": "npc_missing_memory", "npc_id": "elara_finch", "key": "shared_snack"}
           ],
           "effects": [
             {"type": "change_item", "item_id": 2, "quantity": -1},
             {"type": "change_gold", "amount": -5},
             {"type": "change_affinity", "npc_id": "elara_finch", "amount": 2},
+            {"type": "set_npc_memory", "npc_id": "elara_finch", "key": "shared_snack"},
             {"type": "set_flag", "key": "shared_sweets"},
             {"type": "move_to_scene", "scene_id": "train"}
           ]
@@ -62,7 +64,10 @@ const QByteArray kValidChapter = R"json(
           "id": "finish_journey",
           "label": {"zh": "继续旅程", "en": "Continue the journey"},
           "aliases": ["继续", "continue"],
-          "conditions": [{"type": "has_flag", "key": "shared_sweets"}],
+          "conditions": [
+            {"type": "has_flag", "key": "shared_sweets"},
+            {"type": "npc_remembers", "npc_id": "elara_finch", "key": "shared_snack"}
+          ],
           "effects": [
             {"type": "unlock_chapter", "chapter_id": "sorting_ceremony"},
             {"type": "complete_chapter"}
@@ -114,11 +119,14 @@ int main()
     passed &= expect(share.delta.goldChange == -5
                          && share.delta.inventoryChanges.size() == 1
                          && share.delta.affinityChanges.size() == 1
+                         && share.delta.npcMemoryChanges.size() == 1
                          && share.delta.nextSceneId == QStringLiteral("train"),
                      "delta contains gold, inventory, affinity, flag, and movement changes");
     passed &= expect(engine.applyDelta(state, share.delta), "delta applies to in-memory state");
     passed &= expect(state.gold == 5 && !state.inventory.contains(2)
                          && state.npcAffinities.value(QStringLiteral("elara_finch")) == 2
+                         && state.npcMemoryFacts.value(QStringLiteral("elara_finch"))
+                                .contains(QStringLiteral("shared_snack"))
                          && state.flags.contains(QStringLiteral("shared_sweets"))
                          && state.currentSceneId == QLatin1String("train"),
                      "applied state matches the declared effects");

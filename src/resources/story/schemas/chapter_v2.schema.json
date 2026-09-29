@@ -16,6 +16,13 @@
       "items": {"$ref": "#/$defs/condition"},
       "default": []
     },
+    "completion_conditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/condition"}
+    },
+    "completion_flag": {"$ref": "#/$defs/stableId"},
+    "allow_actions_after_completion": {"type": "boolean", "default": false},
     "scenes": {
       "type": "array",
       "minItems": 1,
@@ -94,6 +101,16 @@
             "type": {"const": "chapter_completed"},
             "chapter_id": {"$ref": "#/$defs/stableId"}
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "npc_id", "key"],
+          "properties": {
+            "type": {"enum": ["npc_remembers", "npc_missing_memory"]},
+            "npc_id": {"$ref": "#/$defs/stableId"},
+            "key": {"$ref": "#/$defs/stableId"}
+          }
         }
       ]
     },
@@ -159,6 +176,16 @@
           "properties": {
             "type": {"const": "unlock_chapter"},
             "chapter_id": {"$ref": "#/$defs/stableId"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "npc_id", "key"],
+          "properties": {
+            "type": {"enum": ["set_npc_memory", "remove_npc_memory"]},
+            "npc_id": {"$ref": "#/$defs/stableId"},
+            "key": {"$ref": "#/$defs/stableId"}
           }
         }
       ]

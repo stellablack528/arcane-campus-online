@@ -3,9 +3,9 @@
 对角巷章节的剧情文本、商店、NPC 与商品不再散落在界面或控制器代码中，而是集中在
 `src/resources/data/diagon_alley.json`。运行时由 `DiagonAlleyCatalog` 读取，动作解析器和剧情服务只负责解释与执行。
 
-> 当前对角巷文件仍是第一版专用格式。通用章节 v2 契约已经建立在
-> `src/resources/story/schemas/chapter_v2.schema.json`，详细边界见 `docs/STORY_ENGINE.md`；
-> 第二阶段完成等价性测试后，才会迁移并删除专用运行时。
+> 当前对角巷文件仍是第一版专用格式。`DiagonAlleyChapterAdapter` 会在内存中把它映射为
+> 通用章节 v2，并由完整游玩等价性测试守门，因此剧情文本仍只有这一份。
+> 详细契约见 `src/resources/story/schemas/chapter_v2.schema.json` 与 `docs/STORY_ENGINE.md`。
 
 这层边界是未来“异世界生成 Agent”的入口：Agent 只需产出经过校验的内容包，不需要生成或改写 C++ 业务代码。
 
@@ -38,8 +38,8 @@
 ```text
 diagon_alley.json
   → DiagonAlleyCatalog（读取与查询）
-  → DiagonAlleyActionParser（把自然输入归一为有限动作）
-  → DiagonAlleyService（场景、购买、NPC 记忆、完成条件）
+  ├→ DiagonAlleyActionParser → DiagonAlleyService（当前生产入口）
+  └→ DiagonAlleyChapterAdapter → StoryEngine（迁移验证入口）
   → CampusController（存档、金币、背包与 UI 信号）
 ```
 
@@ -53,4 +53,5 @@ AI 可用于生成风格化叙事，但不能直接决定扣款、发放物品�
 4. `item_id` 已出现在数据库种子或迁移脚本中。
 5. 价格与新生初始金币能够形成可完成的闭环。
 6. 新增的完成标记已纳入章节完成条件。
-7. 运行 `ArcaneCampusDiagonAlleyRuntimeTest`，确认内容包、自由输入、NPC 记忆和采购闭环均通过。
+7. 运行 `ArcaneCampusDiagonAlleyRuntimeTest`，确认旧入口内容包、自由输入、NPC 记忆和采购闭环均通过。
+8. 运行 `ArcaneCampusDiagonAlleyParityTest`，确认旧入口和通用引擎的完整结果仍等价。

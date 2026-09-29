@@ -1,0 +1,16 @@
+Arcane Campus Online - Diagon Alley migration equivalence report
+===============================================================
+[PASS] Legacy Diagon Alley content package loads
+[PASS] Legacy runtime accepts the complete route
+[PASS] Adapted chapter passes generic validation
+[PASS] Generic runtime accepts the complete route
+[PASS] Gold balance is equivalent | legacy=10, generic=10
+[PASS] Purchased inventory is equivalent | legacy={11x1, 12x1, 13x1, 8x1}, generic={11x1, 12x1, 13x1, 8x1}
+[PASS] Progress flags are equivalent | legacy={books, pet, potions, robes, shopping_complete, visited_apothecary, visited_flourish_and_blotts, visited_madam_malkins, visited_magical_menagerie, visited_street, wand}, generic={books, pet, potions, robes, shopping_complete, visited_apothecary, visited_flourish_and_blotts, visited_madam_malkins, visited_magical_menagerie, visited_street, wand}
+[PASS] NPC affinities are equivalent | legacy={apothecary_clerk_ives=1, bookseller_merrythought=1, madam_malkin=-1, menagerie_keeper_wren=-1}, generic={apothecary_clerk_ives=1, bookseller_merrythought=1, madam_malkin=-1, menagerie_keeper_wren=-1}
+[PASS] NPC memory facts are equivalent | legacy={apothecary_clerk_ives=[talked], bookseller_merrythought=[talked], madam_malkin=[ignored], menagerie_keeper_wren=[ignored]}, generic={apothecary_clerk_ives=[talked], bookseller_merrythought=[talked], madam_malkin=[ignored], menagerie_keeper_wren=[ignored]}
+[PASS] Post-completion exploration and final scene are equivalent | legacy=flourish_and_blotts, generic=flourish_and_blotts
+[PASS] Chapter completion is equivalent
+---------------------------------------------------------------
+OVERALL: PASS
+Legacy production entry remains active; generic runtime is migration-gated.

@@ -44,6 +44,9 @@ void validateCondition(const StoryCondition& condition,
         } else if constexpr (std::is_same_v<T, ChapterCompletedCondition>) {
             if (!isStableId(value.chapterId))
                 result.errors << context + QStringLiteral(": invalid required chapter id.");
+        } else if constexpr (std::is_same_v<T, NpcMemoryCondition>) {
+            if (!isStableId(value.npcId) || !isStableId(value.key))
+                result.errors << context + QStringLiteral(": invalid NPC memory reference.");
         }
     }, condition);
 }
@@ -71,6 +74,9 @@ void validateEffect(const StoryEffect& effect,
         } else if constexpr (std::is_same_v<T, UnlockChapterEffect>) {
             if (!isStableId(value.chapterId))
                 result.errors << context + QStringLiteral(": invalid unlocked chapter id.");
+        } else if constexpr (std::is_same_v<T, SetNpcMemoryEffect>) {
+            if (!isStableId(value.npcId) || !isStableId(value.key))
+                result.errors << context + QStringLiteral(": invalid NPC memory effect.");
         }
     }, effect);
 }
@@ -95,6 +101,14 @@ StoryValidationResult StoryContentValidator::validate(const ChapterDefinition& c
         validateCondition(chapter.requirements.at(index),
                           QStringLiteral("chapter requirement %1").arg(index), result);
     }
+    for (qsizetype index = 0; index < chapter.completionConditions.size(); ++index) {
+        validateCondition(chapter.completionConditions.at(index),
+                          QStringLiteral("chapter completion condition %1").arg(index), result);
+    }
+    if (!chapter.completionFlag.isEmpty() && !isStableId(chapter.completionFlag))
+        result.errors << QStringLiteral("completion_flag must be a stable lowercase id.");
+    if (chapter.completionConditions.isEmpty() && !chapter.completionFlag.isEmpty())
+        result.errors << QStringLiteral("completion_flag requires completion_conditions.");
 
     QSet<QString> sceneIds;
     for (const auto& scene : chapter.scenes) {
@@ -150,7 +164,8 @@ StoryValidationResult StoryContentValidator::validate(const ChapterDefinition& c
                 result.errors << context + QStringLiteral(": action has more than one scene transition.");
         }
     }
-    if (!hasCompletion) result.errors << QStringLiteral("chapter has no complete_chapter effect.");
+    if (!hasCompletion && chapter.completionConditions.isEmpty())
+        result.errors << QStringLiteral("chapter has no completion rule.");
 
     if (sceneIds.contains(chapter.entrySceneId)) {
         QSet<QString> reachable{chapter.entrySceneId};

@@ -63,6 +63,15 @@ public:
     [[nodiscard]] QString streetRevisit() const { return streetRevisit_.current(); }
     [[nodiscard]] QString completionText() const { return completionText_.current(); }
 
+    // The migration adapter needs both languages without depending on the
+    // currently selected UI language. The existing localized accessors remain
+    // unchanged for the legacy runtime.
+    [[nodiscard]] const LocalizedText& chapterTitleText() const noexcept { return chapterTitle_; }
+    [[nodiscard]] const LocalizedText& streetTitleText() const noexcept { return streetTitle_; }
+    [[nodiscard]] const LocalizedText& streetIntroText() const noexcept { return streetIntro_; }
+    [[nodiscard]] const LocalizedText& streetRevisitText() const noexcept { return streetRevisit_; }
+    [[nodiscard]] const LocalizedText& completionStoryText() const noexcept { return completionText_; }
+
 private:
     bool loaded_ = false;
     LocalizedText chapterTitle_;

@@ -126,6 +126,33 @@ if(BUILD_TESTING)
     set_tests_properties(ArcaneCampusStoryEngineTest PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
+
+    add_executable(ArcaneCampusDiagonAlleyParityTest
+        tests/story/DiagonAlleyParityTest.cpp
+        src/application/story/adapters/DiagonAlleyChapterAdapter.hpp
+        src/application/story/adapters/DiagonAlleyChapterAdapter.cpp
+        src/application/diagon_alley/DiagonAlleyCatalog.hpp
+        src/application/diagon_alley/DiagonAlleyCatalog.cpp
+        src/application/diagon_alley/DiagonAlleyActionParser.hpp
+        src/application/diagon_alley/DiagonAlleyActionParser.cpp
+        src/application/diagon_alley/DiagonAlleyService.hpp
+        src/application/diagon_alley/DiagonAlleyService.cpp
+        src/ui/I18n.hpp
+        src/ui/I18n.cpp
+        src/resources/resources.qrc
+    )
+    target_include_directories(ArcaneCampusDiagonAlleyParityTest PRIVATE src)
+    target_link_libraries(ArcaneCampusDiagonAlleyParityTest PRIVATE
+        ArcaneStoryEngine
+        Qt6::Widgets
+    )
+    add_test(NAME ArcaneCampusDiagonAlleyParityTest
+        COMMAND ArcaneCampusDiagonAlleyParityTest
+            --report ${CMAKE_CURRENT_BINARY_DIR}/test-results/diagon_alley_parity_report.txt
+    )
+    set_tests_properties(ArcaneCampusDiagonAlleyParityTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
 endif()
 
 option(ARCANE_BUILD_MYSQL_INTEGRATION_TESTS "Build tests that require a configured local MySQL database" OFF)
@@ -180,6 +207,8 @@ qt_add_executable(HogwartsOnline
     src/application/diagon_alley/DiagonAlleyActionParser.cpp
     src/application/diagon_alley/DiagonAlleyService.hpp
     src/application/diagon_alley/DiagonAlleyService.cpp
+    src/application/story/adapters/DiagonAlleyChapterAdapter.hpp
+    src/application/story/adapters/DiagonAlleyChapterAdapter.cpp
     src/application/controller/CampusController.hpp
     src/application/controller/CampusController.cpp
     src/application/router/ClientCommandRouter.hpp

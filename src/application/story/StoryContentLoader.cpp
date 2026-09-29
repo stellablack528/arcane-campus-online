@@ -65,6 +65,12 @@ std::optional<StoryCondition> parseCondition(const QJsonObject& object, QString&
     if (type == QLatin1String("chapter_completed")) {
         return ChapterCompletedCondition{object.value(QStringLiteral("chapter_id")).toString()};
     }
+    if (type == QLatin1String("npc_remembers") || type == QLatin1String("npc_missing_memory")) {
+        return NpcMemoryCondition{
+            object.value(QStringLiteral("npc_id")).toString(),
+            object.value(QStringLiteral("key")).toString(),
+            type == QLatin1String("npc_remembers")};
+    }
     error = QStringLiteral("Unsupported condition type '%1'.").arg(type);
     return std::nullopt;
 }
@@ -101,6 +107,13 @@ std::optional<StoryEffect> parseEffect(const QJsonObject& object, QString& error
     if (type == QLatin1String("unlock_chapter")) {
         return UnlockChapterEffect{object.value(QStringLiteral("chapter_id")).toString()};
     }
+    if (type == QLatin1String("set_npc_memory")
+        || type == QLatin1String("remove_npc_memory")) {
+        return SetNpcMemoryEffect{
+            object.value(QStringLiteral("npc_id")).toString(),
+            object.value(QStringLiteral("key")).toString(),
+            type == QLatin1String("set_npc_memory")};
+    }
     error = QStringLiteral("Unsupported effect type '%1'.").arg(type);
     return std::nullopt;
 }
@@ -135,6 +148,9 @@ StoryLoadResult StoryContentLoader::loadJson(const QByteArray& json, const QStri
     chapter.contentVersion = root.value(QStringLiteral("content_version")).toInt();
     chapter.entrySceneId = root.value(QStringLiteral("entry_scene")).toString();
     chapter.title = localizedText(root, "title");
+    chapter.completionFlag = root.value(QStringLiteral("completion_flag")).toString();
+    chapter.allowActionsAfterCompletion =
+        root.value(QStringLiteral("allow_actions_after_completion")).toBool(false);
 
     QStringList errors;
     const auto parseConditions = [&errors](const QJsonArray& values,
@@ -156,6 +172,8 @@ StoryLoadResult StoryContentLoader::loadJson(const QByteArray& json, const QStri
 
     parseConditions(root.value(QStringLiteral("requirements")).toArray(),
                     chapter.requirements, QStringLiteral("chapter"));
+    parseConditions(root.value(QStringLiteral("completion_conditions")).toArray(),
+                    chapter.completionConditions, QStringLiteral("chapter completion"));
 
     for (const auto& sceneValue : root.value(QStringLiteral("scenes")).toArray()) {
         const auto sceneObject = sceneValue.toObject();

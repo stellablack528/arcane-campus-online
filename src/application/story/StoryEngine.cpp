@@ -1,5 +1,6 @@
 #include "application/story/StoryEngine.hpp"
 
+#include <algorithm>
 #include <limits>
 #include <type_traits>
 
@@ -55,6 +56,9 @@ bool StoryEngine::conditionsSatisfied(const QVector<StoryCondition>& conditions,
                 return state.characterAttributes.value(value.attribute) == value.expectedValue;
             } else if constexpr (std::is_same_v<T, ChapterCompletedCondition>) {
                 return state.completedChapters.contains(value.chapterId);
+            } else if constexpr (std::is_same_v<T, NpcMemoryCondition>) {
+                return state.npcMemoryFacts.value(value.npcId).contains(value.key)
+                    == value.expectedPresent;
             }
             return false;
         }, condition);
@@ -89,7 +93,7 @@ StoryExecutionResult StoryEngine::execute(const ChapterDefinition& chapter,
                                           const StoryRuntimeState& state,
                                           const QString& actionId) const
 {
-    if (state.chapterCompleted)
+    if (state.chapterCompleted && !chapter.allowActionsAfterCompletion)
         return {false, QStringLiteral("The chapter is already complete."), actionId, {}};
     if (!state.chapterId.isEmpty() && state.chapterId != chapter.chapterId)
         return {false, QStringLiteral("The runtime state belongs to another chapter."), actionId, {}};
@@ -143,6 +147,16 @@ StoryExecutionResult StoryEngine::execute(const ChapterDefinition& chapter,
             } else if constexpr (std::is_same_v<T, UnlockChapterEffect>) {
                 if (!delta.chaptersToUnlock.contains(value.chapterId))
                     delta.chaptersToUnlock.push_back(value.chapterId);
+            } else if constexpr (std::is_same_v<T, SetNpcMemoryEffect>) {
+                const auto duplicate = std::find_if(
+                    delta.npcMemoryChanges.begin(), delta.npcMemoryChanges.end(),
+                    [&](const NpcMemoryChange& change) {
+                        return change.npcId == value.npcId && change.key == value.key;
+                    });
+                if (duplicate == delta.npcMemoryChanges.end())
+                    delta.npcMemoryChanges.push_back({value.npcId, value.key, value.present});
+                else
+                    duplicate->present = value.present;
             }
         }, effect);
     }
@@ -178,6 +192,17 @@ StoryExecutionResult StoryEngine::execute(const ChapterDefinition& chapter,
             || it.value() > std::numeric_limits<int>::max())
             return {false, QStringLiteral("This action contains an unsupported affinity change."), actionId, {}};
         delta.affinityChanges.push_back({it.key(), static_cast<int>(it.value())});
+    }
+
+    if (!state.chapterCompleted && !chapter.completionConditions.isEmpty()) {
+        StoryRuntimeState projectedState = state;
+        QString applyError;
+        if (!applyDelta(projectedState, delta, &applyError))
+            return {false, applyError, actionId, {}};
+        if (conditionsSatisfied(chapter.completionConditions, projectedState)) {
+            delta.completeChapter = true;
+            if (!chapter.completionFlag.isEmpty()) delta.flagsToAdd.insert(chapter.completionFlag);
+        }
     }
 
     return {true, QStringLiteral("Story action accepted."), actionId, std::move(delta)};
@@ -216,9 +241,22 @@ bool StoryEngine::applyDelta(StoryRuntimeState& state,
         updatedAffinities[change.npcId] = static_cast<int>(projected);
     }
 
+    auto updatedMemory = state.npcMemoryFacts;
+    for (const auto& change : delta.npcMemoryChanges) {
+        if (change.present) updatedMemory[change.npcId].insert(change.key);
+        else {
+            auto it = updatedMemory.find(change.npcId);
+            if (it != updatedMemory.end()) {
+                it->remove(change.key);
+                if (it->isEmpty()) updatedMemory.erase(it);
+            }
+        }
+    }
+
     state.gold = updatedGold;
     state.inventory = std::move(updatedInventory);
     state.npcAffinities = std::move(updatedAffinities);
+    state.npcMemoryFacts = std::move(updatedMemory);
     for (const auto& flag : delta.flagsToRemove) state.flags.remove(flag);
     for (const auto& flag : delta.flagsToAdd) state.flags.insert(flag);
     for (const auto& chapterId : delta.chaptersToUnlock) state.unlockedChapters.insert(chapterId);

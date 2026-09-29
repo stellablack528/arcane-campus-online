@@ -1,8 +1,8 @@
 # Generic Story Engine / 通用剧情引擎
 
-The generic story engine is the contract between authored or agent-generated content and the C++ game runtime. Phase 1 provides the contract, JSON loader, semantic validator, deterministic condition/effect execution, `StoryDelta`, and database transaction foundation. The existing Diagon Alley runtime remains active until its parity migration in Phase 2.
+The generic story engine is the contract between authored or agent-generated content and the C++ game runtime. Phase 1 provides the contract, JSON loader, semantic validator, deterministic condition/effect execution, `StoryDelta`, and database transaction foundation. Phase 2 adds the Diagon Alley compatibility adapter and an executable parity gate while leaving the proven legacy entry active.
 
-通用剧情引擎是“人工或 Agent 生成的内容”和“C++ 游戏运行时”之间的边界。第一阶段只搭建基础设施，不改变玩家当前看到的对角巷流程。
+通用剧情引擎是“人工或 Agent 生成的内容”和“C++ 游戏运行时”之间的边界。第二阶段用适配器将现有对角巷内容映射为通用章节，并用新旧两套完整游玩结果守住迁移等价性；玩家当前入口暂不切换。
 
 ## Responsibility boundary
 
@@ -27,6 +27,7 @@ The engine never executes SQL, calls an AI model, or writes UI widgets. A conten
 | `affinity_at_least` | Require an NPC relationship value |
 | `character_attribute_is` | Check a whitelisted character attribute |
 | `chapter_completed` | Require an earlier chapter |
+| `npc_remembers` / `npc_missing_memory` | Check one stable NPC memory fact |
 
 Whitelisted character attributes are `house`, `blood_status`, `wand_wood`, `wand_core`, and `pet_type`.
 
@@ -41,18 +42,19 @@ Whitelisted character attributes are `house`, `blood_status`, `wand_wood`, `wand
 | `move_to_scene` | Select the next scene |
 | `complete_chapter` | Complete the current chapter |
 | `unlock_chapter` | Unlock another chapter |
+| `set_npc_memory` / `remove_npc_memory` | Add or remove one NPC memory fact |
 
 Unknown types are rejected while loading. Content can never provide arbitrary C++, SQL, shell commands, or network requests.
 
 ## Validation
 
-`StoryContentValidator` rejects content with invalid or duplicate IDs, missing bilingual text, broken scene references, multiple transitions in one action, unreachable scenes, or no completion effect. The machine-readable structural contract is `src/resources/story/schemas/chapter_v2.schema.json`; semantic graph checks remain in C++.
+`StoryContentValidator` rejects content with invalid or duplicate IDs, missing bilingual text, broken scene references, multiple transitions in one action, unreachable scenes, or no completion rule. A chapter may complete through an explicit `complete_chapter` effect or declarative `completion_conditions`; the latter can also add a `completion_flag`. Chapters such as Diagon Alley may opt into post-completion exploration with `allow_actions_after_completion`. The machine-readable structural contract is `src/resources/story/schemas/chapter_v2.schema.json`; semantic graph checks remain in C++.
 
 ## Persistence v4
 
 `migrate_v4_generic_story_engine.sql` changes story progress to a `(character_id, chapter_id)` key, adds content version, status, JSON state, revision and timestamps, adds structured NPC memory fields, and creates the append-only `story_event_log` table. Existing semicolon flags are retained under `legacy_flags` for the Phase 2 compatibility adapter.
 
-`DBTransaction` is an RAII guard: leaving scope without a successful commit rolls the transaction back. Phase 2 will use it to commit gold, inventory, NPC memory, chapter progress, and event logging together.
+`DBTransaction` is an RAII guard: leaving scope without a successful commit rolls the transaction back. The production-entry integration phase will use it to commit gold, inventory, NPC memory, chapter progress, and event logging together.
 
 Apply all migrations with:
 
@@ -61,6 +63,10 @@ cd database/scripts
 .\import_mysql.ps1
 ```
 
-## Phase boundary
+## Phase 2 parity gate
 
-Phase 1 deliberately does not route `CampusController` or `DiagonAlleyService` through the generic engine. Phase 2 first converts the current Diagon Alley package, compares complete playthrough results, and removes its dedicated runtime only after parity tests pass.
+`DiagonAlleyChapterAdapter` reads the already-loaded v1 catalog and produces a validated v2 `ChapterDefinition` in memory. It does not duplicate story text or maintain a second content file.
+
+`ArcaneCampusDiagonAlleyParityTest` completes the same route through the legacy service and generic engine, then compares gold, inventory, flags, NPC affinity, NPC memory, final scene, and chapter completion. It writes a human-readable text report with `--report <path>`.
+
+The legacy `DiagonAlleyService` remains the production entry in this phase. Switching `CampusController` to the generic runner is a separate, transaction-backed step after this gate stays green.

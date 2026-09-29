@@ -60,13 +60,20 @@ struct ChapterCompletedCondition {
     QString chapterId;
 };
 
+struct NpcMemoryCondition {
+    QString npcId;
+    QString key;
+    bool expectedPresent = true;
+};
+
 using StoryCondition = std::variant<
     FlagCondition,
     ItemQuantityCondition,
     GoldAtLeastCondition,
     AffinityAtLeastCondition,
     CharacterAttributeCondition,
-    ChapterCompletedCondition>;
+    ChapterCompletedCondition,
+    NpcMemoryCondition>;
 
 struct SetFlagEffect {
     QString key;
@@ -98,6 +105,12 @@ struct UnlockChapterEffect {
     QString chapterId;
 };
 
+struct SetNpcMemoryEffect {
+    QString npcId;
+    QString key;
+    bool present = true;
+};
+
 using StoryEffect = std::variant<
     SetFlagEffect,
     ChangeAffinityEffect,
@@ -105,7 +118,8 @@ using StoryEffect = std::variant<
     ChangeItemEffect,
     MoveToSceneEffect,
     CompleteChapterEffect,
-    UnlockChapterEffect>;
+    UnlockChapterEffect,
+    SetNpcMemoryEffect>;
 
 struct StoryActionDefinition {
     QString id;
@@ -130,6 +144,9 @@ struct ChapterDefinition {
     QString entrySceneId;
     LocalizedStoryText title;
     QVector<StoryCondition> requirements;
+    QVector<StoryCondition> completionConditions;
+    QString completionFlag;
+    bool allowActionsAfterCompletion = false;
     QVector<SceneDefinition> scenes;
 
     [[nodiscard]] const SceneDefinition* findScene(const QString& sceneId) const
@@ -149,6 +166,7 @@ struct StoryRuntimeState {
     QSet<QString> flags;
     QHash<std::uint64_t, std::uint32_t> inventory;
     QHash<QString, int> npcAffinities;
+    QHash<QString, QSet<QString>> npcMemoryFacts;
     QHash<QString, QString> characterAttributes;
     QSet<QString> completedChapters;
     QSet<QString> unlockedChapters;
@@ -165,6 +183,12 @@ struct InventoryChange {
     std::int32_t quantity = 0;
 };
 
+struct NpcMemoryChange {
+    QString npcId;
+    QString key;
+    bool present = true;
+};
+
 // A deterministic description of one accepted action. It contains no SQL and
 // makes no external calls; persistence applies it atomically in a later layer.
 struct StoryDelta {
@@ -173,6 +197,7 @@ struct StoryDelta {
     QSet<QString> flagsToRemove;
     QVector<AffinityChange> affinityChanges;
     QVector<InventoryChange> inventoryChanges;
+    QVector<NpcMemoryChange> npcMemoryChanges;
     std::int64_t goldChange = 0;
     QStringList chaptersToUnlock;
     bool completeChapter = false;
@@ -181,7 +206,8 @@ struct StoryDelta {
     {
         return !nextSceneId && flagsToAdd.isEmpty() && flagsToRemove.isEmpty()
             && affinityChanges.isEmpty() && inventoryChanges.isEmpty()
-            && goldChange == 0 && chaptersToUnlock.isEmpty() && !completeChapter;
+            && npcMemoryChanges.isEmpty() && goldChange == 0
+            && chaptersToUnlock.isEmpty() && !completeChapter;
     }
 };
 

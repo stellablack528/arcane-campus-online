@@ -45,6 +45,7 @@ The platform aims to provide an immersive text-based social experience while ser
 | ⌨️ 自由行动输入 | 中英文动作解析；按钮是建议而非唯一路径 |
 | 🧠 NPC 记忆 | 交谈与忽略会改变好感和之后的招呼 |
 | 📦 数据驱动剧情 | 商店、NPC、商品与双语叙事由 JSON 内容包提供 |
+| ⚙️ 通用剧情引擎基础 | 类型化条件/效果、StoryDelta、内容校验与图可达性检查 |
 | 🎒 背包系统 | **真实数据库对接**（InventoryDAO）|
 | 🗺️ 活点地图 | **真实数据库对接**（InventoryDAO + LocationDAO）|
 | 📋 任务系统 | **真实数据库对接**（QuestDAO）|
@@ -176,7 +177,7 @@ HogwartsOnline/
 │   ├── sql/                            # 数据库脚本
 │   │   ├── init_mysql.sql              # 完整数据库建表
 │   │   ├── seed_mysql.sql              # 种子数据（用户、角色、活点地图道具等）
-│   │   └── migrate_v1/v2/v3*.sql       # 增量迁移（v3：本地剧情运行时）
+│   │   └── migrate_v1-v4*.sql           # 增量迁移（v4：通用剧情状态与事件日志）
 │   │
 │   ├── scripts/                        # PowerShell 脚本
 │   │   ├── import_mysql.ps1
@@ -207,6 +208,11 @@ HogwartsOnline/
 │   │   │   ├── DiagonAlleyCatalog       # ✅ JSON 内容包读取与查询
 │   │   │   ├── DiagonAlleyActionParser  # ✅ 中英文自由行动解析
 │   │   │   └── DiagonAlleyService       # ✅ 商店、采购、NPC 记忆与完成条件
+│   │   ├── story/
+│   │   │   ├── StoryTypes               # ✅ 通用条件、效果、状态与 StoryDelta
+│   │   │   ├── StoryContentLoader        # ✅ JSON 白名单解析
+│   │   │   ├── StoryContentValidator     # ✅ 引用、双语与可达性校验
+│   │   │   └── StoryEngine               # ✅ 确定性条件判断与内存执行
 │   │   ├── controller/
 │   │   │   └── CampusController        # 信号槽枢纽（16 slots + 6 signals）
 │   │   └── router/
@@ -229,15 +235,19 @@ HogwartsOnline/
 │   └── resources/
 │       ├── resources.qrc
 │       ├── data/diagon_alley.json       # 对角巷双语剧情内容包
+│       ├── story/schemas/                # Agent 可读取的内容包 v2 契约
 │       └── qss/dark_wood.qss           # 墨绿炭黑主题（Quiet Library Theme）
 │
 ├── docs/
 │   ├── AI_CONFIGURATION.md             # DeepSeek 本地安全配置说明
-│   └── CONTENT_PACKS.md                 # 剧情内容包格式与扩展边界
+│   ├── CONTENT_PACKS.md                 # 剧情内容包格式与扩展边界
+│   └── STORY_ENGINE.md                  # 通用引擎、白名单与事务边界
 │
 ├── tests/                              # 单元测试
 │   ├── application/
 │   │   └── DiagonAlleyRuntimeTest.cpp  # 内容包、解析、记忆与采购闭环
+│   ├── story/
+│   │   └── StoryEngineTest.cpp          # 通用加载、校验、执行与安全拒绝
 │   └── database/
 │       ├── DatabaseSmokeTest.cpp       # 冒烟测试（无需数据库）
 │       └── MySqlIntegrationTest.cpp    # MySQL 集成测试
@@ -255,7 +265,7 @@ HogwartsOnline/
 - [x] Thread Pool
 - [x] Producer-Consumer Architecture
 - [x] Modular Project Structure
-- [x] **MySQL Integration** (真实驱动 + 连接池 + 9 个 DAO)
+- [x] **MySQL Integration** (真实驱动 + 连接池 + 10 个 DAO)
 - [x] **Qt Desktop Client** (UI 完整 + 暗色魔法主题)
 - [x] **真实登录系统** (数据库验证用户名+学院)
 - [x] **背包系统** (真实数据库 CRUD)
@@ -267,6 +277,7 @@ HogwartsOnline/
 - [x] **剧情断点续玩** (章节、场景、采购状态、魔杖与 NPC 记忆)
 - [x] **自由行动解析** (中英文自然输入 → 确定性剧情动作)
 - [x] **数据驱动内容包** (剧情文案与配置从 JSON 加载)
+- [x] **通用剧情引擎第一阶段** (类型、加载、校验、StoryDelta、v4 事务基础)
 
 ### 🚧 进行中 / In Progress
 

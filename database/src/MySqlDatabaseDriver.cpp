@@ -94,6 +94,7 @@ void MySqlDatabaseDriver::disconnect() noexcept
         api_->close(connection_);
     }
     connection_ = nullptr;
+    transactionActive_ = false;
     api_.reset();
     if (module_) {
         FreeLibrary(module_);
@@ -152,6 +153,38 @@ std::optional<QueryResult> MySqlDatabaseDriver::query(const std::string& sql, co
     queryResult.lastInsertId = api_->insertId(connection_);
     lastError_.clear();
     return queryResult;
+}
+
+bool MySqlDatabaseDriver::beginTransaction()
+{
+    if (transactionActive_) {
+        lastError_ = "A transaction is already active on this connection.";
+        return false;
+    }
+    transactionActive_ = executeControlStatement("START TRANSACTION");
+    return transactionActive_;
+}
+
+bool MySqlDatabaseDriver::commitTransaction()
+{
+    if (!transactionActive_) {
+        lastError_ = "No transaction is active on this connection.";
+        return false;
+    }
+    if (!executeControlStatement("COMMIT")) return false;
+    transactionActive_ = false;
+    return true;
+}
+
+bool MySqlDatabaseDriver::rollbackTransaction()
+{
+    if (!transactionActive_) {
+        lastError_ = "No transaction is active on this connection.";
+        return false;
+    }
+    if (!executeControlStatement("ROLLBACK")) return false;
+    transactionActive_ = false;
+    return true;
 }
 
 std::string_view MySqlDatabaseDriver::driverName() const noexcept
@@ -236,6 +269,20 @@ std::optional<std::string> MySqlDatabaseDriver::bind(const std::string& sql, con
 void MySqlDatabaseDriver::setErrorFromServer()
 {
     lastError_ = connection_ && api_ && api_->error ? api_->error(connection_) : "Unknown MySQL error.";
+}
+
+bool MySqlDatabaseDriver::executeControlStatement(const char* sql)
+{
+    if (!connection_ || !api_ || !api_->query) {
+        lastError_ = "MySQL connection is not open.";
+        return false;
+    }
+    if (api_->query(connection_, sql) != 0) {
+        setErrorFromServer();
+        return false;
+    }
+    lastError_.clear();
+    return true;
 }
 
 } // namespace arcane::database

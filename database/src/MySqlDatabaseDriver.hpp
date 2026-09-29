@@ -24,6 +24,9 @@ public:
     [[nodiscard]] bool execute(const std::string& sql, const QueryParams& params) override;
     [[nodiscard]] std::optional<QueryResult> query(const std::string& sql,
                                                     const QueryParams& params) override;
+    [[nodiscard]] bool beginTransaction() override;
+    [[nodiscard]] bool commitTransaction() override;
+    [[nodiscard]] bool rollbackTransaction() override;
     [[nodiscard]] std::string_view driverName() const noexcept override;
     [[nodiscard]] const std::string& lastError() const noexcept override;
 
@@ -32,12 +35,14 @@ private:
 
     [[nodiscard]] bool loadApi(const DBConfig& config);
     [[nodiscard]] std::optional<std::string> bind(const std::string& sql, const QueryParams& params);
+    [[nodiscard]] bool executeControlStatement(const char* sql);
     void setErrorFromServer();
 
     HMODULE module_ = nullptr;
     MYSQL* connection_ = nullptr;
     std::unique_ptr<Api> api_;
     std::string lastError_;
+    bool transactionActive_ = false;
 };
 
 } // namespace arcane::database

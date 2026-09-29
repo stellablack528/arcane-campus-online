@@ -1,6 +1,7 @@
 #include "CharacterDAO.hpp"
 #include "DBConnection.hpp"
 #include "DBConnectionPool.hpp"
+#include "DBTransaction.hpp"
 #include "InventoryDAO.hpp"
 #include "MessageDAO.hpp"
 #include "RoomDAO.hpp"
@@ -54,6 +55,26 @@ int main()
     }));
     assert(characterDao.updateCharacterRoom(1, 2));
     assert(characterDao.updateCharacterGold(1, 40));
+
+    {
+        DBTransaction transaction(connection);
+        assert(transaction.isActive());
+        DBTransaction nestedTransaction(connection);
+        assert(!nestedTransaction.isActive());
+        assert(characterDao.updateCharacterGold(1, 39));
+        assert(transaction.commit());
+    }
+    {
+        DBTransaction transaction(connection);
+        assert(transaction.isActive());
+        assert(characterDao.updateCharacterGold(1, 38));
+        // Destructor exercises automatic rollback.
+    }
+    {
+        DBTransaction transaction(connection);
+        assert(transaction.isActive());
+        assert(transaction.rollback());
+    }
 
     StoryDAO storyDao(connection);
     assert(storyDao.upsertStoryState(StoryStateRecord{

@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
 include(CTest)
 
 set(ARCANE_MYSQL_ROOT "D:/mysql-8.0.25-winx64" CACHE PATH "MySQL Server or Connector/C installation")
@@ -25,6 +25,7 @@ add_library(ArcaneCampusDatabase STATIC
     database/include/DatabaseConfigLoader.hpp
     database/include/DBConnection.hpp
     database/include/DBConnectionPool.hpp
+    database/include/DBTransaction.hpp
     database/include/UserDAO.hpp
     database/include/CharacterDAO.hpp
     database/include/RoomDAO.hpp
@@ -42,6 +43,7 @@ add_library(ArcaneCampusDatabase STATIC
     database/src/NoopDatabaseDriver.hpp
     database/src/NoopDatabaseDriver.cpp
     database/src/DBConnectionPool.cpp
+    database/src/DBTransaction.cpp
     database/src/UserDAO.cpp
     database/src/CharacterDAO.cpp
     database/src/RoomDAO.cpp
@@ -65,6 +67,20 @@ target_include_directories(ArcaneCampusDatabase PRIVATE
 target_link_libraries(ArcaneCampusDatabase PRIVATE ws2_32)
 
 target_compile_features(ArcaneCampusDatabase PUBLIC cxx_std_20)
+
+add_library(ArcaneStoryEngine STATIC
+    src/application/story/StoryTypes.hpp
+    src/application/story/StoryContentLoader.hpp
+    src/application/story/StoryContentLoader.cpp
+    src/application/story/StoryContentValidator.hpp
+    src/application/story/StoryContentValidator.cpp
+    src/application/story/StoryEngine.hpp
+    src/application/story/StoryEngine.cpp
+)
+
+target_include_directories(ArcaneStoryEngine PUBLIC src)
+target_link_libraries(ArcaneStoryEngine PUBLIC Qt6::Core)
+target_compile_features(ArcaneStoryEngine PUBLIC cxx_std_20)
 
 if(BUILD_TESTING)
     add_executable(ArcaneCampusDatabaseSmokeTest
@@ -99,6 +115,15 @@ if(BUILD_TESTING)
         COMMAND ArcaneCampusDiagonAlleyRuntimeTest
     )
     set_tests_properties(ArcaneCampusDiagonAlleyRuntimeTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
+    add_executable(ArcaneCampusStoryEngineTest
+        tests/story/StoryEngineTest.cpp
+    )
+    target_link_libraries(ArcaneCampusStoryEngineTest PRIVATE ArcaneStoryEngine)
+    add_test(NAME ArcaneCampusStoryEngineTest COMMAND ArcaneCampusStoryEngineTest)
+    set_tests_properties(ArcaneCampusStoryEngineTest PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 endif()
@@ -200,6 +225,7 @@ target_include_directories(HogwartsOnline PRIVATE src)
 
 target_link_libraries(HogwartsOnline PRIVATE
     ArcaneCampusDatabase
+    ArcaneStoryEngine
     Qt6::Widgets
     Qt6::Network
 )

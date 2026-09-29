@@ -13,11 +13,15 @@ public:
     [[nodiscard]] bool execute(const std::string& sql, const QueryParams& params) override;
     [[nodiscard]] std::optional<QueryResult> query(const std::string& sql,
                                                    const QueryParams& params) override;
+    [[nodiscard]] bool beginTransaction() override;
+    [[nodiscard]] bool commitTransaction() override;
+    [[nodiscard]] bool rollbackTransaction() override;
     [[nodiscard]] std::string_view driverName() const noexcept override;
     [[nodiscard]] const std::string& lastError() const noexcept override;
 
 private:
     bool connected_ = false;
+    bool transactionActive_ = false;
     std::string lastError_;
 };
 

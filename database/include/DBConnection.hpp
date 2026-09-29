@@ -59,6 +59,9 @@ public:
 
     [[nodiscard]] bool execute(const std::string& sql, const QueryParams& params = {});
     [[nodiscard]] std::optional<QueryResult> query(const std::string& sql, const QueryParams& params = {});
+    [[nodiscard]] bool beginTransaction();
+    [[nodiscard]] bool commitTransaction();
+    [[nodiscard]] bool rollbackTransaction();
 
 private:
     DBConfig config_;

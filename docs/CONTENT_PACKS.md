@@ -3,6 +3,10 @@
 对角巷章节的剧情文本、商店、NPC 与商品不再散落在界面或控制器代码中，而是集中在
 `src/resources/data/diagon_alley.json`。运行时由 `DiagonAlleyCatalog` 读取，动作解析器和剧情服务只负责解释与执行。
 
+> 当前对角巷文件仍是第一版专用格式。通用章节 v2 契约已经建立在
+> `src/resources/story/schemas/chapter_v2.schema.json`，详细边界见 `docs/STORY_ENGINE.md`；
+> 第二阶段完成等价性测试后，才会迁移并删除专用运行时。
+
 这层边界是未来“异世界生成 Agent”的入口：Agent 只需产出经过校验的内容包，不需要生成或改写 C++ 业务代码。
 
 ## 顶层结构

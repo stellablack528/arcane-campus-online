@@ -1,5 +1,6 @@
 #include "StoryDAO.hpp"
 
+#include "DBTransaction.hpp"
 #include "RecordMapper.hpp"
 
 #include <cstdlib>
@@ -14,11 +15,23 @@ StoryDAO::StoryDAO(std::shared_ptr<DBConnection> connection) noexcept
 
 bool StoryDAO::upsertStoryState(const StoryStateRecord& state)
 {
-    return connection_ && connection_->execute(
-        "INSERT INTO character_story_states (character_id, chapter_id, scene_id, stage, flags) "
-        "VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE chapter_id = VALUES(chapter_id), "
-        "scene_id = VALUES(scene_id), stage = VALUES(stage), flags = VALUES(flags)",
-        {std::to_string(state.characterId), state.chapterId, state.sceneId, state.stage, state.flags});
+    DBTransaction transaction(connection_);
+    if (!transaction.isActive() || !connection_->execute(
+        "UPDATE character_story_states SET status = 'paused' "
+        "WHERE character_id = ? AND chapter_id <> ? AND status = 'active'",
+        {std::to_string(state.characterId), state.chapterId})) {
+        return false;
+    }
+    if (!connection_->execute(
+        "INSERT INTO character_story_states "
+        "(character_id, chapter_id, scene_id, stage, flags, status) "
+        "VALUES (?, ?, ?, ?, ?, 'active') ON DUPLICATE KEY UPDATE "
+        "scene_id = VALUES(scene_id), stage = VALUES(stage), flags = VALUES(flags), "
+        "status = 'active'",
+        {std::to_string(state.characterId), state.chapterId, state.sceneId, state.stage, state.flags})) {
+        return false;
+    }
+    return transaction.commit();
 }
 
 std::optional<StoryStateRecord> StoryDAO::getStoryState(std::uint64_t characterId) const
@@ -26,7 +39,8 @@ std::optional<StoryStateRecord> StoryDAO::getStoryState(std::uint64_t characterI
     if (!connection_) return std::nullopt;
     const auto result = connection_->query(
         "SELECT character_id, chapter_id, scene_id, stage, flags FROM character_story_states "
-        "WHERE character_id = ?", {std::to_string(characterId)});
+        "WHERE character_id = ? ORDER BY (status = 'active') DESC, updated_at DESC, chapter_id DESC LIMIT 1",
+        {std::to_string(characterId)});
     if (!result || result->rows.empty()) return std::nullopt;
     const auto& row = result->rows.front();
     return StoryStateRecord{

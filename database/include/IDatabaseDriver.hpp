@@ -18,6 +18,9 @@ public:
     [[nodiscard]] virtual bool execute(const std::string& sql, const QueryParams& params) = 0;
     [[nodiscard]] virtual std::optional<QueryResult> query(const std::string& sql,
                                                            const QueryParams& params) = 0;
+    [[nodiscard]] virtual bool beginTransaction() = 0;
+    [[nodiscard]] virtual bool commitTransaction() = 0;
+    [[nodiscard]] virtual bool rollbackTransaction() = 0;
     [[nodiscard]] virtual std::string_view driverName() const noexcept = 0;
     [[nodiscard]] virtual const std::string& lastError() const noexcept = 0;
 };

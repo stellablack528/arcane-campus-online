@@ -11,6 +11,7 @@ bool NoopDatabaseDriver::connect(const DBConfig& config)
 
 void NoopDatabaseDriver::disconnect() noexcept
 {
+    transactionActive_ = false;
     connected_ = false;
 }
 
@@ -34,6 +35,27 @@ std::optional<QueryResult> NoopDatabaseDriver::query(const std::string& sql, con
         return std::nullopt;
     }
     return QueryResult{};
+}
+
+bool NoopDatabaseDriver::beginTransaction()
+{
+    if (!connected_ || transactionActive_) return false;
+    transactionActive_ = true;
+    return true;
+}
+
+bool NoopDatabaseDriver::commitTransaction()
+{
+    if (!connected_ || !transactionActive_) return false;
+    transactionActive_ = false;
+    return true;
+}
+
+bool NoopDatabaseDriver::rollbackTransaction()
+{
+    if (!connected_ || !transactionActive_) return false;
+    transactionActive_ = false;
+    return true;
 }
 
 std::string_view NoopDatabaseDriver::driverName() const noexcept

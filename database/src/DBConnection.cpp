@@ -82,4 +82,19 @@ std::optional<QueryResult> DBConnection::query(const std::string& sql, const Que
     return driver_->query(sql, params);
 }
 
+bool DBConnection::beginTransaction()
+{
+    return driver_ && driver_->beginTransaction();
+}
+
+bool DBConnection::commitTransaction()
+{
+    return driver_ && driver_->commitTransaction();
+}
+
+bool DBConnection::rollbackTransaction()
+{
+    return driver_ && driver_->rollbackTransaction();
+}
+
 } // namespace arcane::database

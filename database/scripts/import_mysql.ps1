@@ -26,7 +26,13 @@ if ([string]::IsNullOrEmpty($env:MYSQL_PWD)) {
 }
 
 $commonArguments = @('--protocol=TCP', "--host=$HostName", "--port=$Port", "--user=$Username", '--default-character-set=utf8mb4')
-foreach ($scriptName in @('init_mysql.sql', 'migrate_v1.sql', 'migrate_v3_story_runtime.sql', 'seed_mysql.sql')) {
+foreach ($scriptName in @(
+    'init_mysql.sql',
+    'migrate_v1.sql',
+    'migrate_v3_story_runtime.sql',
+    'migrate_v4_generic_story_engine.sql',
+    'seed_mysql.sql'
+)) {
     $scriptPath = (Resolve-Path (Join-Path $sqlDirectory $scriptName)).Path.Replace('\', '/')
     & $MySqlBin @commonArguments --execute="source $scriptPath"
     if ($LASTEXITCODE -ne 0) {

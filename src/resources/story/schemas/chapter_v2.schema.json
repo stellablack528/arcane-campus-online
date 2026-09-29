@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arcane-campus.example/schemas/chapter_v2.schema.json",
+  "title": "Arcane Campus story chapter v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "chapter_id", "content_version", "entry_scene", "title", "scenes"],
+  "properties": {
+    "schema_version": {"const": 2},
+    "chapter_id": {"$ref": "#/$defs/stableId"},
+    "content_version": {"type": "integer", "minimum": 1},
+    "entry_scene": {"$ref": "#/$defs/stableId"},
+    "title": {"$ref": "#/$defs/localizedText"},
+    "requirements": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/condition"},
+      "default": []
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/scene"}
+    }
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "localizedText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zh", "en"],
+      "properties": {
+        "zh": {"type": "string", "minLength": 1},
+        "en": {"type": "string", "minLength": 1}
+      }
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "key"],
+          "properties": {
+            "type": {"enum": ["has_flag", "missing_flag"]},
+            "key": {"$ref": "#/$defs/stableId"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "item_id"],
+          "properties": {
+            "type": {"const": "has_item"},
+            "item_id": {"type": "integer", "minimum": 1},
+            "minimum_quantity": {"type": "integer", "minimum": 1, "default": 1}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "amount"],
+          "properties": {
+            "type": {"const": "gold_at_least"},
+            "amount": {"type": "integer", "minimum": 0}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "npc_id", "minimum"],
+          "properties": {
+            "type": {"const": "affinity_at_least"},
+            "npc_id": {"$ref": "#/$defs/stableId"},
+            "minimum": {"type": "integer"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "attribute", "value"],
+          "properties": {
+            "type": {"const": "character_attribute_is"},
+            "attribute": {"enum": ["house", "blood_status", "wand_wood", "wand_core", "pet_type"]},
+            "value": {"type": "string", "minLength": 1}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "chapter_id"],
+          "properties": {
+            "type": {"const": "chapter_completed"},
+            "chapter_id": {"$ref": "#/$defs/stableId"}
+          }
+        }
+      ]
+    },
+    "effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "key"],
+          "properties": {
+            "type": {"enum": ["set_flag", "remove_flag"]},
+            "key": {"$ref": "#/$defs/stableId"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "npc_id", "amount"],
+          "properties": {
+            "type": {"const": "change_affinity"},
+            "npc_id": {"$ref": "#/$defs/stableId"},
+            "amount": {"type": "integer", "not": {"const": 0}}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "amount"],
+          "properties": {
+            "type": {"const": "change_gold"},
+            "amount": {"type": "integer", "not": {"const": 0}}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "item_id", "quantity"],
+          "properties": {
+            "type": {"const": "change_item"},
+            "item_id": {"type": "integer", "minimum": 1},
+            "quantity": {"type": "integer", "not": {"const": 0}}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "scene_id"],
+          "properties": {
+            "type": {"const": "move_to_scene"},
+            "scene_id": {"$ref": "#/$defs/stableId"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {"type": {"const": "complete_chapter"}}
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "chapter_id"],
+          "properties": {
+            "type": {"const": "unlock_chapter"},
+            "chapter_id": {"$ref": "#/$defs/stableId"}
+          }
+        }
+      ]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "effects"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "label": {"$ref": "#/$defs/localizedText"},
+        "aliases": {"type": "array", "items": {"type": "string", "minLength": 1}, "default": []},
+        "conditions": {"type": "array", "items": {"$ref": "#/$defs/condition"}, "default": []},
+        "effects": {"type": "array", "items": {"$ref": "#/$defs/effect"}}
+      }
+    },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "narration", "actions"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "title": {"$ref": "#/$defs/localizedText"},
+        "narration": {"$ref": "#/$defs/localizedText"},
+        "actors": {"type": "array", "items": {"$ref": "#/$defs/stableId"}, "default": []},
+        "actions": {"type": "array", "items": {"$ref": "#/$defs/action"}}
+      }
+    }
+  }
+}

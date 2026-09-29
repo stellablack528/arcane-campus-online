@@ -27,7 +27,12 @@ SELECT
     (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'arcane_campus_online') AS table_count,
     (SELECT COUNT(*) FROM arcane_campus_online.users) AS user_count,
     (SELECT COUNT(*) FROM arcane_campus_online.rooms) AS room_count,
-    (SELECT COUNT(*) FROM arcane_campus_online.npcs) AS npc_count;
+    (SELECT COUNT(*) FROM arcane_campus_online.npcs) AS npc_count,
+    (SELECT COUNT(*) FROM arcane_campus_online.schema_migrations
+        WHERE version = 'v4_generic_story_engine') AS story_v4_applied,
+    (SELECT COUNT(*) FROM information_schema.tables
+        WHERE table_schema = 'arcane_campus_online'
+          AND table_name = 'story_event_log') AS story_event_log_ready;
 '@
 
 & $MySqlBin '--protocol=TCP' "--host=$HostName" "--port=$Port" "--user=$Username" '--default-character-set=utf8mb4' --batch --skip-column-names --execute=$query

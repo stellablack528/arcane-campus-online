@@ -76,11 +76,25 @@ add_library(ArcaneStoryEngine STATIC
     src/application/story/StoryContentValidator.cpp
     src/application/story/StoryEngine.hpp
     src/application/story/StoryEngine.cpp
+    src/application/story/StoryRuntimeService.hpp
+    src/application/story/StoryRuntimeService.cpp
 )
 
 target_include_directories(ArcaneStoryEngine PUBLIC src)
 target_link_libraries(ArcaneStoryEngine PUBLIC Qt6::Core)
 target_compile_features(ArcaneStoryEngine PUBLIC cxx_std_20)
+
+add_library(ArcaneStoryPersistence STATIC
+    src/application/story/persistence/StoryPersistenceService.hpp
+    src/application/story/persistence/StoryPersistenceService.cpp
+)
+target_include_directories(ArcaneStoryPersistence PUBLIC src)
+target_link_libraries(ArcaneStoryPersistence PUBLIC
+    ArcaneStoryEngine
+    ArcaneCampusDatabase
+    Qt6::Core
+)
+target_compile_features(ArcaneStoryPersistence PUBLIC cxx_std_20)
 
 if(BUILD_TESTING)
     add_executable(ArcaneCampusDatabaseSmokeTest
@@ -124,6 +138,30 @@ if(BUILD_TESTING)
     target_link_libraries(ArcaneCampusStoryEngineTest PRIVATE ArcaneStoryEngine)
     add_test(NAME ArcaneCampusStoryEngineTest COMMAND ArcaneCampusStoryEngineTest)
     set_tests_properties(ArcaneCampusStoryEngineTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
+    add_executable(ArcaneCampusStoryRuntimeServiceTest
+        tests/story/StoryRuntimeServiceTest.cpp
+    )
+    target_link_libraries(ArcaneCampusStoryRuntimeServiceTest PRIVATE ArcaneStoryEngine)
+    add_test(NAME ArcaneCampusStoryRuntimeServiceTest
+        COMMAND ArcaneCampusStoryRuntimeServiceTest
+    )
+    set_tests_properties(ArcaneCampusStoryRuntimeServiceTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
+    add_executable(ArcaneCampusStoryPersistenceServiceTest
+        tests/story/StoryPersistenceServiceTest.cpp
+    )
+    target_link_libraries(ArcaneCampusStoryPersistenceServiceTest PRIVATE
+        ArcaneStoryPersistence
+    )
+    add_test(NAME ArcaneCampusStoryPersistenceServiceTest
+        COMMAND ArcaneCampusStoryPersistenceServiceTest
+    )
+    set_tests_properties(ArcaneCampusStoryPersistenceServiceTest PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 
@@ -255,6 +293,7 @@ target_include_directories(HogwartsOnline PRIVATE src)
 target_link_libraries(HogwartsOnline PRIVATE
     ArcaneCampusDatabase
     ArcaneStoryEngine
+    ArcaneStoryPersistence
     Qt6::Widgets
     Qt6::Network
 )

@@ -34,6 +34,8 @@ void validateCondition(const StoryCondition& condition,
                 result.errors << context + QStringLiteral(": item condition requires positive values.");
         } else if constexpr (std::is_same_v<T, AffinityAtLeastCondition>) {
             if (!isStableId(value.npcId)) result.errors << context + QStringLiteral(": invalid NPC id.");
+        } else if constexpr (std::is_same_v<T, AffinityAtMostCondition>) {
+            if (!isStableId(value.npcId)) result.errors << context + QStringLiteral(": invalid NPC id.");
         } else if constexpr (std::is_same_v<T, CharacterAttributeCondition>) {
             static const QSet<QString> allowed{
                 QStringLiteral("house"), QStringLiteral("blood_status"),
@@ -81,6 +83,31 @@ void validateEffect(const StoryEffect& effect,
     }, effect);
 }
 
+void validateLine(const StoryLineDefinition& line,
+                  const QString& context,
+                  const QSet<QString>& sceneActorIds,
+                  StoryValidationResult& result)
+{
+    if (!line.text.isComplete())
+        result.errors << context + QStringLiteral(": text must be bilingual.");
+    if (!line.speaker.isEmpty() && !line.speaker.isComplete())
+        result.errors << context + QStringLiteral(": speaker must be bilingual when provided.");
+    if (line.kind == StoryLineKind::NpcDialogue) {
+        if (!isStableId(line.actorId))
+            result.errors << context + QStringLiteral(": NPC dialogue requires a valid actor id.");
+        else if (!sceneActorIds.contains(line.actorId))
+            result.errors << context + QStringLiteral(": NPC actor is not present in the scene.");
+        if (!line.speaker.isComplete())
+            result.errors << context + QStringLiteral(": NPC dialogue requires a bilingual speaker.");
+    } else if (!line.actorId.isEmpty()) {
+        result.errors << context + QStringLiteral(": only NPC dialogue may declare an actor id.");
+    }
+    for (qsizetype index = 0; index < line.conditions.size(); ++index) {
+        validateCondition(line.conditions.at(index),
+                          context + QStringLiteral(" condition %1").arg(index), result);
+    }
+}
+
 } // namespace
 
 StoryValidationResult StoryContentValidator::validate(const ChapterDefinition& chapter) const
@@ -109,6 +136,10 @@ StoryValidationResult StoryContentValidator::validate(const ChapterDefinition& c
         result.errors << QStringLiteral("completion_flag must be a stable lowercase id.");
     if (chapter.completionConditions.isEmpty() && !chapter.completionFlag.isEmpty())
         result.errors << QStringLiteral("completion_flag requires completion_conditions.");
+    if (!chapter.completionText.isEmpty() && !chapter.completionText.isComplete())
+        result.errors << QStringLiteral("completion_text must be bilingual when provided.");
+    if (chapter.completionText.isEmpty())
+        result.warnings << QStringLiteral("chapter has no completion_text presentation.");
 
     QSet<QString> sceneIds;
     for (const auto& scene : chapter.scenes) {
@@ -128,11 +159,19 @@ StoryValidationResult StoryContentValidator::validate(const ChapterDefinition& c
     for (const auto& scene : chapter.scenes) {
         if (!scene.title.isComplete() || !scene.narration.isComplete())
             result.errors << QStringLiteral("scene '%1' requires bilingual title and narration.").arg(scene.id);
+        if (!scene.revisitNarration.isEmpty() && !scene.revisitNarration.isComplete())
+            result.errors << QStringLiteral("scene '%1' revisit narration must be bilingual.").arg(scene.id);
+        QSet<QString> sceneActorIds;
         for (const auto& actorId : scene.actorIds) {
             if (!isStableId(actorId))
                 result.errors << QStringLiteral("scene '%1' contains invalid actor id '%2'.")
                                      .arg(scene.id, actorId);
+            sceneActorIds.insert(actorId);
         }
+        for (qsizetype index = 0; index < scene.arrivalLines.size(); ++index)
+            validateLine(scene.arrivalLines.at(index),
+                         QStringLiteral("scene '%1' arrival line %2").arg(scene.id).arg(index),
+                         sceneActorIds, result);
         if (scene.actions.isEmpty())
             result.warnings << QStringLiteral("scene '%1' has no actions.").arg(scene.id);
 
@@ -142,6 +181,8 @@ StoryValidationResult StoryContentValidator::validate(const ChapterDefinition& c
             if (actionIds.contains(action.id)) result.errors << context + QStringLiteral(": duplicate action id.");
             actionIds.insert(action.id);
             if (!action.label.isComplete()) result.errors << context + QStringLiteral(": label must be bilingual.");
+            if (!action.playerText.isEmpty() && !action.playerText.isComplete())
+                result.errors << context + QStringLiteral(": player_text must be bilingual when provided.");
             if (action.aliases.isEmpty()) result.warnings << context + QStringLiteral(": no free-text aliases.");
             if (action.effects.isEmpty()) result.warnings << context + QStringLiteral(": action has no effects.");
 
@@ -162,6 +203,10 @@ StoryValidationResult StoryContentValidator::validate(const ChapterDefinition& c
             }
             if (movementEffects > 1)
                 result.errors << context + QStringLiteral(": action has more than one scene transition.");
+            for (qsizetype index = 0; index < action.responseLines.size(); ++index)
+                validateLine(action.responseLines.at(index),
+                             context + QStringLiteral(" response line %1").arg(index),
+                             sceneActorIds, result);
         }
     }
     if (!hasCompletion && chapter.completionConditions.isEmpty())

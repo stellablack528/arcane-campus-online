@@ -35,6 +35,22 @@ bool addInt64(std::int64_t base, std::int64_t change, std::int64_t& result)
     return true;
 }
 
+bool hasVisitedScene(const StoryRuntimeState& state, const QString& sceneId)
+{
+    return state.visitedScenes.contains(sceneId)
+        || state.flags.contains(QStringLiteral("visited_%1").arg(sceneId));
+}
+
+StoryEventKind eventKindFor(StoryLineKind kind)
+{
+    switch (kind) {
+    case StoryLineKind::Narration: return StoryEventKind::Narration;
+    case StoryLineKind::NpcDialogue: return StoryEventKind::NpcDialogue;
+    case StoryLineKind::SystemNotice: return StoryEventKind::SystemNotice;
+    }
+    return StoryEventKind::Narration;
+}
+
 } // namespace
 
 bool StoryEngine::conditionsSatisfied(const QVector<StoryCondition>& conditions,
@@ -52,6 +68,8 @@ bool StoryEngine::conditionsSatisfied(const QVector<StoryCondition>& conditions,
                 return state.gold >= value.amount;
             } else if constexpr (std::is_same_v<T, AffinityAtLeastCondition>) {
                 return state.npcAffinities.value(value.npcId, 0) >= value.minimum;
+            } else if constexpr (std::is_same_v<T, AffinityAtMostCondition>) {
+                return state.npcAffinities.value(value.npcId, 0) <= value.maximum;
             } else if constexpr (std::is_same_v<T, CharacterAttributeCondition>) {
                 return state.characterAttributes.value(value.attribute) == value.expectedValue;
             } else if constexpr (std::is_same_v<T, ChapterCompletedCondition>) {
@@ -81,11 +99,78 @@ QVector<const StoryActionDefinition*> StoryEngine::availableActions(
     const ChapterDefinition& chapter, const StoryRuntimeState& state) const
 {
     QVector<const StoryActionDefinition*> result;
+    if (state.chapterCompleted && !chapter.allowActionsAfterCompletion) return result;
     const auto* scene = chapter.findScene(state.currentSceneId);
     if (!scene) return result;
     for (const auto& action : scene->actions) {
         if (conditionsSatisfied(action.conditions, state)) result.push_back(&action);
     }
+    return result;
+}
+
+void StoryEngine::appendLineEvents(QVector<StoryEvent>& destination,
+                                   const QVector<StoryLineDefinition>& lines,
+                                   const StoryRuntimeState& state,
+                                   const QString& sceneId) const
+{
+    for (const auto& line : lines) {
+        if (!conditionsSatisfied(line.conditions, state)) continue;
+        LocalizedStoryText speaker = line.speaker;
+        if (speaker.isEmpty() && line.kind == StoryLineKind::Narration)
+            speaker = {QStringLiteral("旁白"), QStringLiteral("Narrator")};
+        if (speaker.isEmpty() && line.kind == StoryLineKind::SystemNotice)
+            speaker = {QStringLiteral("系统"), QStringLiteral("System")};
+        destination.push_back(
+            {eventKindFor(line.kind), sceneId, line.actorId, speaker, line.text, {}});
+    }
+}
+
+void StoryEngine::appendSceneEvents(QVector<StoryEvent>& destination,
+                                    const SceneDefinition& scene,
+                                    const StoryRuntimeState& state,
+                                    bool firstVisit) const
+{
+    destination.push_back(
+        {StoryEventKind::SceneHeader, scene.id, {}, {}, scene.title, {}});
+    const auto& narration = !firstVisit && scene.revisitNarration.isComplete()
+        ? scene.revisitNarration : scene.narration;
+    destination.push_back(
+        {StoryEventKind::Narration, scene.id, {},
+         {QStringLiteral("旁白"), QStringLiteral("Narrator")}, narration, {}});
+    appendLineEvents(destination, scene.arrivalLines, state, scene.id);
+}
+
+StoryEvent StoryEngine::choicesEvent(const ChapterDefinition& chapter,
+                                     const StoryRuntimeState& state) const
+{
+    StoryEvent event;
+    event.kind = StoryEventKind::ChoicesChanged;
+    event.sceneId = state.currentSceneId;
+    for (const auto* action : availableActions(chapter, state))
+        event.choices.push_back({action->id, action->label});
+    return event;
+}
+
+StoryExecutionResult StoryEngine::enterCurrentScene(
+    const ChapterDefinition& chapter, const StoryRuntimeState& state) const
+{
+    if (!state.chapterId.isEmpty() && state.chapterId != chapter.chapterId)
+        return {false, QStringLiteral("The runtime state belongs to another chapter."), {}, {}};
+    const auto* scene = chapter.findScene(state.currentSceneId);
+    if (!scene)
+        return {false, QStringLiteral("The current story scene does not exist."), {}, {}};
+
+    StoryExecutionResult result;
+    result.success = true;
+    result.message = QStringLiteral("Story scene prepared.");
+    result.delta.scenesVisitedToAdd.insert(scene->id);
+
+    StoryRuntimeState projectedState = state;
+    QString error;
+    if (!applyDelta(projectedState, result.delta, &error))
+        return {false, error, {}, {}};
+    appendSceneEvents(result.events, *scene, projectedState, !hasVisitedScene(state, scene->id));
+    result.events.push_back(choicesEvent(chapter, projectedState));
     return result;
 }
 
@@ -205,7 +290,38 @@ StoryExecutionResult StoryEngine::execute(const ChapterDefinition& chapter,
         }
     }
 
-    return {true, QStringLiteral("Story action accepted."), actionId, std::move(delta)};
+    const QString destinationSceneId = delta.nextSceneId.value_or(state.currentSceneId);
+    const bool entersNewScene = delta.nextSceneId.has_value();
+    const bool firstDestinationVisit = entersNewScene
+        && !hasVisitedScene(state, destinationSceneId);
+    if (entersNewScene) delta.scenesVisitedToAdd.insert(destinationSceneId);
+
+    StoryRuntimeState projectedState = state;
+    QString projectionError;
+    if (!applyDelta(projectedState, delta, &projectionError))
+        return {false, projectionError, actionId, {}};
+
+    QVector<StoryEvent> events;
+    const LocalizedStoryText playerText = selected->playerText.isComplete()
+        ? selected->playerText : selected->label;
+    events.push_back(
+        {StoryEventKind::PlayerAction, scene->id, {},
+         {QStringLiteral("你"), QStringLiteral("You")}, playerText, {}});
+    appendLineEvents(events, selected->responseLines, projectedState, scene->id);
+    if (entersNewScene) {
+        const auto* destination = chapter.findScene(destinationSceneId);
+        appendSceneEvents(events, *destination, projectedState, firstDestinationVisit);
+    }
+    if (delta.completeChapter && !state.chapterCompleted) {
+        events.push_back(
+            {StoryEventKind::ChapterCompleted, projectedState.currentSceneId, {},
+             {QStringLiteral("旁白"), QStringLiteral("Narrator")},
+             chapter.completionText, {}});
+    }
+    events.push_back(choicesEvent(chapter, projectedState));
+
+    return {true, QStringLiteral("Story action accepted."), actionId,
+            std::move(delta), std::move(events)};
 }
 
 bool StoryEngine::applyDelta(StoryRuntimeState& state,
@@ -260,6 +376,7 @@ bool StoryEngine::applyDelta(StoryRuntimeState& state,
     for (const auto& flag : delta.flagsToRemove) state.flags.remove(flag);
     for (const auto& flag : delta.flagsToAdd) state.flags.insert(flag);
     for (const auto& chapterId : delta.chaptersToUnlock) state.unlockedChapters.insert(chapterId);
+    for (const auto& sceneId : delta.scenesVisitedToAdd) state.visitedScenes.insert(sceneId);
     if (delta.nextSceneId) state.currentSceneId = *delta.nextSceneId;
     if (delta.completeChapter) {
         state.chapterCompleted = true;

@@ -57,6 +57,11 @@ std::optional<StoryCondition> parseCondition(const QJsonObject& object, QString&
             object.value(QStringLiteral("npc_id")).toString(),
             object.value(QStringLiteral("minimum")).toInt()};
     }
+    if (type == QLatin1String("affinity_at_most")) {
+        return AffinityAtMostCondition{
+            object.value(QStringLiteral("npc_id")).toString(),
+            object.value(QStringLiteral("maximum")).toInt()};
+    }
     if (type == QLatin1String("character_attribute_is")) {
         return CharacterAttributeCondition{
             object.value(QStringLiteral("attribute")).toString(),
@@ -149,6 +154,7 @@ StoryLoadResult StoryContentLoader::loadJson(const QByteArray& json, const QStri
     chapter.entrySceneId = root.value(QStringLiteral("entry_scene")).toString();
     chapter.title = localizedText(root, "title");
     chapter.completionFlag = root.value(QStringLiteral("completion_flag")).toString();
+    chapter.completionText = localizedText(root, "completion_text");
     chapter.allowActionsAfterCompletion =
         root.value(QStringLiteral("allow_actions_after_completion")).toBool(false);
 
@@ -169,6 +175,34 @@ StoryLoadResult StoryContentLoader::loadJson(const QByteArray& json, const QStri
             destination.push_back(std::move(*condition));
         }
     };
+    const auto parseLines = [&parseConditions, &errors](
+                                const QJsonArray& values,
+                                QVector<StoryLineDefinition>& destination,
+                                const QString& context) {
+        for (qsizetype index = 0; index < values.size(); ++index) {
+            const auto object = values.at(index).toObject();
+            const QString type = object.value(QStringLiteral("type")).toString();
+            StoryLineDefinition line;
+            if (type == QLatin1String("narration")) {
+                line.kind = StoryLineKind::Narration;
+            } else if (type == QLatin1String("npc_dialogue")) {
+                line.kind = StoryLineKind::NpcDialogue;
+            } else if (type == QLatin1String("system_notice")) {
+                line.kind = StoryLineKind::SystemNotice;
+            } else {
+                errors.push_back(QStringLiteral("%1 line %2: unsupported line type '%3'.")
+                                     .arg(context).arg(index).arg(type));
+                continue;
+            }
+            line.actorId = object.value(QStringLiteral("actor_id")).toString();
+            line.speaker = localizedText(object, "speaker");
+            line.text = localizedText(object, "text");
+            parseConditions(object.value(QStringLiteral("conditions")).toArray(),
+                            line.conditions,
+                            QStringLiteral("%1 line %2").arg(context).arg(index));
+            destination.push_back(std::move(line));
+        }
+    };
 
     parseConditions(root.value(QStringLiteral("requirements")).toArray(),
                     chapter.requirements, QStringLiteral("chapter"));
@@ -181,13 +215,17 @@ StoryLoadResult StoryContentLoader::loadJson(const QByteArray& json, const QStri
         scene.id = sceneObject.value(QStringLiteral("id")).toString();
         scene.title = localizedText(sceneObject, "title");
         scene.narration = localizedText(sceneObject, "narration");
+        scene.revisitNarration = localizedText(sceneObject, "revisit_narration");
         scene.actorIds = stringList(sceneObject.value(QStringLiteral("actors")));
+        parseLines(sceneObject.value(QStringLiteral("arrival_lines")).toArray(),
+                   scene.arrivalLines, QStringLiteral("scene '%1' arrival").arg(scene.id));
 
         for (const auto& actionValue : sceneObject.value(QStringLiteral("actions")).toArray()) {
             const auto actionObject = actionValue.toObject();
             StoryActionDefinition action;
             action.id = actionObject.value(QStringLiteral("id")).toString();
             action.label = localizedText(actionObject, "label");
+            action.playerText = localizedText(actionObject, "player_text");
             action.aliases = stringList(actionObject.value(QStringLiteral("aliases")));
             parseConditions(actionObject.value(QStringLiteral("conditions")).toArray(),
                             action.conditions,
@@ -207,6 +245,10 @@ StoryLoadResult StoryContentLoader::loadJson(const QByteArray& json, const QStri
                 }
                 action.effects.push_back(std::move(*effect));
             }
+            parseLines(actionObject.value(QStringLiteral("response_lines")).toArray(),
+                       action.responseLines,
+                       QStringLiteral("scene '%1', action '%2' response")
+                           .arg(scene.id, action.id));
             scene.actions.push_back(std::move(action));
         }
         chapter.scenes.push_back(std::move(scene));

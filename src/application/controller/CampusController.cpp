@@ -2,6 +2,7 @@
 
 #include "application/dto/CampusDTO.hpp"
 #include "core/DeepSeekClient.hpp"
+#include "ui/I18n.hpp"
 
 #include <QSet>
 #include <QTime>
@@ -193,6 +194,7 @@ CampusController::CampusController(QObject* parent)
     , narrativeService_(std::make_unique<service::NarrativeService>())
     , prologueService_(std::make_unique<prologue::PrologueService>(this))
     , diagonAlleyService_(std::make_unique<diagon_alley::DiagonAlleyService>(this))
+    , storyRuntimeService_(std::make_unique<story::StoryRuntimeService>(this))
     , storyProgressService_(std::make_unique<service::StoryProgressService>(nullptr, nullptr))
     , deepSeekClient_(std::make_unique<core::DeepSeekClient>(this))
 {
@@ -293,6 +295,30 @@ CampusController::CampusController(QObject* parent)
                 diagonAlleyService_->resolvePurchase(
                     purchaseId, true, payment.remainingGold, QString::fromStdString(granted.message));
             });
+
+    // Generic story events share the same central narrative surface as the
+    // legacy prologue. The runtime remains dormant until the production-entry
+    // migration explicitly starts a generic chapter.
+    connect(storyRuntimeService_.get(), &story::StoryRuntimeService::narrativeProduced,
+            this, [this](const QString& speaker, const QString& html) {
+                emit richCampusMessageProduced(QStringLiteral("Story"), speaker, html);
+            });
+    connect(storyRuntimeService_.get(), &story::StoryRuntimeService::sceneHeaderChanged,
+            this, &CampusController::sceneHeaderChanged);
+    connect(storyRuntimeService_.get(), &story::StoryRuntimeService::inputHintChanged,
+            this, &CampusController::inputHintChanged);
+    connect(storyRuntimeService_.get(), &story::StoryRuntimeService::choicesPresented,
+            this, &CampusController::choicesPresented);
+    connect(storyRuntimeService_.get(), &story::StoryRuntimeService::runtimeError,
+            this, &CampusController::feedbackProduced);
+    const auto updateStoryLanguage = [this](arcane::ui::I18n::Lang language) {
+        storyRuntimeService_->setLanguage(language == arcane::ui::I18n::Lang::Chinese
+                                              ? story::StoryLanguage::Chinese
+                                              : story::StoryLanguage::English);
+    };
+    updateStoryLanguage(arcane::ui::I18n::instance().language());
+    connect(&arcane::ui::I18n::instance(), &arcane::ui::I18n::languageChanged,
+            this, updateStoryLanguage);
 }
 
 void CampusController::configureSessionService(std::shared_ptr<arcane::database::UserDAO> userDao,
@@ -310,6 +336,49 @@ void CampusController::configureStoryProgressService(
 {
     storyProgressService_ = std::make_unique<service::StoryProgressService>(
         std::move(storyDao), std::move(characterDao));
+}
+
+void CampusController::configureStoryPersistence(
+    std::shared_ptr<arcane::database::DBConnection> connection)
+{
+    storyPersistenceService_ =
+        std::make_unique<story::persistence::StoryPersistenceService>(std::move(connection));
+    storyRuntimeService_->setCommitter(
+        [this](const story::ChapterDefinition& chapter,
+               const story::StoryRuntimeState& currentState,
+               const story::StoryExecutionResult& result,
+               QString& error) {
+            if (!storyPersistenceService_) {
+                error = QStringLiteral("Story storage is unavailable.");
+                return false;
+            }
+            return storyPersistenceService_->commit(chapter, currentState, result, error);
+        });
+}
+
+bool CampusController::startStoryChapter(story::ChapterDefinition chapter)
+{
+    const auto* session = activeSession();
+    if (!session) {
+        emit feedbackProduced(QStringLiteral("Enter the campus before starting a story chapter."));
+        return false;
+    }
+
+    story::StoryRuntimeState state;
+    if (storyPersistenceService_) {
+        const auto restored = storyPersistenceService_->load(chapter, session->characterId);
+        if (!restored.success) {
+            emit feedbackProduced(restored.error);
+            return false;
+        }
+        state = restored.state;
+    } else {
+        state.characterId = session->characterId;
+        state.chapterId = chapter.chapterId;
+        state.contentVersion = chapter.contentVersion;
+        state.currentSceneId = chapter.entrySceneId;
+    }
+    return storyRuntimeService_->start(std::move(chapter), std::move(state));
 }
 
 void CampusController::handleEnrollment(const dto::EnrollmentRequestDTO& request)
@@ -425,6 +494,11 @@ void CampusController::handleChat(const QString& channel, const QString& text)
     if (auto* session = activeSession()) {
         const std::uint64_t roomId = diagonAlleyService_->isActive() ? 9 : 1;
         (void)chatService_->saveMessage(session->characterId, roomId, request);
+    }
+
+    if (storyRuntimeService_->isActive()) {
+        (void)storyRuntimeService_->submitText(text);
+        return;
     }
 
     // While the local Diagon Alley chapter is active, typed player intent is
@@ -601,6 +675,10 @@ void CampusController::handleQueryReputation()
 
 void CampusController::handlePrologueChoice(int index)
 {
+    if (storyRuntimeService_->isActive()) {
+        (void)storyRuntimeService_->submitChoice(index);
+        return;
+    }
     if (prologueService_->isActive()) {
         prologueService_->submitChoice(index);
         return;

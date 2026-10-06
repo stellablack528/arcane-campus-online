@@ -22,6 +22,7 @@
       "items": {"$ref": "#/$defs/condition"}
     },
     "completion_flag": {"$ref": "#/$defs/stableId"},
+    "completion_text": {"$ref": "#/$defs/localizedText"},
     "allow_actions_after_completion": {"type": "boolean", "default": false},
     "scenes": {
       "type": "array",
@@ -81,6 +82,16 @@
             "type": {"const": "affinity_at_least"},
             "npc_id": {"$ref": "#/$defs/stableId"},
             "minimum": {"type": "integer"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "npc_id", "maximum"],
+          "properties": {
+            "type": {"const": "affinity_at_most"},
+            "npc_id": {"$ref": "#/$defs/stableId"},
+            "maximum": {"type": "integer"}
           }
         },
         {
@@ -197,9 +208,23 @@
       "properties": {
         "id": {"$ref": "#/$defs/stableId"},
         "label": {"$ref": "#/$defs/localizedText"},
+        "player_text": {"$ref": "#/$defs/localizedText"},
         "aliases": {"type": "array", "items": {"type": "string", "minLength": 1}, "default": []},
         "conditions": {"type": "array", "items": {"$ref": "#/$defs/condition"}, "default": []},
-        "effects": {"type": "array", "items": {"$ref": "#/$defs/effect"}}
+        "effects": {"type": "array", "items": {"$ref": "#/$defs/effect"}},
+        "response_lines": {"type": "array", "items": {"$ref": "#/$defs/storyLine"}, "default": []}
+      }
+    },
+    "storyLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "text"],
+      "properties": {
+        "type": {"enum": ["narration", "npc_dialogue", "system_notice"]},
+        "actor_id": {"$ref": "#/$defs/stableId"},
+        "speaker": {"$ref": "#/$defs/localizedText"},
+        "text": {"$ref": "#/$defs/localizedText"},
+        "conditions": {"type": "array", "items": {"$ref": "#/$defs/condition"}, "default": []}
       }
     },
     "scene": {
@@ -210,7 +235,9 @@
         "id": {"$ref": "#/$defs/stableId"},
         "title": {"$ref": "#/$defs/localizedText"},
         "narration": {"$ref": "#/$defs/localizedText"},
+        "revisit_narration": {"$ref": "#/$defs/localizedText"},
         "actors": {"type": "array", "items": {"$ref": "#/$defs/stableId"}, "default": []},
+        "arrival_lines": {"type": "array", "items": {"$ref": "#/$defs/storyLine"}, "default": []},
         "actions": {"type": "array", "items": {"$ref": "#/$defs/action"}}
       }
     }

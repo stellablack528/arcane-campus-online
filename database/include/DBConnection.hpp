@@ -43,6 +43,7 @@ struct QueryResult {
 class DBConnection final {
 public:
     explicit DBConnection(DBConfig config);
+    DBConnection(DBConfig config, std::unique_ptr<IDatabaseDriver> driver);
     ~DBConnection() noexcept;
 
     DBConnection(const DBConnection&) = delete;

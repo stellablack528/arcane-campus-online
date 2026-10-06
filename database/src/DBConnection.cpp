@@ -15,6 +15,12 @@ DBConnection::DBConnection(DBConfig config)
 {
 }
 
+DBConnection::DBConnection(DBConfig config, std::unique_ptr<IDatabaseDriver> driver)
+    : config_(std::move(config))
+    , driver_(std::move(driver))
+{
+}
+
 DBConnection::~DBConnection() noexcept
 {
     disconnect();

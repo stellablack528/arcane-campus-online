@@ -45,6 +45,10 @@ diagon_alley.json
 
 AI 可用于生成风格化叙事，但不能直接决定扣款、发放物品或修改存档。所有会改变角色状态的动作仍由确定性的本地规则执行。
 
+通用章节 v2 还可以声明 `revisit_narration`、`arrival_lines`、`player_text` 和
+`response_lines`。引擎会把它们转换成有序的 `StoryEvent`，并根据好感、记忆、物品或
+剧情标记筛选条件台词；界面只负责渲染已经提交成功的事件。
+
 ## 新增内容检查清单
 
 1. ID 不与已有章节、商店、NPC、商品重复。

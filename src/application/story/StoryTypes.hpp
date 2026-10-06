@@ -26,6 +26,11 @@ struct LocalizedStoryText {
         return !zh.trimmed().isEmpty() && !en.trimmed().isEmpty();
     }
 
+    [[nodiscard]] bool isEmpty() const
+    {
+        return zh.trimmed().isEmpty() && en.trimmed().isEmpty();
+    }
+
     [[nodiscard]] QString resolve(StoryLanguage language) const
     {
         return language == StoryLanguage::Chinese ? zh : en;
@@ -51,6 +56,11 @@ struct AffinityAtLeastCondition {
     int minimum = 0;
 };
 
+struct AffinityAtMostCondition {
+    QString npcId;
+    int maximum = 0;
+};
+
 struct CharacterAttributeCondition {
     QString attribute;
     QString expectedValue;
@@ -71,6 +81,7 @@ using StoryCondition = std::variant<
     ItemQuantityCondition,
     GoldAtLeastCondition,
     AffinityAtLeastCondition,
+    AffinityAtMostCondition,
     CharacterAttributeCondition,
     ChapterCompletedCondition,
     NpcMemoryCondition>;
@@ -121,19 +132,37 @@ using StoryEffect = std::variant<
     UnlockChapterEffect,
     SetNpcMemoryEffect>;
 
+enum class StoryLineKind {
+    Narration,
+    NpcDialogue,
+    SystemNotice,
+};
+
+struct StoryLineDefinition {
+    StoryLineKind kind = StoryLineKind::Narration;
+    QString actorId;
+    LocalizedStoryText speaker;
+    LocalizedStoryText text;
+    QVector<StoryCondition> conditions;
+};
+
 struct StoryActionDefinition {
     QString id;
     LocalizedStoryText label;
+    LocalizedStoryText playerText;
     QStringList aliases;
     QVector<StoryCondition> conditions;
     QVector<StoryEffect> effects;
+    QVector<StoryLineDefinition> responseLines;
 };
 
 struct SceneDefinition {
     QString id;
     LocalizedStoryText title;
     LocalizedStoryText narration;
+    LocalizedStoryText revisitNarration;
     QStringList actorIds;
+    QVector<StoryLineDefinition> arrivalLines;
     QVector<StoryActionDefinition> actions;
 };
 
@@ -146,6 +175,7 @@ struct ChapterDefinition {
     QVector<StoryCondition> requirements;
     QVector<StoryCondition> completionConditions;
     QString completionFlag;
+    LocalizedStoryText completionText;
     bool allowActionsAfterCompletion = false;
     QVector<SceneDefinition> scenes;
 
@@ -161,6 +191,8 @@ struct ChapterDefinition {
 struct StoryRuntimeState {
     std::uint64_t characterId = 0;
     QString chapterId;
+    int contentVersion = 0;
+    std::uint64_t revision = 0;
     QString currentSceneId;
     std::uint64_t gold = 0;
     QSet<QString> flags;
@@ -168,6 +200,7 @@ struct StoryRuntimeState {
     QHash<QString, int> npcAffinities;
     QHash<QString, QSet<QString>> npcMemoryFacts;
     QHash<QString, QString> characterAttributes;
+    QSet<QString> visitedScenes;
     QSet<QString> completedChapters;
     QSet<QString> unlockedChapters;
     bool chapterCompleted = false;
@@ -200,6 +233,7 @@ struct StoryDelta {
     QVector<NpcMemoryChange> npcMemoryChanges;
     std::int64_t goldChange = 0;
     QStringList chaptersToUnlock;
+    QSet<QString> scenesVisitedToAdd;
     bool completeChapter = false;
 
     [[nodiscard]] bool isEmpty() const
@@ -207,8 +241,35 @@ struct StoryDelta {
         return !nextSceneId && flagsToAdd.isEmpty() && flagsToRemove.isEmpty()
             && affinityChanges.isEmpty() && inventoryChanges.isEmpty()
             && npcMemoryChanges.isEmpty() && goldChange == 0
-            && chaptersToUnlock.isEmpty() && !completeChapter;
+            && chaptersToUnlock.isEmpty() && scenesVisitedToAdd.isEmpty()
+            && !completeChapter;
     }
+};
+
+enum class StoryEventKind {
+    SceneHeader,
+    Narration,
+    NpcDialogue,
+    PlayerAction,
+    SystemNotice,
+    ChoicesChanged,
+    ChapterCompleted,
+};
+
+struct StoryChoicePresentation {
+    QString actionId;
+    LocalizedStoryText label;
+};
+
+// UI-facing, language-neutral output. The runtime resolves localized text and
+// forwards these events; widgets never need chapter-specific C++ branches.
+struct StoryEvent {
+    StoryEventKind kind = StoryEventKind::Narration;
+    QString sceneId;
+    QString actorId;
+    LocalizedStoryText speaker;
+    LocalizedStoryText text;
+    QVector<StoryChoicePresentation> choices;
 };
 
 struct StoryExecutionResult {
@@ -216,6 +277,7 @@ struct StoryExecutionResult {
     QString message;
     QString actionId;
     StoryDelta delta;
+    QVector<StoryEvent> events;
 };
 
 } // namespace arcane::application::story

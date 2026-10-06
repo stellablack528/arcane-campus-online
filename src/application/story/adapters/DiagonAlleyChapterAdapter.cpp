@@ -2,6 +2,8 @@
 
 #include "application/diagon_alley/DiagonAlleyCatalog.hpp"
 
+#include <utility>
+
 namespace arcane::application::story::adapters {
 
 namespace {
@@ -21,6 +23,26 @@ QStringList aliasesWith(const QStringList& source,
     return result;
 }
 
+StoryLineDefinition npcLine(const diagon_alley::NpcDefinition& npc,
+                            const diagon_alley::LocalizedText& text,
+                            QVector<StoryCondition> conditions = {})
+{
+    return {StoryLineKind::NpcDialogue, npc.id, storyText(npc.name), storyText(text),
+            std::move(conditions)};
+}
+
+StoryLineDefinition narrationLine(const diagon_alley::LocalizedText& text)
+{
+    return {StoryLineKind::Narration, {}, {}, storyText(text), {}};
+}
+
+StoryLineDefinition purchaseNotice()
+{
+    return {StoryLineKind::SystemNotice, {}, {},
+            {QStringLiteral("金币与背包已经更新。"),
+             QStringLiteral("Your Galleons and inventory have been updated.")}, {}};
+}
+
 StoryActionDefinition enterShopAction(const diagon_alley::ShopDefinition& shop)
 {
     StoryActionDefinition action;
@@ -34,11 +56,16 @@ StoryActionDefinition enterShopAction(const diagon_alley::ShopDefinition& shop)
     return action;
 }
 
-StoryActionDefinition purchaseAction(const diagon_alley::PurchaseDefinition& purchase)
+StoryActionDefinition purchaseAction(const diagon_alley::NpcDefinition& npc,
+                                     const diagon_alley::PurchaseDefinition& purchase)
 {
     StoryActionDefinition action;
     action.id = QStringLiteral("buy_%1").arg(purchase.id);
-    action.label = storyText(purchase.label);
+    action.label = {
+        QStringLiteral("%1 · %2 G").arg(purchase.label.zh).arg(purchase.price),
+        QStringLiteral("%1 · %2 G").arg(purchase.label.en).arg(purchase.price),
+    };
+    action.playerText = storyText(purchase.label);
     action.aliases = purchase.keywords;
     action.conditions = {
         FlagCondition{purchase.completionFlag, false},
@@ -49,6 +76,7 @@ StoryActionDefinition purchaseAction(const diagon_alley::PurchaseDefinition& pur
         ChangeItemEffect{purchase.itemId, 1},
         SetFlagEffect{purchase.completionFlag, true},
     };
+    action.responseLines = {npcLine(npc, purchase.successText), purchaseNotice()};
     return action;
 }
 
@@ -56,7 +84,8 @@ StoryActionDefinition memoryAction(const diagon_alley::NpcDefinition& npc,
                                    const QString& kind,
                                    const LocalizedStoryText& label,
                                    bool firstTime,
-                                   int affinityChange)
+                                   int affinityChange,
+                                   StoryLineDefinition response)
 {
     StoryActionDefinition action;
     action.id = QStringLiteral("%1_%2_%3")
@@ -78,6 +107,7 @@ StoryActionDefinition memoryAction(const diagon_alley::NpcDefinition& npc,
         ? QStringLiteral("talked") : QStringLiteral("ignored");
     action.effects.push_back(SetNpcMemoryEffect{npc.id, memoryKey, true});
     if (firstTime) action.effects.push_back(ChangeAffinityEffect{npc.id, affinityChange});
+    action.responseLines.push_back(std::move(response));
     return action;
 }
 
@@ -104,6 +134,7 @@ ChapterDefinition DiagonAlleyChapterAdapter::build(
     chapter.entrySceneId = QStringLiteral("street");
     chapter.title = storyText(catalog.chapterTitleText());
     chapter.completionFlag = QStringLiteral("shopping_complete");
+    chapter.completionText = storyText(catalog.completionStoryText());
     chapter.allowActionsAfterCompletion = true;
     chapter.completionConditions = {
         FlagCondition{QStringLiteral("wand"), true},
@@ -117,6 +148,7 @@ ChapterDefinition DiagonAlleyChapterAdapter::build(
     street.id = QStringLiteral("street");
     street.title = storyText(catalog.streetTitleText());
     street.narration = storyText(catalog.streetIntroText());
+    street.revisitNarration = storyText(catalog.streetRevisitText());
     for (const auto& shop : catalog.shops()) street.actions.push_back(enterShopAction(shop));
     chapter.scenes.push_back(std::move(street));
 
@@ -125,22 +157,35 @@ ChapterDefinition DiagonAlleyChapterAdapter::build(
         scene.id = shop.id;
         scene.title = storyText(shop.title);
         scene.narration = storyText(shop.intro);
+        scene.revisitNarration = storyText(shop.revisit);
         scene.actorIds = {shop.npc.id};
+        scene.arrivalLines = {
+            npcLine(shop.npc, shop.npc.greeting,
+                    {AffinityAtLeastCondition{shop.npc.id, 0},
+                     AffinityAtMostCondition{shop.npc.id, 0}}),
+            npcLine(shop.npc, shop.npc.warmGreeting,
+                    {AffinityAtLeastCondition{shop.npc.id, 1}}),
+            npcLine(shop.npc, shop.npc.waryGreeting,
+                    {AffinityAtMostCondition{shop.npc.id, -1}}),
+        };
         for (const auto& purchase : shop.purchases)
-            scene.actions.push_back(purchaseAction(purchase));
+            scene.actions.push_back(purchaseAction(shop.npc, purchase));
         scene.actions.push_back(memoryAction(
             shop.npc, QStringLiteral("talk"),
-            {QStringLiteral("和店主交谈"), QStringLiteral("Talk to the shopkeeper")}, true, 1));
+            {QStringLiteral("和店主交谈"), QStringLiteral("Talk to the shopkeeper")}, true, 1,
+            npcLine(shop.npc, shop.npc.talkText)));
         scene.actions.push_back(memoryAction(
             shop.npc, QStringLiteral("talk"),
-            {QStringLiteral("继续交谈"), QStringLiteral("Talk again")}, false, 0));
+            {QStringLiteral("继续交谈"), QStringLiteral("Talk again")}, false, 0,
+            npcLine(shop.npc, shop.npc.followupText)));
         scene.actions.push_back(memoryAction(
             shop.npc, QStringLiteral("ignore"),
             {QStringLiteral("不回应，继续看商品"), QStringLiteral("Ignore them and browse")},
-            true, -1));
+            true, -1, narrationLine(shop.npc.ignoredText)));
         scene.actions.push_back(memoryAction(
             shop.npc, QStringLiteral("ignore"),
-            {QStringLiteral("继续看商品"), QStringLiteral("Keep browsing")}, false, 0));
+            {QStringLiteral("继续看商品"), QStringLiteral("Keep browsing")}, false, 0,
+            narrationLine(shop.npc.ignoredText)));
         scene.actions.push_back(returnAction(shop));
         chapter.scenes.push_back(std::move(scene));
     }

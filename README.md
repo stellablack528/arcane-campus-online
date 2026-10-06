@@ -45,7 +45,9 @@ The platform aims to provide an immersive text-based social experience while ser
 | ⌨️ 自由行动输入 | 中英文动作解析；按钮是建议而非唯一路径 |
 | 🧠 NPC 记忆 | 交谈与忽略会改变好感和之后的招呼 |
 | 📦 数据驱动剧情 | 商店、NPC、商品与双语叙事由 JSON 内容包提供 |
-| ⚙️ 通用剧情引擎基础 | 类型化条件/效果、StoryDelta、内容校验与图可达性检查 |
+| ⚙️ 通用剧情引擎基础 | 类型化条件/效果、StoryDelta、统一叙事事件、内容校验与图可达性检查 |
+| 🎭 剧情运行桥 | 提交成功后才把场景、旁白、NPC、玩家行动与选项送入中央叙事框 |
+| 💾 剧情事务与恢复 | 原子保存金币、背包、NPC 记忆、章节进度与事件日志；支持完整断点恢复 |
 | 🎒 背包系统 | **真实数据库对接**（InventoryDAO）|
 | 🗺️ 活点地图 | **真实数据库对接**（InventoryDAO + LocationDAO）|
 | 📋 任务系统 | **真实数据库对接**（QuestDAO）|
@@ -213,6 +215,9 @@ HogwartsOnline/
 │   │   │   ├── StoryContentLoader        # ✅ JSON 白名单解析
 │   │   │   ├── StoryContentValidator     # ✅ 引用、双语与可达性校验
 │   │   │   ├── StoryEngine               # ✅ 确定性条件判断与内存执行
+│   │   │   ├── StoryRuntimeService        # ✅ 先提交状态，再向中央叙事框发布事件
+│   │   │   ├── persistence/
+│   │   │   │   └── StoryPersistenceService # ✅ StoryDelta 原子提交与完整状态恢复
 │   │   │   └── adapters/
 │   │   │       └── DiagonAlleyChapterAdapter # ✅ 旧内容到通用章节的迁移桥
 │   │   ├── controller/
@@ -250,6 +255,8 @@ HogwartsOnline/
 │   │   └── DiagonAlleyRuntimeTest.cpp  # 内容包、解析、记忆与采购闭环
 │   ├── story/
 │   │   ├── StoryEngineTest.cpp          # 通用加载、校验、执行与安全拒绝
+│   │   ├── StoryRuntimeServiceTest.cpp   # 提交边界、自由输入与中央叙事信号
+│   │   ├── StoryPersistenceServiceTest.cpp # 多表事务、恢复、并发版本与回滚
 │   │   └── DiagonAlleyParityTest.cpp    # 新旧完整游玩结果等价性
 │   └── database/
 │       ├── DatabaseSmokeTest.cpp       # 冒烟测试（无需数据库）
@@ -281,6 +288,9 @@ HogwartsOnline/
 - [x] **自由行动解析** (中英文自然输入 → 确定性剧情动作)
 - [x] **数据驱动内容包** (剧情文案与配置从 JSON 加载)
 - [x] **通用剧情引擎第一阶段** (类型、加载、校验、StoryDelta、v4 事务基础)
+- [x] **通用叙事输出** (场景、旁白、NPC、玩家行动、系统、选项与完成事件)
+- [x] **剧情运行桥** (StoryRuntimeService 提交成功后再驱动中央叙事框)
+- [x] **剧情事务与恢复** (金币、背包、NPC 记忆、章节状态和事件日志原子提交)
 
 ### 🚧 进行中 / In Progress
 
@@ -376,6 +386,10 @@ ctest --output-on-failure
 测试类型：
 - **DatabaseSmokeTest** — 冒烟测试，无需数据库
 - **MySqlIntegrationTest** — MySQL 集成测试（需先初始化数据库）
+- **StoryEngineTest** — 通用条件、效果、叙事事件与安全拒绝
+- **StoryRuntimeServiceTest** — 提交后发布与中央叙事框信号
+- **StoryPersistenceServiceTest** — 完整恢复、多表原子提交、并发版本拒绝与失败回滚
+- **DiagonAlleyParityTest** — 新旧对角巷完整游玩结果等价性
 
 ---
 

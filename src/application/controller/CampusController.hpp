@@ -10,6 +10,8 @@
 #include "application/prologue/PrologueService.hpp"
 #include "application/diagon_alley/DiagonAlleyService.hpp"
 #include "application/service/StoryProgressService.hpp"
+#include "application/story/StoryRuntimeService.hpp"
+#include "application/story/persistence/StoryPersistenceService.hpp"
 #include "application/world/WorldClock.hpp"
 #include "application/world/WorldEvent.hpp"
 
@@ -18,6 +20,10 @@
 
 namespace arcane::core {
 class DeepSeekClient;
+}
+
+namespace arcane::database {
+class DBConnection;
 }
 
 namespace arcane::application::controller {
@@ -42,6 +48,10 @@ public:
                                 std::shared_ptr<arcane::database::CharacterDAO> characterDao);
     void configureStoryProgressService(std::shared_ptr<arcane::database::StoryDAO> storyDao,
                                        std::shared_ptr<arcane::database::CharacterDAO> characterDao);
+    void configureStoryPersistence(std::shared_ptr<arcane::database::DBConnection> connection);
+    // Starts a generic chapter from a consistent database snapshot when live
+    // storage is configured. Kept separate from the legacy entry until cutover.
+    [[nodiscard]] bool startStoryChapter(story::ChapterDefinition chapter);
     // 入学注册：从 EnrollmentDialog 获取请求后直接调用（非信号槽驱动）。
     void handleEnrollment(const dto::EnrollmentRequestDTO& request);
 
@@ -113,6 +123,8 @@ private:
     std::unique_ptr<service::NarrativeService> narrativeService_;
     std::unique_ptr<prologue::PrologueService> prologueService_;
     std::unique_ptr<diagon_alley::DiagonAlleyService> diagonAlleyService_;
+    std::unique_ptr<story::StoryRuntimeService> storyRuntimeService_;
+    std::unique_ptr<story::persistence::StoryPersistenceService> storyPersistenceService_;
     std::unique_ptr<service::StoryProgressService> storyProgressService_;
     std::unique_ptr<core::DeepSeekClient> deepSeekClient_;
 };

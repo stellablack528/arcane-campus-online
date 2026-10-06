@@ -14,6 +14,7 @@
 #include <QStringConverter>
 #include <QTextStream>
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 
@@ -188,6 +189,9 @@ int main(int argc, char* argv[])
     story::StoryEngine engine;
     bool genericAccepted = validation.isValid() && engine.canStart(chapter, generic);
     QString genericError;
+    bool firstShopPresentation = false;
+    bool warmRevisitPresentation = false;
+    const auto* bookshop = catalog.findShop(QStringLiteral("flourish_and_blotts"));
     for (const auto& actionId : genericRoute) {
         if (!genericAccepted) break;
         const auto result = engine.execute(chapter, generic, actionId);
@@ -195,6 +199,25 @@ int main(int argc, char* argv[])
             genericAccepted = false;
             genericError = actionId + QStringLiteral(": ") + result.message;
             break;
+        }
+        if (bookshop && actionId == QLatin1String("enter_flourish_and_blotts")) {
+            const auto containsText = [&](story::StoryEventKind kind, const QString& text) {
+                return std::any_of(result.events.cbegin(), result.events.cend(),
+                                   [&](const story::StoryEvent& event) {
+                                       return event.kind == kind && event.text.zh == text;
+                                   });
+            };
+            if (!generic.visitedScenes.contains(QStringLiteral("flourish_and_blotts"))) {
+                firstShopPresentation =
+                    containsText(story::StoryEventKind::Narration, bookshop->intro.zh)
+                    && containsText(story::StoryEventKind::NpcDialogue,
+                                    bookshop->npc.greeting.zh);
+            } else {
+                warmRevisitPresentation =
+                    containsText(story::StoryEventKind::Narration, bookshop->revisit.zh)
+                    && containsText(story::StoryEventKind::NpcDialogue,
+                                    bookshop->npc.warmGreeting.zh);
+            }
         }
         if (!engine.applyDelta(generic, result.delta, &genericError)) {
             genericAccepted = false;
@@ -204,6 +227,8 @@ int main(int argc, char* argv[])
     }
     report.check(genericAccepted, QStringLiteral("Generic runtime accepts the complete route"),
                  genericError);
+    report.check(firstShopPresentation && warmRevisitPresentation,
+                 QStringLiteral("Generic narrative events preserve first visit and warm revisit dialogue"));
 
     const QStringList legacyFlagList = legacy.flags();
     const QSet<QString> legacyFlags(legacyFlagList.begin(), legacyFlagList.end());

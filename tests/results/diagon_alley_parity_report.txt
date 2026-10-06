@@ -4,6 +4,7 @@ Arcane Campus Online - Diagon Alley migration equivalence report
 [PASS] Legacy runtime accepts the complete route
 [PASS] Adapted chapter passes generic validation
 [PASS] Generic runtime accepts the complete route
+[PASS] Generic narrative events preserve first visit and warm revisit dialogue
 [PASS] Gold balance is equivalent | legacy=10, generic=10
 [PASS] Purchased inventory is equivalent | legacy={11x1, 12x1, 13x1, 8x1}, generic={11x1, 12x1, 13x1, 8x1}
 [PASS] Progress flags are equivalent | legacy={books, pet, potions, robes, shopping_complete, visited_apothecary, visited_flourish_and_blotts, visited_madam_malkins, visited_magical_menagerie, visited_street, wand}, generic={books, pet, potions, robes, shopping_complete, visited_apothecary, visited_flourish_and_blotts, visited_madam_malkins, visited_magical_menagerie, visited_street, wand}

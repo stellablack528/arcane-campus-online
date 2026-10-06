@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
         campusController->configureCampusService(roomDao, npcDao);
         campusController->configureSocialService(friendDao, characterDao);
         campusController->configureStoryProgressService(storyDao, characterDao);
+        campusController->configureStoryPersistence(connection);
     }
 
     QObject::connect(loginWindow, &LoginWindow::loginRequested,

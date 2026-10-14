@@ -56,6 +56,45 @@ StoryActionDefinition enterShopAction(const diagon_alley::ShopDefinition& shop)
     return action;
 }
 
+StoryLineDefinition checklistLine(const QString& flag,
+                                  bool completed,
+                                  const QString& chinese,
+                                  const QString& english)
+{
+    const QString marker = completed ? QStringLiteral("✓") : QStringLiteral("○");
+    return {StoryLineKind::SystemNotice, {}, {},
+            {QStringLiteral("%1 %2").arg(marker, chinese),
+             QStringLiteral("%1 %2").arg(marker, english)},
+            {FlagCondition{flag, completed}}};
+}
+
+StoryActionDefinition shoppingListAction()
+{
+    StoryActionDefinition action;
+    action.id = QStringLiteral("show_shopping_list");
+    action.label = {QStringLiteral("查看采购清单"), QStringLiteral("Show shopping list")};
+    action.playerText = action.label;
+    action.aliases = {QStringLiteral("采购清单"), QStringLiteral("购物清单"),
+                      QStringLiteral("查看清单"), QStringLiteral("shopping list"),
+                      QStringLiteral("show list")};
+    const auto appendItem = [&](const QString& flag,
+                                const QString& chinese,
+                                const QString& english) {
+        action.responseLines.push_back(checklistLine(flag, true, chinese, english));
+        action.responseLines.push_back(checklistLine(flag, false, chinese, english));
+    };
+    appendItem(QStringLiteral("wand"), QStringLiteral("魔杖"), QStringLiteral("Wand"));
+    appendItem(QStringLiteral("books"), QStringLiteral("课本与羽毛笔"),
+               QStringLiteral("Books and quill"));
+    appendItem(QStringLiteral("robes"), QStringLiteral("校服长袍"),
+               QStringLiteral("School robes"));
+    appendItem(QStringLiteral("potions"), QStringLiteral("魔药课用品"),
+               QStringLiteral("Potion supplies"));
+    appendItem(QStringLiteral("pet"), QStringLiteral("宠物伙伴"),
+               QStringLiteral("Animal companion"));
+    return action;
+}
+
 StoryActionDefinition purchaseAction(const diagon_alley::NpcDefinition& npc,
                                      const diagon_alley::PurchaseDefinition& purchase)
 {
@@ -150,6 +189,7 @@ ChapterDefinition DiagonAlleyChapterAdapter::build(
     street.narration = storyText(catalog.streetIntroText());
     street.revisitNarration = storyText(catalog.streetRevisitText());
     for (const auto& shop : catalog.shops()) street.actions.push_back(enterShopAction(shop));
+    street.actions.push_back(shoppingListAction());
     chapter.scenes.push_back(std::move(street));
 
     for (const auto& shop : catalog.shops()) {
@@ -191,6 +231,22 @@ ChapterDefinition DiagonAlleyChapterAdapter::build(
     }
 
     return chapter;
+}
+
+void DiagonAlleyChapterAdapter::seedFromLegacyProgress(
+    StoryRuntimeState& state,
+    const ChapterDefinition& chapter,
+    const QString& sceneId,
+    const QStringList& flags) const
+{
+    state.chapterId = chapter.chapterId;
+    state.contentVersion = chapter.contentVersion;
+    state.currentSceneId = chapter.findScene(sceneId) ? sceneId : chapter.entrySceneId;
+    for (const auto& flag : flags) state.flags.insert(flag);
+    if (state.flags.contains(QStringLiteral("shopping_complete"))) {
+        state.chapterCompleted = true;
+        state.completedChapters.insert(chapter.chapterId);
+    }
 }
 
 } // namespace arcane::application::story::adapters

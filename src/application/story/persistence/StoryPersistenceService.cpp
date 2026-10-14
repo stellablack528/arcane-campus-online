@@ -536,7 +536,7 @@ bool StoryPersistenceService::commit(const ChapterDefinition& chapter,
     }
 
     const std::string status = candidate.chapterCompleted ? "completed" : "active";
-    if (!candidate.chapterCompleted
+    if ((!candidate.chapterCompleted || !hasProgress)
         && !connection_->execute(
             "UPDATE character_story_states SET status = 'paused' "
             "WHERE character_id = ? AND chapter_id <> ? AND status = 'active'",

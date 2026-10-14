@@ -2,6 +2,7 @@
 #include "application/diagon_alley/DiagonAlleyService.hpp"
 #include "application/story/StoryContentValidator.hpp"
 #include "application/story/StoryEngine.hpp"
+#include "application/story/StoryRuntimeService.hpp"
 #include "application/story/adapters/DiagonAlleyChapterAdapter.hpp"
 #include "ui/I18n.hpp"
 
@@ -85,7 +86,7 @@ bool writeReport(const QString& path, const Report& report)
     for (const auto& line : report.lines) output << line << '\n';
     output << "---------------------------------------------------------------\n";
     output << "OVERALL: " << (report.passed ? "PASS" : "FAIL") << '\n';
-    output << "Legacy production entry remains active; generic runtime is migration-gated.\n";
+    output << "Generic StoryRuntimeService is the production entry; legacy runtime is regression-only.\n";
     return true;
 }
 
@@ -156,6 +157,21 @@ int main(int argc, char* argv[])
     const auto validation = validator.validate(chapter);
     report.check(validation.isValid(), QStringLiteral("Adapted chapter passes generic validation"),
                  validation.errors.join(QStringLiteral("; ")));
+
+    story::StoryRuntimeState migratedLegacyState;
+    migratedLegacyState.characterId = 42;
+    migratedLegacyState.gold = 10;
+    adapter.seedFromLegacyProgress(
+        migratedLegacyState, chapter, QStringLiteral("flourish_and_blotts"),
+        {QStringLiteral("wand"), QStringLiteral("books"), QStringLiteral("robes"),
+         QStringLiteral("potions"), QStringLiteral("pet"),
+         QStringLiteral("shopping_complete")});
+    report.check(migratedLegacyState.chapterId == chapter.chapterId
+                     && migratedLegacyState.contentVersion == chapter.contentVersion
+                     && migratedLegacyState.currentSceneId == QLatin1String("flourish_and_blotts")
+                     && migratedLegacyState.chapterCompleted
+                     && migratedLegacyState.completedChapters.contains(chapter.chapterId),
+                 QStringLiteral("Legacy save seeds the generic chapter without losing progress"));
 
     story::StoryRuntimeState generic;
     generic.characterId = 42;
@@ -257,6 +273,67 @@ int main(int argc, char* argv[])
                      && generic.chapterCompleted
                      && generic.completedChapters.contains(chapter.chapterId),
                  QStringLiteral("Chapter completion is equivalent"));
+
+    story::StoryRuntimeService productionRuntime;
+    story::StoryRuntimeState productionState;
+    productionState.characterId = 84;
+    productionState.chapterId = chapter.chapterId;
+    productionState.contentVersion = chapter.contentVersion;
+    productionState.currentSceneId = chapter.entrySceneId;
+    productionState.gold = 50;
+    productionState.flags.insert(QStringLiteral("wand"));
+    int commitCount = 0;
+    int headerCount = 0;
+    int narrativeCount = 0;
+    QStringList visibleLabels;
+    productionRuntime.setCommitter(
+        [&](const story::ChapterDefinition&, const story::StoryRuntimeState&,
+            const story::StoryExecutionResult&, QString&) {
+            ++commitCount;
+            return true;
+        });
+    QObject::connect(&productionRuntime, &story::StoryRuntimeService::sceneHeaderChanged,
+                     [&](const QString&) { ++headerCount; });
+    QObject::connect(&productionRuntime, &story::StoryRuntimeService::narrativeProduced,
+                     [&](const QString&, const QString&) { ++narrativeCount; });
+    QObject::connect(&productionRuntime, &story::StoryRuntimeService::choicesPresented,
+                     [&](const QStringList& labels) { visibleLabels = labels; });
+
+    const bool productionStarted = productionRuntime.start(chapter, productionState);
+    report.check(productionStarted && productionRuntime.isActive()
+                     && commitCount == 1 && headerCount == 1
+                     && narrativeCount >= 1 && visibleLabels.size() == 5,
+                 QStringLiteral("Production runtime starts Diagon Alley and publishes the central UI contract"));
+
+    const bool typedEntry = productionRuntime.submitText(QStringLiteral("我想去丽痕书店看看"));
+    const bool typedConversation = productionRuntime.submitText(QStringLiteral("和店主交谈"));
+    const auto* liveState = productionRuntime.state();
+    report.check(typedEntry && typedConversation && liveState
+                     && liveState->currentSceneId == QLatin1String("flourish_and_blotts")
+                     && liveState->npcAffinities.value(QStringLiteral("bookseller_merrythought")) == 1
+                     && liveState->npcMemoryFacts.value(QStringLiteral("bookseller_merrythought"))
+                            .contains(QStringLiteral("talked")),
+                 QStringLiteral("Production free-text input uses generic actions and NPC memory"));
+
+    story::StoryRuntimeState resumedState = liveState ? *liveState : productionState;
+    story::StoryRuntimeService resumedRuntime;
+    bool warmGreetingRestored = false;
+    resumedRuntime.setCommitter(
+        [](const story::ChapterDefinition&, const story::StoryRuntimeState&,
+           const story::StoryExecutionResult&, QString&) { return true; });
+    QObject::connect(&resumedRuntime, &story::StoryRuntimeService::narrativeProduced,
+                     [&](const QString&, const QString& text) {
+                         warmGreetingRestored = warmGreetingRestored
+                             || text.contains(QStringLiteral("又见面了"));
+                     });
+    const bool resumed = resumedRuntime.start(chapter, resumedState);
+    const auto returnChoice = resumedRuntime.visibleActionIds().indexOf(
+        QStringLiteral("return_flourish_and_blotts_to_street"));
+    const bool buttonAccepted = returnChoice >= 0 && resumedRuntime.submitChoice(returnChoice);
+    report.check(resumed && warmGreetingRestored && buttonAccepted
+                     && resumedRuntime.state()
+                     && resumedRuntime.state()->currentSceneId == QLatin1String("street"),
+                 QStringLiteral("Production resume restores NPC memory and button routing"));
 
     const bool reportWritten = writeReport(reportPath, report);
     if (!reportPath.isEmpty()) {

@@ -1,6 +1,8 @@
 #include "application/controller/CampusController.hpp"
 
+#include "application/diagon_alley/DiagonAlleyCatalog.hpp"
 #include "application/dto/CampusDTO.hpp"
+#include "application/story/adapters/DiagonAlleyChapterAdapter.hpp"
 #include "core/DeepSeekClient.hpp"
 #include "ui/I18n.hpp"
 
@@ -161,11 +163,6 @@ QStringList splitFlags(const std::string& serialized)
     return QString::fromStdString(serialized).split(QLatin1Char(';'), Qt::SkipEmptyParts);
 }
 
-std::string joinFlags(const QStringList& flags)
-{
-    return flags.join(QLatin1Char(';')).toStdString();
-}
-
 prologue::WandConfig toWandConfig(const database::CharacterWandRecord& record)
 {
     prologue::WandConfig wand;
@@ -193,7 +190,6 @@ CampusController::CampusController(QObject* parent)
     , socialService_(std::make_unique<service::SocialService>(nullptr, nullptr))
     , narrativeService_(std::make_unique<service::NarrativeService>())
     , prologueService_(std::make_unique<prologue::PrologueService>(this))
-    , diagonAlleyService_(std::make_unique<diagon_alley::DiagonAlleyService>(this))
     , storyRuntimeService_(std::make_unique<story::StoryRuntimeService>(this))
     , storyProgressService_(std::make_unique<service::StoryProgressService>(nullptr, nullptr))
     , deepSeekClient_(std::make_unique<core::DeepSeekClient>(this))
@@ -234,7 +230,7 @@ CampusController::CampusController(QObject* parent)
                 if (!session) return;
                 if (stage == prologue::PrologueStage::Completed) {
                     (void)storyProgressService_->saveState(
-                        {session->characterId, "diagon_alley", "street", "exploring", "wand"});
+                        {session->characterId, "prologue", "diagon_alley", "completed", {}});
                     QTimer::singleShot(0, this, [this] { beginDiagonAlley(QStringLiteral("street"), {QStringLiteral("wand")}); });
                     return;
                 }
@@ -245,63 +241,15 @@ CampusController::CampusController(QObject* parent)
                     {session->characterId, "prologue", sceneId, prologueStageId(stage), {}});
             });
 
-    connect(diagonAlleyService_.get(), &diagon_alley::DiagonAlleyService::narrativeProduced,
-            this, [this](const QString& speaker, const QString& html) {
-                emit richCampusMessageProduced(QStringLiteral("Diagon Alley"), speaker, html);
-            });
-    connect(diagonAlleyService_.get(), &diagon_alley::DiagonAlleyService::sceneHeaderChanged,
-            this, &CampusController::sceneHeaderChanged);
-    connect(diagonAlleyService_.get(), &diagon_alley::DiagonAlleyService::inputHintChanged,
-            this, &CampusController::inputHintChanged);
-    connect(diagonAlleyService_.get(), &diagon_alley::DiagonAlleyService::choicesPresented,
-            this, &CampusController::choicesPresented);
-    connect(diagonAlleyService_.get(), &diagon_alley::DiagonAlleyService::stateChanged,
-            this, [this](const QString& sceneId, const QStringList& flags) {
-                auto* session = activeSession();
-                if (!session) return;
-                const bool complete = flags.contains(QStringLiteral("shopping_complete"));
-                (void)storyProgressService_->saveState(
-                    {session->characterId, "diagon_alley", sceneId.toStdString(),
-                     complete ? "shopping_complete" : "exploring", joinFlags(flags)});
-            });
-    connect(diagonAlleyService_.get(), &diagon_alley::DiagonAlleyService::npcMemoryChanged,
-            this, [this](const QString& npcId, int affinity, const QStringList& flags) {
-                auto* session = activeSession();
-                if (!session) return;
-                (void)storyProgressService_->saveNpcMemory(
-                    {session->characterId, npcId.toStdString(), affinity, joinFlags(flags)});
-            });
-    connect(diagonAlleyService_.get(), &diagon_alley::DiagonAlleyService::purchaseRequested,
-            this, [this](const QString& purchaseId, std::uint64_t itemId, std::uint64_t price) {
-                auto* session = activeSession();
-                if (!session) return;
-                const auto payment = storyProgressService_->spendGold(session->characterId, price);
-                if (!payment.success) {
-                    diagonAlleyService_->resolvePurchase(
-                        purchaseId, false, payment.remainingGold,
-                        QString::fromStdString(payment.message));
-                    return;
-                }
-                const auto granted = inventoryService_->grantItem(session->characterId, itemId, 1);
-                if (!granted.success) {
-                    (void)storyProgressService_->refundGold(session->characterId, price);
-                    diagonAlleyService_->resolvePurchase(
-                        purchaseId, false, payment.remainingGold + price,
-                        QString::fromStdString(granted.message));
-                    return;
-                }
-                emit playerGoldChanged(payment.remainingGold);
-                handleRefreshInventory();
-                diagonAlleyService_->resolvePurchase(
-                    purchaseId, true, payment.remainingGold, QString::fromStdString(granted.message));
-            });
-
     // Generic story events share the same central narrative surface as the
-    // legacy prologue. The runtime remains dormant until the production-entry
-    // migration explicitly starts a generic chapter.
+    // prologue. Diagon Alley is the first production chapter hosted here.
     connect(storyRuntimeService_.get(), &story::StoryRuntimeService::narrativeProduced,
             this, [this](const QString& speaker, const QString& html) {
-                emit richCampusMessageProduced(QStringLiteral("Story"), speaker, html);
+                const auto* state = storyRuntimeService_->state();
+                const QString channel = state
+                        && state->chapterId == QLatin1String("diagon_alley_shopping")
+                    ? QStringLiteral("Diagon Alley") : QStringLiteral("Story");
+                emit richCampusMessageProduced(channel, speaker, html);
             });
     connect(storyRuntimeService_.get(), &story::StoryRuntimeService::sceneHeaderChanged,
             this, &CampusController::sceneHeaderChanged);
@@ -311,6 +259,25 @@ CampusController::CampusController(QObject* parent)
             this, &CampusController::choicesPresented);
     connect(storyRuntimeService_.get(), &story::StoryRuntimeService::runtimeError,
             this, &CampusController::feedbackProduced);
+    connect(storyRuntimeService_.get(), &story::StoryRuntimeService::runtimeStateChanged,
+            this, [this](const QString&, const QStringList&) {
+                auto* session = activeSession();
+                const auto* state = storyRuntimeService_->state();
+                if (!session || !state) return;
+
+                if (state->chapterId == QLatin1String("diagon_alley_shopping")) {
+                    session->currentLocation = "diagon_alley";
+                    session->currentState = state->chapterCompleted
+                        ? "First-year supplies complete"
+                        : "Shopping for school supplies";
+                    emit playerLocationChanged(QStringLiteral("diagon_alley"),
+                                               QString::fromStdString(session->currentState));
+                }
+                emit playerGoldChanged(state->gold);
+
+                const auto inventory = inventoryService_->listInventory({session->characterId});
+                if (inventory.success) emit inventoryRefreshed(inventory.items);
+            });
     const auto updateStoryLanguage = [this](arcane::ui::I18n::Lang language) {
         storyRuntimeService_->setLanguage(language == arcane::ui::I18n::Lang::Chinese
                                               ? story::StoryLanguage::Chinese
@@ -492,18 +459,15 @@ void CampusController::handleChat(const QString& channel, const QString& text)
     // Persist local story input against its current room. Multi-player routing remains
     // deliberately separate from this deterministic chapter runtime.
     if (auto* session = activeSession()) {
-        const std::uint64_t roomId = diagonAlleyService_->isActive() ? 9 : 1;
+        const auto* storyState = storyRuntimeService_->state();
+        const std::uint64_t roomId = storyState
+                && storyState->chapterId == QLatin1String("diagon_alley_shopping")
+            ? 9 : 1;
         (void)chatService_->saveMessage(session->characterId, roomId, request);
     }
 
     if (storyRuntimeService_->isActive()) {
         (void)storyRuntimeService_->submitText(text);
-        return;
-    }
-
-    // While the local Diagon Alley chapter is active, typed player intent is
-    // routed through the deterministic action parser before generic NPC chat.
-    if (diagonAlleyService_->isActive() && diagonAlleyService_->submitText(text)) {
         return;
     }
 
@@ -683,10 +647,6 @@ void CampusController::handlePrologueChoice(int index)
         prologueService_->submitChoice(index);
         return;
     }
-    if (diagonAlleyService_->isActive()) {
-        diagonAlleyService_->submitChoice(index);
-        return;
-    }
     publish({false, "No active story choice to respond to."});
 }
 
@@ -853,24 +813,52 @@ void CampusController::beginDiagonAlley(const QString& sceneId, const QStringLis
     auto* session = activeSession();
     if (!session) return;
 
-    QStringList flags = initialFlags;
-    if (!flags.contains(QStringLiteral("wand"))) flags.push_back(QStringLiteral("wand"));
+    diagon_alley::DiagonAlleyCatalog catalog;
+    if (!catalog.load()) {
+        emit feedbackProduced(QStringLiteral("The Diagon Alley content pack could not be loaded."));
+        return;
+    }
+    story::adapters::DiagonAlleyChapterAdapter adapter;
+    auto chapter = adapter.build(catalog);
 
-    QHash<QString, int> affinities;
-    QHash<QString, QStringList> memoryFlags;
-    for (const auto& memory : storyProgressService_->loadNpcMemories(session->characterId)) {
-        const QString npcId = QString::fromStdString(memory.npcId);
-        affinities[npcId] = memory.affinity;
-        memoryFlags[npcId] = splitFlags(memory.memoryFlags);
+    story::StoryRuntimeState runtimeState;
+    bool restoredGenericState = false;
+    if (storyPersistenceService_) {
+        const auto restored = storyPersistenceService_->load(chapter, session->characterId);
+        if (!restored.success) {
+            emit feedbackProduced(restored.error);
+            return;
+        }
+        runtimeState = restored.state;
+        restoredGenericState = restored.found;
+    } else {
+        runtimeState.characterId = session->characterId;
+        runtimeState.chapterId = chapter.chapterId;
+        runtimeState.contentVersion = chapter.contentVersion;
+        runtimeState.currentSceneId = chapter.entrySceneId;
+        runtimeState.gold = storyProgressService_->currentGold(session->characterId).value_or(50);
+    }
+
+    // The v4 database may still contain the legacy "diagon_alley" row. Seed the
+    // first generic save from it once; after that, the versioned generic state is
+    // authoritative and these values are deliberately ignored.
+    if (!restoredGenericState) {
+        adapter.seedFromLegacyProgress(runtimeState, chapter, sceneId, initialFlags);
+    }
+
+    // A claimed wand is stored as both an inventory item and a character record.
+    // Preserve the original chapter fact for completion-rule compatibility.
+    if (runtimeState.inventory.value(1, 0) > 0
+        || runtimeState.characterAttributes.contains(QStringLiteral("wand_wood"))) {
+        runtimeState.flags.insert(QStringLiteral("wand"));
     }
 
     session->currentLocation = "diagon_alley";
     session->currentState = "Shopping for school supplies";
     emit playerLocationChanged(QStringLiteral("diagon_alley"),
                                QStringLiteral("Shopping for school supplies"));
-    if (const auto gold = storyProgressService_->currentGold(session->characterId))
-        emit playerGoldChanged(*gold);
-    diagonAlleyService_->start(session->characterId, sceneId, flags, affinities, memoryFlags);
+    emit playerGoldChanged(runtimeState.gold);
+    (void)storyRuntimeService_->start(std::move(chapter), std::move(runtimeState));
 }
 
 void CampusController::resumeSavedStory()
@@ -880,7 +868,8 @@ void CampusController::resumeSavedStory()
     const auto state = storyProgressService_->loadState(session->characterId);
     if (!state) return;
 
-    if (state->chapterId == "diagon_alley") {
+    if (state->chapterId == "diagon_alley"
+        || state->chapterId == "diagon_alley_shopping") {
         beginDiagonAlley(QString::fromStdString(state->sceneId), splitFlags(state->flags));
         return;
     }

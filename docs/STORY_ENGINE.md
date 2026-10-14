@@ -1,8 +1,8 @@
 # Generic Story Engine / 通用剧情引擎
 
-The generic story engine is the contract between authored or agent-generated content and the C++ game runtime. Phase 1 provides the contract, JSON loader, semantic validator, deterministic condition/effect execution, `StoryDelta`, and database transaction foundation. Phase 2 adds the Diagon Alley compatibility adapter and an executable parity gate while leaving the proven legacy entry active.
+The generic story engine is the contract between authored or agent-generated content and the C++ game runtime. It now owns the production Diagon Alley route: chapter content is adapted into the generic model, restored from the database, committed as atomic `StoryDelta` transactions, and only then published to the central narrative UI. The legacy runtime remains compiled only by regression tests.
 
-通用剧情引擎是“人工或 Agent 生成的内容”和“C++ 游戏运行时”之间的边界。第二阶段用适配器将现有对角巷内容映射为通用章节，并用新旧两套完整游玩结果守住迁移等价性；玩家当前入口暂不切换。
+通用剧情引擎是“人工或 Agent 生成的内容”和“C++ 游戏运行时”之间的边界。对角巷玩家入口现已正式切换：旧内容通过适配器映射为通用章节，数据库恢复和 `StoryDelta` 事务成为唯一生产状态路径；旧运行时只保留在回归测试中，用于持续验证新旧完整游玩结果等价。
 
 ## Responsibility boundary
 
@@ -71,7 +71,7 @@ The service maps generic events onto chapter-independent Qt signals:
 - available actions -> `choicesPresented`
 - committed state -> `runtimeStateChanged`
 
-`CampusController` already bridges those signals into the existing central narrative frame and routes text/button input to the service whenever a generic chapter is active. The service is intentionally dormant by default: the legacy Diagon Alley entry remains active until the database-backed committer and production chapter startup are connected.
+`CampusController` bridges those signals into the existing central narrative frame and routes both typed intent and choice buttons to the service. Completing the wand prologue starts the adapted chapter immediately; login restores the generic save, while a one-time compatibility seed preserves the scene and flags from legacy `diagon_alley` rows. Gold and inventory widgets refresh from the committed runtime state.
 
 ## Validation
 
@@ -99,10 +99,10 @@ cd database/scripts
 .\import_mysql.ps1
 ```
 
-## Phase 2 parity gate
+## Diagon Alley production cutover and parity gate
 
-`DiagonAlleyChapterAdapter` reads the already-loaded v1 catalog and produces a validated v2 `ChapterDefinition` in memory. It does not duplicate story text or maintain a second content file.
+`DiagonAlleyChapterAdapter` reads the already-loaded v1 catalog and produces a validated v2 `ChapterDefinition` in memory. It does not duplicate story text or maintain a second content file. This adapted chapter is now the production entry.
 
 `ArcaneCampusDiagonAlleyParityTest` completes the same route through the legacy service and generic engine, then compares gold, inventory, flags, NPC affinity, NPC memory, final scene, and chapter completion. It writes a human-readable text report with `--report <path>`.
 
-The legacy `DiagonAlleyService` remains the production entry in this phase. `CampusController` is ready to host the generic runtime, but switching Diagon Alley startup to it remains a separate transaction-backed step after this gate stays green.
+The legacy `DiagonAlleyService` is no longer linked into the application target. It remains in the parity and legacy runtime test targets only, so the same route can keep checking gold, inventory, flags, NPC affinity, memory, final scene, chapter completion, typed input, button routing, and resume behavior.

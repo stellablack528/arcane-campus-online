@@ -85,6 +85,11 @@ public:
             ++eventCount;
             return true;
         }
+        if (sql.find("UPDATE character_story_states SET status = 'paused'")
+            != std::string::npos) {
+            ++pauseOtherChapterCount;
+            return true;
+        }
         return true;
     }
 
@@ -136,7 +141,7 @@ public:
         transactionActive = true;
         snapshot = {gold, inventoryQuantity, affinity, memoryFlags, memoryJson,
                     contentVersion, revision, sceneId, status, stateJson,
-                    progressExists, eventCount};
+                    progressExists, eventCount, pauseOtherChapterCount};
         ++beginCount;
         return true;
     }
@@ -164,6 +169,7 @@ public:
         stateJson = snapshot.stateJson;
         progressExists = snapshot.progressExists;
         eventCount = snapshot.eventCount;
+        pauseOtherChapterCount = snapshot.pauseOtherChapterCount;
         transactionActive = false;
         ++rollbackCount;
         return true;
@@ -191,6 +197,7 @@ public:
     int beginCount = 0;
     int commitCount = 0;
     int rollbackCount = 0;
+    int pauseOtherChapterCount = 0;
 
 private:
     struct Snapshot {
@@ -206,6 +213,7 @@ private:
         std::string stateJson;
         bool progressExists = false;
         int eventCount = 0;
+        int pauseOtherChapterCount = 0;
     } snapshot;
 
     bool fail(std::string message)
@@ -323,6 +331,24 @@ int main(int argc, char* argv[])
                          && databaseState->eventCount == 1
                          && databaseState->rollbackCount >= 2,
                      "failed multi-table commit rolls every write back");
+
+    databaseState->failEventInsert = false;
+    databaseState->progressExists = false;
+    story::StoryRuntimeState migratedCompleted;
+    migratedCompleted.characterId = 42;
+    migratedCompleted.chapterId = chapter.chapterId;
+    migratedCompleted.contentVersion = chapter.contentVersion;
+    migratedCompleted.currentSceneId = chapter.entrySceneId;
+    migratedCompleted.gold = databaseState->gold;
+    migratedCompleted.chapterCompleted = true;
+    migratedCompleted.completedChapters.insert(chapter.chapterId);
+    story::StoryExecutionResult migrationEntry;
+    migrationEntry.success = true;
+    migrationEntry.delta.scenesVisitedToAdd.insert(chapter.entrySceneId);
+    passed &= expect(service.commit(chapter, migratedCompleted, migrationEntry, error)
+                         && databaseState->pauseOtherChapterCount == 1
+                         && databaseState->status == "completed",
+                     "first generic save pauses the legacy active row even when already completed");
 
     return passed ? 0 : 1;
 }

@@ -3,6 +3,7 @@ Arcane Campus Online - Diagon Alley migration equivalence report
 [PASS] Legacy Diagon Alley content package loads
 [PASS] Legacy runtime accepts the complete route
 [PASS] Adapted chapter passes generic validation
+[PASS] Legacy save seeds the generic chapter without losing progress
 [PASS] Generic runtime accepts the complete route
 [PASS] Generic narrative events preserve first visit and warm revisit dialogue
 [PASS] Gold balance is equivalent | legacy=10, generic=10
@@ -12,6 +13,9 @@ Arcane Campus Online - Diagon Alley migration equivalence report
 [PASS] NPC memory facts are equivalent | legacy={apothecary_clerk_ives=[talked], bookseller_merrythought=[talked], madam_malkin=[ignored], menagerie_keeper_wren=[ignored]}, generic={apothecary_clerk_ives=[talked], bookseller_merrythought=[talked], madam_malkin=[ignored], menagerie_keeper_wren=[ignored]}
 [PASS] Post-completion exploration and final scene are equivalent | legacy=flourish_and_blotts, generic=flourish_and_blotts
 [PASS] Chapter completion is equivalent
+[PASS] Production runtime starts Diagon Alley and publishes the central UI contract
+[PASS] Production free-text input uses generic actions and NPC memory
+[PASS] Production resume restores NPC memory and button routing
 ---------------------------------------------------------------
 OVERALL: PASS
-Legacy production entry remains active; generic runtime is migration-gated.
+Generic StoryRuntimeService is the production entry; legacy runtime is regression-only.

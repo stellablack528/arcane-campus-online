@@ -46,7 +46,7 @@ The platform aims to provide an immersive text-based social experience while ser
 | 🧠 NPC 记忆 | 交谈与忽略会改变好感和之后的招呼 |
 | 📦 数据驱动剧情 | 商店、NPC、商品与双语叙事由 JSON 内容包提供 |
 | ⚙️ 通用剧情引擎基础 | 类型化条件/效果、StoryDelta、统一叙事事件、内容校验与图可达性检查 |
-| 🎭 剧情运行桥 | 提交成功后才把场景、旁白、NPC、玩家行动与选项送入中央叙事框 |
+| 🎭 剧情运行时 | 通用引擎已正式接管对角巷；提交成功后才把场景、旁白、NPC、玩家行动与选项送入中央叙事框 |
 | 💾 剧情事务与恢复 | 原子保存金币、背包、NPC 记忆、章节进度与事件日志；支持完整断点恢复 |
 | 🎒 背包系统 | **真实数据库对接**（InventoryDAO）|
 | 🗺️ 活点地图 | **真实数据库对接**（InventoryDAO + LocationDAO）|
@@ -208,14 +208,14 @@ HogwartsOnline/
 │   │   │   └── WandLoreService         # ✅ DeepSeek 解读 + 本地降级档案
 │   │   ├── diagon_alley/
 │   │   │   ├── DiagonAlleyCatalog       # ✅ JSON 内容包读取与查询
-│   │   │   ├── DiagonAlleyActionParser  # ✅ 中英文自由行动解析
-│   │   │   └── DiagonAlleyService       # ✅ 商店、采购、NPC 记忆与完成条件
+│   │   │   ├── DiagonAlleyActionParser  # 🧪 旧运行时的回归测试解析器
+│   │   │   └── DiagonAlleyService       # 🧪 仅保留作新旧等价性测试基准
 │   │   ├── story/
 │   │   │   ├── StoryTypes               # ✅ 通用条件、效果、状态与 StoryDelta
 │   │   │   ├── StoryContentLoader        # ✅ JSON 白名单解析
 │   │   │   ├── StoryContentValidator     # ✅ 引用、双语与可达性校验
 │   │   │   ├── StoryEngine               # ✅ 确定性条件判断与内存执行
-│   │   │   ├── StoryRuntimeService        # ✅ 先提交状态，再向中央叙事框发布事件
+│   │   │   ├── StoryRuntimeService        # ✅ 对角巷生产入口：先事务提交，再向中央叙事框发布事件
 │   │   │   ├── persistence/
 │   │   │   │   └── StoryPersistenceService # ✅ StoryDelta 原子提交与完整状态恢复
 │   │   │   └── adapters/

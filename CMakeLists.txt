@@ -241,10 +241,6 @@ qt_add_executable(HogwartsOnline
     src/application/prologue/WandLoreService.cpp
     src/application/diagon_alley/DiagonAlleyCatalog.hpp
     src/application/diagon_alley/DiagonAlleyCatalog.cpp
-    src/application/diagon_alley/DiagonAlleyActionParser.hpp
-    src/application/diagon_alley/DiagonAlleyActionParser.cpp
-    src/application/diagon_alley/DiagonAlleyService.hpp
-    src/application/diagon_alley/DiagonAlleyService.cpp
     src/application/story/adapters/DiagonAlleyChapterAdapter.hpp
     src/application/story/adapters/DiagonAlleyChapterAdapter.cpp
     src/application/controller/CampusController.hpp

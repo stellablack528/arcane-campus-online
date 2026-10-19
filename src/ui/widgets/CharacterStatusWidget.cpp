@@ -27,13 +27,28 @@ void CharacterStatusWidget::setCampusState(const QString &location, const QStrin
 {
     m_currentLocation = location;
     m_currentState = state;
-    m_locationValue->setText(location == QLatin1String("diagon_alley")
-                                 ? TR("loc.diagonalley")
-                                 : location);
-    m_stateValue->setText(state == QLatin1String("Shopping for school supplies")
-                              ? TR("status.shopping")
-                              : state);
-    if (location == QLatin1String("diagon_alley")) {
+    QString locationText = location;
+    if (location == QLatin1String("diagon_alley")) locationText = TR("loc.diagonalley");
+    else if (location == QLatin1String("kings_cross")) locationText = TR("loc.kingscross");
+    else if (location == QLatin1String("platform_nine_three_quarters")) locationText = TR("loc.platform934");
+    else if (location == QLatin1String("hogwarts_express")) locationText = TR("loc.hogwartsexpress");
+    else if (location == QLatin1String("hogsmeade_station")) locationText = TR("loc.hogsmeadestation");
+    m_locationValue->setText(locationText);
+
+    QString stateText = state;
+    if (state == QLatin1String("Shopping for school supplies")) stateText = TR("status.shopping");
+    else if (state == QLatin1String("First-year supplies complete")) stateText = TR("status.shoppingcomplete");
+    else if (state == QLatin1String("Finding the hidden platform")) stateText = TR("status.findingplatform");
+    else if (state == QLatin1String("Boarding the Hogwarts Express")) stateText = TR("status.boardingtrain");
+    else if (state == QLatin1String("Travelling to Hogwarts")) stateText = TR("status.travelling");
+    else if (state == QLatin1String("Following the first-years")) stateText = TR("status.followingfirstyears");
+    else if (state == QLatin1String("Journey to Hogwarts complete")) stateText = TR("status.journeycomplete");
+    m_stateValue->setText(stateText);
+    if (location == QLatin1String("diagon_alley")
+        || location == QLatin1String("kings_cross")
+        || location == QLatin1String("platform_nine_three_quarters")
+        || location == QLatin1String("hogwarts_express")
+        || location == QLatin1String("hogsmeade_station")) {
         m_courseValue->setText(TR("status.none"));
     }
 }

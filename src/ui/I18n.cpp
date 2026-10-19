@@ -157,6 +157,7 @@ void I18n::seed()
     seedPair("npc.mcgonagall",   "麦格教授",        "Professor McGonagall");
     seedPair("npc.grey",         "灰女士",          "The Grey Lady");
     seedPair("npc.ollivander",   "魔杖店店员",      "Wand Shop Clerk");
+    seedPair("npc.rowan",        "罗温·维尔",       "Rowan Vale");
     seedPair("npc.status.online",    "在线",        "Online");
     seedPair("npc.status.teaching",  "授课中",      "Teaching");
     seedPair("npc.status.reading",   "阅读中",      "Reading");
@@ -179,6 +180,10 @@ void I18n::seed()
     seedPair("loc.courtyard", "庭院",    "Courtyard");
     seedPair("loc.hogsmeade", "霍格莫德","Hogsmeade");
     seedPair("loc.diagonalley", "对角巷", "Diagon Alley");
+    seedPair("loc.kingscross", "国王十字车站", "King's Cross Station");
+    seedPair("loc.platform934", "九又四分之三站台", "Platform Nine and Three-Quarters");
+    seedPair("loc.hogwartsexpress", "霍格沃茨特快", "Hogwarts Express");
+    seedPair("loc.hogsmeadestation", "霍格莫德车站", "Hogsmeade Station");
 
     // ---------------- 课程 ----------------
     seedPair("class.transfiguration", "变形术",             "Transfiguration");
@@ -214,6 +219,12 @@ void I18n::seed()
     seedPair("status.currentclass", "当前课程",    "Current Class");
     seedPair("status.breakfast",    "早餐",        "Breakfast");
     seedPair("status.shopping",     "采购入学用品", "Shopping for school supplies");
+    seedPair("status.shoppingcomplete", "新生用品已备齐", "First-year supplies complete");
+    seedPair("status.findingplatform", "寻找隐藏站台", "Finding the hidden platform");
+    seedPair("status.boardingtrain", "准备登上霍格沃茨特快", "Boarding the Hogwarts Express");
+    seedPair("status.travelling", "乘车前往霍格沃茨", "Travelling to Hogwarts");
+    seedPair("status.followingfirstyears", "跟随一年级新生", "Following the first-years");
+    seedPair("status.journeycomplete", "已抵达霍格沃茨", "Journey to Hogwarts complete");
     seedPair("status.none",         "暂无",         "None");
 
     // ---------------- 聊天 ----------------

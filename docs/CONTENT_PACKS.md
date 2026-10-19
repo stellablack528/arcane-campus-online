@@ -38,9 +38,9 @@
 ```text
 diagon_alley.json
   → DiagonAlleyCatalog（读取与查询）
-  ├→ DiagonAlleyActionParser → DiagonAlleyService（当前生产入口）
-  └→ DiagonAlleyChapterAdapter → StoryEngine（迁移验证入口）
-  → CampusController（存档、金币、背包与 UI 信号）
+  └→ DiagonAlleyChapterAdapter ┐
+journey_to_hogwarts.json ───────┴→ StoryCampaignService → StoryRuntimeService
+  → StoryEngine → StoryPersistenceService → CampusController（中央叙事框与状态面板）
 ```
 
 AI 可用于生成风格化叙事，但不能直接决定扣款、发放物品或修改存档。所有会改变角色状态的动作仍由确定性的本地规则执行。
@@ -48,6 +48,11 @@ AI 可用于生成风格化叙事，但不能直接决定扣款、发放物品�
 通用章节 v2 还可以声明 `revisit_narration`、`arrival_lines`、`player_text` 和
 `response_lines`。引擎会把它们转换成有序的 `StoryEvent`，并根据好感、记忆、物品或
 剧情标记筛选条件台词；界面只负责渲染已经提交成功的事件。
+
+跨章节使用 `transition_to_chapter` 效果。它会先把目标章节写入解锁状态并完成当前动作的
+数据库事务，成功后才请求章节编排服务进入目标章节。目标必须已在 `StoryChapterCatalog`
+注册，否则整个内置战役在加载阶段就会被拒绝。仅预告未来内容而不立即进入时，使用
+`unlock_chapter`。
 
 ## 新增内容检查清单
 
@@ -59,3 +64,4 @@ AI 可用于生成风格化叙事，但不能直接决定扣款、发放物品�
 6. 新增的完成标记已纳入章节完成条件。
 7. 运行 `ArcaneCampusDiagonAlleyRuntimeTest`，确认旧入口内容包、自由输入、NPC 记忆和采购闭环均通过。
 8. 运行 `ArcaneCampusDiagonAlleyParityTest`，确认旧入口和通用引擎的完整结果仍等价。
+9. 运行 `ArcaneCampusStoryCampaignTest`，确认跨章节、NPC 记忆、宠物分支、恢复和最终解锁均通过。

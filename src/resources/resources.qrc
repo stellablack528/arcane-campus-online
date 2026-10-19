@@ -4,5 +4,6 @@
         <file>data/wand_customization.json</file>
         <file>data/diagon_alley.json</file>
         <file>story/schemas/chapter_v2.schema.json</file>
+        <file>story/chapters/journey_to_hogwarts.json</file>
     </qresource>
 </RCC>

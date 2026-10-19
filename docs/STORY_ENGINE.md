@@ -1,8 +1,8 @@
 # Generic Story Engine / 通用剧情引擎
 
-The generic story engine is the contract between authored or agent-generated content and the C++ game runtime. It now owns the production Diagon Alley route: chapter content is adapted into the generic model, restored from the database, committed as atomic `StoryDelta` transactions, and only then published to the central narrative UI. The legacy runtime remains compiled only by regression tests.
+The generic story engine is the contract between authored or agent-generated content and the C++ game runtime. It now owns the production first-year route from Diagon Alley to Hogsmeade Station: chapter content is loaded into the generic model, restored from the database, committed as atomic `StoryDelta` transactions, and only then published to the central narrative UI. The legacy Diagon Alley runtime remains compiled only by regression tests.
 
-通用剧情引擎是“人工或 Agent 生成的内容”和“C++ 游戏运行时”之间的边界。对角巷玩家入口现已正式切换：旧内容通过适配器映射为通用章节，数据库恢复和 `StoryDelta` 事务成为唯一生产状态路径；旧运行时只保留在回归测试中，用于持续验证新旧完整游玩结果等价。
+通用剧情引擎是“人工或 Agent 生成的内容”和“C++ 游戏运行时”之间的边界。玩家主流程现在由它从对角巷一直驱动到霍格莫德车站：旧内容通过适配器映射为通用章节，新章节直接从 v2 JSON 加载，数据库恢复和 `StoryDelta` 事务是唯一生产状态路径；旧对角巷运行时只保留在回归测试中。
 
 ## Responsibility boundary
 
@@ -43,6 +43,7 @@ Whitelisted character attributes are `house`, `blood_status`, `wand_wood`, `wand
 | `move_to_scene` | Select the next scene |
 | `complete_chapter` | Complete the current chapter |
 | `unlock_chapter` | Unlock another chapter |
+| `transition_to_chapter` | Unlock and request entry into another registered chapter after commit |
 | `set_npc_memory` / `remove_npc_memory` | Add or remove one NPC memory fact |
 
 Unknown types are rejected while loading. Content can never provide arbitrary C++, SQL, shell commands, or network requests.
@@ -70,12 +71,13 @@ The service maps generic events onto chapter-independent Qt signals:
 - narration, NPC dialogue, player action, system notice, and completion -> `narrativeProduced`
 - available actions -> `choicesPresented`
 - committed state -> `runtimeStateChanged`
+- committed cross-chapter transition -> `chapterTransitionRequested`
 
-`CampusController` bridges those signals into the existing central narrative frame and routes both typed intent and choice buttons to the service. Completing the wand prologue starts the adapted chapter immediately; login restores the generic save, while a one-time compatibility seed preserves the scene and flags from legacy `diagon_alley` rows. Gold and inventory widgets refresh from the committed runtime state.
+`CampusController` bridges those signals into the existing central narrative frame and routes both typed intent and choice buttons to the service. `StoryCampaignService` owns the validated built-in chapter catalog, checks cross-chapter targets, and supplies chapter copies without mixing content registration into the controller. Completing the wand prologue starts the adapted Diagon Alley chapter; completing its shopping list exposes the journey departure action. A committed transition then starts `journey_to_hogwarts`. Login restores either registered chapter, while a one-time compatibility seed preserves the scene and flags from legacy `diagon_alley` rows. Gold, inventory, location, and status widgets refresh from the committed runtime state.
 
 ## Validation
 
-`StoryContentValidator` rejects content with invalid or duplicate IDs, missing bilingual text, broken scene references, multiple transitions in one action, unreachable scenes, or no completion rule. A chapter may complete through an explicit `complete_chapter` effect or declarative `completion_conditions`; the latter can also add a `completion_flag`. Chapters such as Diagon Alley may opt into post-completion exploration with `allow_actions_after_completion`. The machine-readable structural contract is `src/resources/story/schemas/chapter_v2.schema.json`; semantic graph checks remain in C++.
+`StoryContentValidator` rejects content with invalid or duplicate IDs, missing bilingual text, broken scene references, multiple scene/chapter transitions in one action, unreachable scenes, or no completion rule. `StoryChapterCatalog` additionally rejects a `transition_to_chapter` target that is not registered. A chapter may complete through an explicit `complete_chapter` effect or declarative `completion_conditions`; the latter can also add a `completion_flag`. Chapters such as Diagon Alley may opt into post-completion exploration with `allow_actions_after_completion`. The machine-readable structural contract is `src/resources/story/schemas/chapter_v2.schema.json`; semantic graph and campaign checks remain in C++.
 
 ## Persistence v4
 
@@ -106,3 +108,14 @@ cd database/scripts
 `ArcaneCampusDiagonAlleyParityTest` completes the same route through the legacy service and generic engine, then compares gold, inventory, flags, NPC affinity, NPC memory, final scene, and chapter completion. It writes a human-readable text report with `--report <path>`.
 
 The legacy `DiagonAlleyService` is no longer linked into the application target. It remains in the parity and legacy runtime test targets only, so the same route can keep checking gold, inventory, flags, NPC affinity, memory, final scene, chapter completion, typed input, button routing, and resume behavior.
+
+## Built-in first-year campaign
+
+`StoryCampaignService` currently registers two chapters:
+
+1. `diagon_alley_shopping` — adapted from the v1 catalog;
+2. `journey_to_hogwarts` — native v2 JSON covering King's Cross, Platform Nine and Three-Quarters, the Hogwarts Express, and Hogsmeade Station.
+
+The journey remembers whether the player helped Rowan Vale, changes later greetings and train dialogue, reflects the pet bought in Diagon Alley, supports resuming mid-route, and unlocks `sorting_ceremony` on completion. Sorting is an unlocked future chapter, not yet a playable content pack.
+
+`ArcaneCampusStoryCampaignTest` performs the full cross-chapter route and writes a human-readable report with `--report <path>`.

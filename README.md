@@ -42,11 +42,12 @@ The platform aims to provide an immersive text-based social experience while ser
 | 🏠 主界面 | 8 个功能 Widget + 暗色魔法主题 |
 | 💬 聊天事件面板 | 羊皮纸风格，支持多频道（Location / World / Party）|
 | 📖 对角巷序章 | 四家商店自由探索、采购闭环、断点续玩 |
+| 🚂 入学旅程 | 国王十字 → 九又四分之三站台 → 霍格沃茨特快 → 霍格莫德车站 |
 | ⌨️ 自由行动输入 | 中英文动作解析；按钮是建议而非唯一路径 |
 | 🧠 NPC 记忆 | 交谈与忽略会改变好感和之后的招呼 |
 | 📦 数据驱动剧情 | 商店、NPC、商品与双语叙事由 JSON 内容包提供 |
 | ⚙️ 通用剧情引擎基础 | 类型化条件/效果、StoryDelta、统一叙事事件、内容校验与图可达性检查 |
-| 🎭 剧情运行时 | 通用引擎已正式接管对角巷；提交成功后才把场景、旁白、NPC、玩家行动与选项送入中央叙事框 |
+| 🎭 剧情运行时 | 通用引擎已接管多章节主流程；提交成功后才把场景、旁白、NPC、玩家行动与选项送入中央叙事框 |
 | 💾 剧情事务与恢复 | 原子保存金币、背包、NPC 记忆、章节进度与事件日志；支持完整断点恢复 |
 | 🎒 背包系统 | **真实数据库对接**（InventoryDAO）|
 | 🗺️ 活点地图 | **真实数据库对接**（InventoryDAO + LocationDAO）|
@@ -215,9 +216,12 @@ HogwartsOnline/
 │   │   │   ├── StoryContentLoader        # ✅ JSON 白名单解析
 │   │   │   ├── StoryContentValidator     # ✅ 引用、双语与可达性校验
 │   │   │   ├── StoryEngine               # ✅ 确定性条件判断与内存执行
-│   │   │   ├── StoryRuntimeService        # ✅ 对角巷生产入口：先事务提交，再向中央叙事框发布事件
+│   │   │   ├── StoryRuntimeService        # ✅ 多章节运行入口：先事务提交，再向中央叙事框发布事件
 │   │   │   ├── persistence/
 │   │   │   │   └── StoryPersistenceService # ✅ StoryDelta 原子提交与完整状态恢复
+│   │   │   ├── campaign/
+│   │   │   │   ├── StoryChapterCatalog     # ✅ 章节注册与跨章节目标校验
+│   │   │   │   └── StoryCampaignService     # ✅ 内置新生战役编排
 │   │   │   └── adapters/
 │   │   │       └── DiagonAlleyChapterAdapter # ✅ 旧内容到通用章节的迁移桥
 │   │   ├── controller/
@@ -242,6 +246,7 @@ HogwartsOnline/
 │   └── resources/
 │       ├── resources.qrc
 │       ├── data/diagon_alley.json       # 对角巷双语剧情内容包
+│       ├── story/chapters/               # 原生 v2 章节（通往霍格沃茨）
 │       ├── story/schemas/                # Agent 可读取的内容包 v2 契约
 │       └── qss/dark_wood.qss           # 墨绿炭黑主题（Quiet Library Theme）
 │
@@ -257,7 +262,8 @@ HogwartsOnline/
 │   │   ├── StoryEngineTest.cpp          # 通用加载、校验、执行与安全拒绝
 │   │   ├── StoryRuntimeServiceTest.cpp   # 提交边界、自由输入与中央叙事信号
 │   │   ├── StoryPersistenceServiceTest.cpp # 多表事务、恢复、并发版本与回滚
-│   │   └── DiagonAlleyParityTest.cpp    # 新旧完整游玩结果等价性
+│   │   ├── DiagonAlleyParityTest.cpp    # 新旧完整游玩结果等价性
+│   │   └── StoryCampaignTest.cpp        # 跨章节、NPC 记忆、恢复与入学旅程闭环
 │   └── database/
 │       ├── DatabaseSmokeTest.cpp       # 冒烟测试（无需数据库）
 │       └── MySqlIntegrationTest.cpp    # MySQL 集成测试
@@ -291,6 +297,7 @@ HogwartsOnline/
 - [x] **通用叙事输出** (场景、旁白、NPC、玩家行动、系统、选项与完成事件)
 - [x] **剧情运行桥** (StoryRuntimeService 提交成功后再驱动中央叙事框)
 - [x] **剧情事务与恢复** (金币、背包、NPC 记忆、章节状态和事件日志原子提交)
+- [x] **入学多章节闭环** (对角巷 → 国王十字 → 九又四分之三站台 → 特快列车 → 霍格莫德)
 
 ### 🚧 进行中 / In Progress
 
@@ -390,6 +397,7 @@ ctest --output-on-failure
 - **StoryRuntimeServiceTest** — 提交后发布与中央叙事框信号
 - **StoryPersistenceServiceTest** — 完整恢复、多表原子提交、并发版本拒绝与失败回滚
 - **DiagonAlleyParityTest** — 新旧对角巷完整游玩结果等价性
+- **StoryCampaignTest** — 跨章节切换、NPC 记忆、宠物条件旁白、断点恢复与入学旅程完成
 
 ---
 

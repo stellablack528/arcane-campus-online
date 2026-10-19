@@ -116,6 +116,10 @@ struct UnlockChapterEffect {
     QString chapterId;
 };
 
+struct TransitionChapterEffect {
+    QString chapterId;
+};
+
 struct SetNpcMemoryEffect {
     QString npcId;
     QString key;
@@ -130,6 +134,7 @@ using StoryEffect = std::variant<
     MoveToSceneEffect,
     CompleteChapterEffect,
     UnlockChapterEffect,
+    TransitionChapterEffect,
     SetNpcMemoryEffect>;
 
 enum class StoryLineKind {
@@ -226,6 +231,7 @@ struct NpcMemoryChange {
 // makes no external calls; persistence applies it atomically in a later layer.
 struct StoryDelta {
     std::optional<QString> nextSceneId;
+    std::optional<QString> nextChapterId;
     QSet<QString> flagsToAdd;
     QSet<QString> flagsToRemove;
     QVector<AffinityChange> affinityChanges;
@@ -238,7 +244,8 @@ struct StoryDelta {
 
     [[nodiscard]] bool isEmpty() const
     {
-        return !nextSceneId && flagsToAdd.isEmpty() && flagsToRemove.isEmpty()
+        return !nextSceneId && !nextChapterId
+            && flagsToAdd.isEmpty() && flagsToRemove.isEmpty()
             && affinityChanges.isEmpty() && inventoryChanges.isEmpty()
             && npcMemoryChanges.isEmpty() && goldChange == 0
             && chaptersToUnlock.isEmpty() && scenesVisitedToAdd.isEmpty()

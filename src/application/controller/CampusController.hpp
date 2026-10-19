@@ -10,6 +10,7 @@
 #include "application/prologue/PrologueService.hpp"
 #include "application/service/StoryProgressService.hpp"
 #include "application/story/StoryRuntimeService.hpp"
+#include "application/story/campaign/StoryCampaignService.hpp"
 #include "application/story/persistence/StoryPersistenceService.hpp"
 #include "application/world/WorldClock.hpp"
 #include "application/world/WorldEvent.hpp"
@@ -111,6 +112,8 @@ private:
     void applyHousePointsChange(const std::string& house, int delta, const std::string& reason);
     void beginDiagonAlley(const QString& sceneId = QStringLiteral("street"),
                           const QStringList& flags = {});
+    [[nodiscard]] bool ensureStoryCampaign();
+    [[nodiscard]] bool beginCampaignChapter(const QString& chapterId);
     void resumeSavedStory();
 
     std::unique_ptr<service::SessionService> sessionService_;
@@ -121,6 +124,7 @@ private:
     std::unique_ptr<service::MapService> mapService_;
     std::unique_ptr<service::NarrativeService> narrativeService_;
     std::unique_ptr<prologue::PrologueService> prologueService_;
+    std::unique_ptr<story::campaign::StoryCampaignService> storyCampaignService_;
     std::unique_ptr<story::StoryRuntimeService> storyRuntimeService_;
     std::unique_ptr<story::persistence::StoryPersistenceService> storyPersistenceService_;
     std::unique_ptr<service::StoryProgressService> storyProgressService_;

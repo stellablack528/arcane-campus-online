@@ -192,6 +192,15 @@
         {
           "type": "object",
           "additionalProperties": false,
+          "required": ["type", "chapter_id"],
+          "properties": {
+            "type": {"const": "transition_to_chapter"},
+            "chapter_id": {"$ref": "#/$defs/stableId"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
           "required": ["type", "npc_id", "key"],
           "properties": {
             "type": {"enum": ["set_npc_memory", "remove_npc_memory"]},

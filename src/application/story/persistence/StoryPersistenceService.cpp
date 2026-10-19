@@ -186,6 +186,7 @@ QByteArray eventJson(const StoryExecutionResult& result,
     object.insert(QStringLiteral("gold_change"), QString::number(delta.goldChange));
     object.insert(QStringLiteral("chapter_completed"), delta.completeChapter);
     if (delta.nextSceneId) object.insert(QStringLiteral("next_scene"), *delta.nextSceneId);
+    if (delta.nextChapterId) object.insert(QStringLiteral("next_chapter"), *delta.nextChapterId);
 
     QJsonArray inventory;
     for (const auto& change : delta.inventoryChanges) {

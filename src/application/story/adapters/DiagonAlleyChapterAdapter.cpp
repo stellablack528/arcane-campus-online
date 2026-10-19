@@ -95,6 +95,27 @@ StoryActionDefinition shoppingListAction()
     return action;
 }
 
+StoryActionDefinition departForKingsCrossAction()
+{
+    StoryActionDefinition action;
+    action.id = QStringLiteral("depart_for_kings_cross");
+    action.label = {QStringLiteral("前往国王十字车站"),
+                    QStringLiteral("Leave for King's Cross")};
+    action.playerText = {QStringLiteral("你确认清单上的物品已经备齐，提起行李前往国王十字车站。"),
+                         QStringLiteral("With every item checked off, you lift your luggage and leave for King's Cross.")};
+    action.aliases = {QStringLiteral("前往国王十字车站"), QStringLiteral("去车站"),
+                      QStringLiteral("离开对角巷"), QStringLiteral("kings cross"),
+                      QStringLiteral("leave diagon alley")};
+    action.conditions = {FlagCondition{QStringLiteral("shopping_complete"), true}};
+    action.effects = {TransitionChapterEffect{QStringLiteral("journey_to_hogwarts")}};
+    action.responseLines = {{
+        StoryLineKind::Narration, {}, {},
+        {QStringLiteral("店铺的灯光被你留在身后。下一段路从麻瓜车站的钟声开始。"),
+         QStringLiteral("The shop lights fall behind you. The next part of the journey begins beneath a Muggle station clock.")},
+        {}}};
+    return action;
+}
+
 StoryActionDefinition purchaseAction(const diagon_alley::NpcDefinition& npc,
                                      const diagon_alley::PurchaseDefinition& purchase)
 {
@@ -190,6 +211,7 @@ ChapterDefinition DiagonAlleyChapterAdapter::build(
     street.revisitNarration = storyText(catalog.streetRevisitText());
     for (const auto& shop : catalog.shops()) street.actions.push_back(enterShopAction(shop));
     street.actions.push_back(shoppingListAction());
+    street.actions.push_back(departForKingsCrossAction());
     chapter.scenes.push_back(std::move(street));
 
     for (const auto& shop : catalog.shops()) {

@@ -232,6 +232,10 @@ StoryExecutionResult StoryEngine::execute(const ChapterDefinition& chapter,
             } else if constexpr (std::is_same_v<T, UnlockChapterEffect>) {
                 if (!delta.chaptersToUnlock.contains(value.chapterId))
                     delta.chaptersToUnlock.push_back(value.chapterId);
+            } else if constexpr (std::is_same_v<T, TransitionChapterEffect>) {
+                delta.nextChapterId = value.chapterId;
+                if (!delta.chaptersToUnlock.contains(value.chapterId))
+                    delta.chaptersToUnlock.push_back(value.chapterId);
             } else if constexpr (std::is_same_v<T, SetNpcMemoryEffect>) {
                 const auto duplicate = std::find_if(
                     delta.npcMemoryChanges.begin(), delta.npcMemoryChanges.end(),
@@ -376,6 +380,7 @@ bool StoryEngine::applyDelta(StoryRuntimeState& state,
     for (const auto& flag : delta.flagsToRemove) state.flags.remove(flag);
     for (const auto& flag : delta.flagsToAdd) state.flags.insert(flag);
     for (const auto& chapterId : delta.chaptersToUnlock) state.unlockedChapters.insert(chapterId);
+    if (delta.nextChapterId) state.unlockedChapters.insert(*delta.nextChapterId);
     for (const auto& sceneId : delta.scenesVisitedToAdd) state.visitedScenes.insert(sceneId);
     if (delta.nextSceneId) state.currentSceneId = *delta.nextSceneId;
     if (delta.completeChapter) {

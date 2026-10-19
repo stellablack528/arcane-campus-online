@@ -1,6 +1,5 @@
 #include "application/controller/CampusController.hpp"
 
-#include "application/diagon_alley/DiagonAlleyCatalog.hpp"
 #include "application/dto/CampusDTO.hpp"
 #include "application/story/adapters/DiagonAlleyChapterAdapter.hpp"
 #include "core/DeepSeekClient.hpp"
@@ -163,6 +162,41 @@ QStringList splitFlags(const std::string& serialized)
     return QString::fromStdString(serialized).split(QLatin1Char(';'), Qt::SkipEmptyParts);
 }
 
+QString storyChannel(const story::StoryRuntimeState& state)
+{
+    if (state.chapterId == QLatin1String("diagon_alley_shopping"))
+        return QStringLiteral("Diagon Alley");
+    if (state.chapterId == QLatin1String("journey_to_hogwarts"))
+        return QStringLiteral("Journey to Hogwarts");
+    return QStringLiteral("Story");
+}
+
+QString storyLocation(const story::StoryRuntimeState& state)
+{
+    if (state.chapterId == QLatin1String("diagon_alley_shopping"))
+        return QStringLiteral("diagon_alley");
+    if (state.chapterId == QLatin1String("journey_to_hogwarts"))
+        return state.currentSceneId;
+    return state.currentSceneId;
+}
+
+std::string storyStatus(const story::StoryRuntimeState& state)
+{
+    if (state.chapterId == QLatin1String("diagon_alley_shopping")) {
+        return state.chapterCompleted
+            ? "First-year supplies complete"
+            : "Shopping for school supplies";
+    }
+    if (state.chapterId == QLatin1String("journey_to_hogwarts")) {
+        if (state.chapterCompleted) return "Journey to Hogwarts complete";
+        if (state.currentSceneId == QLatin1String("kings_cross")) return "Finding the hidden platform";
+        if (state.currentSceneId == QLatin1String("platform_nine_three_quarters")) return "Boarding the Hogwarts Express";
+        if (state.currentSceneId == QLatin1String("hogwarts_express")) return "Travelling to Hogwarts";
+        if (state.currentSceneId == QLatin1String("hogsmeade_station")) return "Following the first-years";
+    }
+    return "Story in progress";
+}
+
 prologue::WandConfig toWandConfig(const database::CharacterWandRecord& record)
 {
     prologue::WandConfig wand;
@@ -190,6 +224,7 @@ CampusController::CampusController(QObject* parent)
     , socialService_(std::make_unique<service::SocialService>(nullptr, nullptr))
     , narrativeService_(std::make_unique<service::NarrativeService>())
     , prologueService_(std::make_unique<prologue::PrologueService>(this))
+    , storyCampaignService_(std::make_unique<story::campaign::StoryCampaignService>())
     , storyRuntimeService_(std::make_unique<story::StoryRuntimeService>(this))
     , storyProgressService_(std::make_unique<service::StoryProgressService>(nullptr, nullptr))
     , deepSeekClient_(std::make_unique<core::DeepSeekClient>(this))
@@ -246,9 +281,7 @@ CampusController::CampusController(QObject* parent)
     connect(storyRuntimeService_.get(), &story::StoryRuntimeService::narrativeProduced,
             this, [this](const QString& speaker, const QString& html) {
                 const auto* state = storyRuntimeService_->state();
-                const QString channel = state
-                        && state->chapterId == QLatin1String("diagon_alley_shopping")
-                    ? QStringLiteral("Diagon Alley") : QStringLiteral("Story");
+                const QString channel = state ? storyChannel(*state) : QStringLiteral("Story");
                 emit richCampusMessageProduced(channel, speaker, html);
             });
     connect(storyRuntimeService_.get(), &story::StoryRuntimeService::sceneHeaderChanged,
@@ -265,18 +298,20 @@ CampusController::CampusController(QObject* parent)
                 const auto* state = storyRuntimeService_->state();
                 if (!session || !state) return;
 
-                if (state->chapterId == QLatin1String("diagon_alley_shopping")) {
-                    session->currentLocation = "diagon_alley";
-                    session->currentState = state->chapterCompleted
-                        ? "First-year supplies complete"
-                        : "Shopping for school supplies";
-                    emit playerLocationChanged(QStringLiteral("diagon_alley"),
-                                               QString::fromStdString(session->currentState));
-                }
+                const QString location = storyLocation(*state);
+                session->currentLocation = location.toStdString();
+                session->currentState = storyStatus(*state);
+                emit playerLocationChanged(location, QString::fromStdString(session->currentState));
                 emit playerGoldChanged(state->gold);
 
                 const auto inventory = inventoryService_->listInventory({session->characterId});
                 if (inventory.success) emit inventoryRefreshed(inventory.items);
+            });
+    connect(storyRuntimeService_.get(), &story::StoryRuntimeService::chapterTransitionRequested,
+            this, [this](const QString& chapterId) {
+                QTimer::singleShot(0, this, [this, chapterId] {
+                    (void)beginCampaignChapter(chapterId);
+                });
             });
     const auto updateStoryLanguage = [this](arcane::ui::I18n::Lang language) {
         storyRuntimeService_->setLanguage(language == arcane::ui::I18n::Lang::Chinese
@@ -460,9 +495,7 @@ void CampusController::handleChat(const QString& channel, const QString& text)
     // deliberately separate from this deterministic chapter runtime.
     if (auto* session = activeSession()) {
         const auto* storyState = storyRuntimeService_->state();
-        const std::uint64_t roomId = storyState
-                && storyState->chapterId == QLatin1String("diagon_alley_shopping")
-            ? 9 : 1;
+        const std::uint64_t roomId = storyState ? 9 : 1;
         (void)chatService_->saveMessage(session->characterId, roomId, request);
     }
 
@@ -813,13 +846,14 @@ void CampusController::beginDiagonAlley(const QString& sceneId, const QStringLis
     auto* session = activeSession();
     if (!session) return;
 
-    diagon_alley::DiagonAlleyCatalog catalog;
-    if (!catalog.load()) {
-        emit feedbackProduced(QStringLiteral("The Diagon Alley content pack could not be loaded."));
+    if (!ensureStoryCampaign()) return;
+    auto chapterValue = storyCampaignService_->chapter(QStringLiteral("diagon_alley_shopping"));
+    if (!chapterValue) {
+        emit feedbackProduced(QStringLiteral("The Diagon Alley campaign chapter is unavailable."));
         return;
     }
     story::adapters::DiagonAlleyChapterAdapter adapter;
-    auto chapter = adapter.build(catalog);
+    auto chapter = std::move(*chapterValue);
 
     story::StoryRuntimeState runtimeState;
     bool restoredGenericState = false;
@@ -861,6 +895,32 @@ void CampusController::beginDiagonAlley(const QString& sceneId, const QStringLis
     (void)storyRuntimeService_->start(std::move(chapter), std::move(runtimeState));
 }
 
+bool CampusController::ensureStoryCampaign()
+{
+    if (storyCampaignService_->isLoaded()) return true;
+    QStringList errors;
+    if (storyCampaignService_->loadBuiltIn(errors)) return true;
+    emit feedbackProduced(
+        QStringLiteral("The story campaign could not be loaded: %1")
+            .arg(errors.join(QStringLiteral("; "))));
+    return false;
+}
+
+bool CampusController::beginCampaignChapter(const QString& chapterId)
+{
+    if (!ensureStoryCampaign()) return false;
+    if (chapterId == QLatin1String("diagon_alley_shopping")) {
+        beginDiagonAlley();
+        return storyRuntimeService_->isActive();
+    }
+    auto chapter = storyCampaignService_->chapter(chapterId);
+    if (!chapter) {
+        emit feedbackProduced(QStringLiteral("The requested story chapter is unavailable."));
+        return false;
+    }
+    return startStoryChapter(std::move(*chapter));
+}
+
 void CampusController::resumeSavedStory()
 {
     auto* session = activeSession();
@@ -871,6 +931,11 @@ void CampusController::resumeSavedStory()
     if (state->chapterId == "diagon_alley"
         || state->chapterId == "diagon_alley_shopping") {
         beginDiagonAlley(QString::fromStdString(state->sceneId), splitFlags(state->flags));
+        return;
+    }
+    if (ensureStoryCampaign()
+        && storyCampaignService_->contains(QString::fromStdString(state->chapterId))) {
+        (void)beginCampaignChapter(QString::fromStdString(state->chapterId));
         return;
     }
     if (state->chapterId != "prologue") return;

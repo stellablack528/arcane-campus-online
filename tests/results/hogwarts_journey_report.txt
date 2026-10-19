@@ -1,0 +1,13 @@
+Arcane Campus Online - Multi-chapter Hogwarts journey report
+============================================================
+[PASS] Built-in campaign loads and validates
+[PASS] Campaign catalog exposes both playable chapters
+[PASS] Both chapter definitions are available to the runtime
+[PASS] Completed shopping can explicitly transition to King's Cross
+[PASS] Station choices reach the platform and establish NPC memory
+[PASS] Resume restores Rowan's memory and changes the greeting
+[PASS] The train scene reflects the companion purchased in Diagon Alley
+[PASS] The complete journey reaches Hogwarts and unlocks Sorting
+------------------------------------------------------------
+OVERALL: PASS
+PLAYABLE FLOW: Diagon Alley -> King's Cross -> Platform 9 3/4 -> Hogwarts Express -> Hogsmeade Station

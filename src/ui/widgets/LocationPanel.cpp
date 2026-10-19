@@ -27,8 +27,12 @@ constexpr std::array<MoveTarget, 5> kMoveTargets = {{
     {"hogsmeade",               "loc.hogsmeade"},
 }};
 
-constexpr std::array<MoveTarget, 6> kLocationLabels = {{
+constexpr std::array<MoveTarget, 10> kLocationLabels = {{
     {"diagon_alley",             "loc.diagonalley"},
+    {"kings_cross",              "loc.kingscross"},
+    {"platform_nine_three_quarters", "loc.platform934"},
+    {"hogwarts_express",         "loc.hogwartsexpress"},
+    {"hogsmeade_station",        "loc.hogsmeadestation"},
     {"great_hall",               "loc.greathall"},
     {"transfiguration_classroom", "loc.classroom"},
     {"library",                  "loc.library"},
@@ -65,6 +69,12 @@ const QHash<QString, std::vector<Person>>& peopleByLocation()
         }},
         {"diagon_alley", {
             {"shop_ollivander", "npc.ollivander"},
+        }},
+        {"platform_nine_three_quarters", {
+            {"npc_rowan_vale", "npc.rowan"},
+        }},
+        {"hogwarts_express", {
+            {"npc_rowan_vale", "npc.rowan"},
         }},
     };
     return map;

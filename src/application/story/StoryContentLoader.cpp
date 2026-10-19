@@ -112,6 +112,9 @@ std::optional<StoryEffect> parseEffect(const QJsonObject& object, QString& error
     if (type == QLatin1String("unlock_chapter")) {
         return UnlockChapterEffect{object.value(QStringLiteral("chapter_id")).toString()};
     }
+    if (type == QLatin1String("transition_to_chapter")) {
+        return TransitionChapterEffect{object.value(QStringLiteral("chapter_id")).toString()};
+    }
     if (type == QLatin1String("set_npc_memory")
         || type == QLatin1String("remove_npc_memory")) {
         return SetNpcMemoryEffect{

@@ -191,6 +191,33 @@ if(BUILD_TESTING)
     set_tests_properties(ArcaneCampusDiagonAlleyParityTest PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
+
+    add_executable(ArcaneCampusStoryCampaignTest
+        tests/story/StoryCampaignTest.cpp
+        src/application/story/campaign/StoryChapterCatalog.hpp
+        src/application/story/campaign/StoryChapterCatalog.cpp
+        src/application/story/campaign/StoryCampaignService.hpp
+        src/application/story/campaign/StoryCampaignService.cpp
+        src/application/story/adapters/DiagonAlleyChapterAdapter.hpp
+        src/application/story/adapters/DiagonAlleyChapterAdapter.cpp
+        src/application/diagon_alley/DiagonAlleyCatalog.hpp
+        src/application/diagon_alley/DiagonAlleyCatalog.cpp
+        src/ui/I18n.hpp
+        src/ui/I18n.cpp
+        src/resources/resources.qrc
+    )
+    target_include_directories(ArcaneCampusStoryCampaignTest PRIVATE src)
+    target_link_libraries(ArcaneCampusStoryCampaignTest PRIVATE
+        ArcaneStoryEngine
+        Qt6::Widgets
+    )
+    add_test(NAME ArcaneCampusStoryCampaignTest
+        COMMAND ArcaneCampusStoryCampaignTest
+            --report ${CMAKE_CURRENT_BINARY_DIR}/test-results/hogwarts_journey_report.txt
+    )
+    set_tests_properties(ArcaneCampusStoryCampaignTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
 endif()
 
 option(ARCANE_BUILD_MYSQL_INTEGRATION_TESTS "Build tests that require a configured local MySQL database" OFF)
@@ -243,6 +270,10 @@ qt_add_executable(HogwartsOnline
     src/application/diagon_alley/DiagonAlleyCatalog.cpp
     src/application/story/adapters/DiagonAlleyChapterAdapter.hpp
     src/application/story/adapters/DiagonAlleyChapterAdapter.cpp
+    src/application/story/campaign/StoryChapterCatalog.hpp
+    src/application/story/campaign/StoryChapterCatalog.cpp
+    src/application/story/campaign/StoryCampaignService.hpp
+    src/application/story/campaign/StoryCampaignService.cpp
     src/application/controller/CampusController.hpp
     src/application/controller/CampusController.cpp
     src/application/router/ClientCommandRouter.hpp

@@ -1,0 +1,308 @@
+{
+  "schema_version": 2,
+  "chapter_id": "journey_to_hogwarts",
+  "content_version": 1,
+  "entry_scene": "kings_cross",
+  "title": {
+    "zh": "启程 · 通往霍格沃茨",
+    "en": "Departure · Journey to Hogwarts"
+  },
+  "requirements": [
+    {"type": "chapter_completed", "chapter_id": "diagon_alley_shopping"}
+  ],
+  "completion_text": {
+    "zh": "远处城堡的灯火穿过薄雾，一盏接一盏亮起。你跟随一年级新生走向等待的小船，知道真正的校园生活就在黑湖彼岸。<br><br><b>通往霍格沃茨的旅程已经完成，分院仪式已解锁。</b>",
+    "en": "Beyond the mist, the castle lights appear one by one. You follow the other first-years towards the waiting boats, knowing that school life begins across the Black Lake.<br><br><b>The journey to Hogwarts is complete. The Sorting Ceremony is now unlocked.</b>"
+  },
+  "scenes": [
+    {
+      "id": "kings_cross",
+      "title": {"zh": "国王十字车站", "en": "King's Cross Station"},
+      "narration": {
+        "zh": "巨大的车站穹顶把脚步声、汽笛声和广播声混在一起。你的车票上清楚写着“九又四分之三站台”，可九号与十号站台之间只有一道结实的砖墙。装着宠物的笼箱在行李车上轻轻晃动，几名麻瓜旅客好奇地看了你一眼。",
+        "en": "Beneath the vast station roof, footsteps, whistles, and announcements blur together. Your ticket clearly says Platform Nine and Three-Quarters, yet only a solid brick barrier stands between Platforms Nine and Ten. Your pet carrier rocks gently on the trolley while several Muggle travellers glance your way."
+      },
+      "revisit_narration": {
+        "zh": "车站大钟又向前跳了一格。九号与十号站台之间的砖墙依然沉默，列车却不会永远等下去。",
+        "en": "The station clock advances another minute. The barrier between Platforms Nine and Ten remains silent, but the train will not wait forever."
+      },
+      "actors": ["station_porter"],
+      "arrival_lines": [
+        {
+          "type": "npc_dialogue",
+          "actor_id": "station_porter",
+          "speaker": {"zh": "车站搬运工", "en": "Station Porter"},
+          "text": {"zh": "“九又四分之三？孩子，这里可没有那样的站台。”", "en": "“Nine and three-quarters? No such platform here, kid.”"}
+        }
+      ],
+      "actions": [
+        {
+          "id": "study_the_ticket",
+          "label": {"zh": "仔细检查车票", "en": "Study the ticket"},
+          "player_text": {"zh": "你把车票翻来覆去地检查。", "en": "You turn the ticket over and study every mark."},
+          "aliases": ["检查车票", "看看车票", "研究车票", "study ticket", "check ticket"],
+          "conditions": [{"type": "missing_flag", "key": "ticket_examined"}],
+          "effects": [{"type": "set_flag", "key": "ticket_examined"}],
+          "response_lines": [
+            {
+              "type": "narration",
+              "text": {
+                "zh": "车票背面的墨迹在灯下短暂浮起：<i>不要停，不要犹豫，径直向前。</i>",
+                "en": "For a moment, ink rises on the back of the ticket: <i>Do not stop. Do not hesitate. Go straight ahead.</i>"
+              }
+            }
+          ]
+        },
+        {
+          "id": "ask_the_porter",
+          "label": {"zh": "继续向搬运工询问", "en": "Ask the porter again"},
+          "player_text": {"zh": "你压低声音，问他是否见过带猫头鹰和大箱子的学生。", "en": "You lower your voice and ask whether he has seen students with owls and enormous trunks."},
+          "aliases": ["问搬运工", "询问工作人员", "找人帮忙", "ask porter", "ask for help"],
+          "effects": [
+            {"type": "set_npc_memory", "npc_id": "station_porter", "key": "asked_about_magic"},
+            {"type": "move_to_scene", "scene_id": "platform_nine_three_quarters"}
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "station_porter",
+              "speaker": {"zh": "车站搬运工", "en": "Station Porter"},
+              "text": {"zh": "他刚要摇头，目光却越过你，看向一户推着同样行李的家庭。“也许你该跟紧他们。”", "en": "He starts to shake his head, then looks past you towards a family pushing identical luggage. “Perhaps you ought to follow them.”"}
+            }
+          ]
+        },
+        {
+          "id": "follow_the_owl_family",
+          "label": {"zh": "跟随带猫头鹰的家庭", "en": "Follow the family with an owl"},
+          "player_text": {"zh": "你推着行李，不远不近地跟上那户同样带着猫头鹰的家庭。", "en": "You push your trolley after the family carrying an owl, keeping a careful distance."},
+          "aliases": ["跟着那家人", "跟随猫头鹰", "观察其他学生", "follow family", "follow owl"],
+          "effects": [
+            {"type": "set_flag", "key": "noticed_wizarding_family"},
+            {"type": "move_to_scene", "scene_id": "platform_nine_three_quarters"}
+          ],
+          "response_lines": [
+            {
+              "type": "narration",
+              "text": {"zh": "走在最前面的孩子没有减速，连人带车消失在砖墙之中。轮到你时，你握紧推车把手，向前跑去。", "en": "The child in front does not slow down and vanishes through the barrier with the trolley. When your turn comes, you tighten your grip and run straight ahead."}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "platform_nine_three_quarters",
+      "title": {"zh": "九又四分之三站台", "en": "Platform Nine and Three-Quarters"},
+      "narration": {
+        "zh": "白色蒸汽从猩红列车下翻涌而出，站台上到处是告别、拥抱和失控的宠物。一名与你年龄相仿的学生正努力把过重的箱子抬上车门踏板。",
+        "en": "White steam billows beneath a scarlet train. The platform is crowded with farewells, embraces, and runaway pets. A student about your age is struggling to lift an oversized trunk onto the carriage step."
+      },
+      "revisit_narration": {
+        "zh": "列车喷出一阵新的蒸汽，车门旁的学生仍在和那只沉重的箱子较劲。",
+        "en": "The train releases another cloud of steam. The student by the carriage is still wrestling with the heavy trunk."
+      },
+      "actors": ["rowan_vale"],
+      "arrival_lines": [
+        {
+          "type": "npc_dialogue",
+          "actor_id": "rowan_vale",
+          "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+          "text": {"zh": "“如果这箱子再重一点，我怀疑里面就装着一座城堡。”", "en": "“If this trunk were any heavier, I would assume there was a castle inside it.”"},
+          "conditions": [{"type": "npc_missing_memory", "npc_id": "rowan_vale", "key": "met_on_platform"}]
+        },
+        {
+          "type": "npc_dialogue",
+          "actor_id": "rowan_vale",
+          "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+          "text": {"zh": "“你回来了。至少现在这只箱子已经承认我们赢了。”", "en": "“You came back. At least the trunk has admitted we won.”"},
+          "conditions": [{"type": "npc_remembers", "npc_id": "rowan_vale", "key": "met_on_platform"}]
+        }
+      ],
+      "actions": [
+        {
+          "id": "help_rowan_with_trunk",
+          "label": {"zh": "帮忙抬起箱子", "en": "Help with the trunk"},
+          "player_text": {"zh": "你走过去托住箱子的另一侧。", "en": "You step over and take the other side of the trunk."},
+          "aliases": ["帮助罗温", "帮忙抬箱子", "抬行李", "help rowan", "help with trunk"],
+          "conditions": [{"type": "npc_missing_memory", "npc_id": "rowan_vale", "key": "helped_with_trunk"}],
+          "effects": [
+            {"type": "set_npc_memory", "npc_id": "rowan_vale", "key": "met_on_platform"},
+            {"type": "set_npc_memory", "npc_id": "rowan_vale", "key": "helped_with_trunk"},
+            {"type": "change_affinity", "npc_id": "rowan_vale", "amount": 1}
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "rowan_vale",
+              "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+              "text": {"zh": "箱子终于滑进车厢。罗温喘着气伸出手：“我叫罗温。看来我们已经共同打败了第一个校内敌人。”", "en": "The trunk finally slides aboard. Rowan offers a breathless hand. “I'm Rowan. It seems we have already defeated our first school enemy together.”"}
+            }
+          ]
+        },
+        {
+          "id": "introduce_yourself_to_rowan",
+          "label": {"zh": "向罗温自我介绍", "en": "Introduce yourself to Rowan"},
+          "player_text": {"zh": "你告诉罗温自己的名字，并问车上是否还有空位。", "en": "You tell Rowan your name and ask whether there is still a free compartment."},
+          "aliases": ["自我介绍", "和罗温说话", "认识罗温", "introduce myself", "talk to rowan"],
+          "conditions": [{"type": "npc_missing_memory", "npc_id": "rowan_vale", "key": "met_on_platform"}],
+          "effects": [
+            {"type": "set_npc_memory", "npc_id": "rowan_vale", "key": "met_on_platform"}
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "rowan_vale",
+              "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+              "text": {"zh": "“最后一节还有位置。如果你不介意和一只很有主见的箱子同行的话。”", "en": "“There is room near the last carriage, if you do not mind travelling with a very opinionated trunk.”"}
+            }
+          ]
+        },
+        {
+          "id": "board_the_hogwarts_express",
+          "label": {"zh": "登上霍格沃茨特快", "en": "Board the Hogwarts Express"},
+          "player_text": {"zh": "汽笛第一次响起，你提起行李登上列车。", "en": "At the first whistle, you lift your luggage and board the train."},
+          "aliases": ["上车", "登上列车", "进入车厢", "board train", "get on train"],
+          "effects": [
+            {"type": "set_flag", "key": "boarded_hogwarts_express"},
+            {"type": "move_to_scene", "scene_id": "hogwarts_express"}
+          ],
+          "response_lines": []
+        }
+      ]
+    },
+    {
+      "id": "hogwarts_express",
+      "title": {"zh": "霍格沃茨特快", "en": "Hogwarts Express"},
+      "narration": {
+        "zh": "车轮开始有节奏地敲击铁轨，伦敦的屋顶逐渐让位给田野与远山。包厢门外不时有学生跑过，糖果推车的铃声正从走廊另一端靠近。",
+        "en": "The wheels settle into a steady rhythm as London rooftops give way to fields and distant hills. Students hurry past the compartment door, and the sweet trolley's bell draws nearer along the corridor."
+      },
+      "revisit_narration": {
+        "zh": "窗外的天色更深了一些，列车仍坚定地向北行驶。",
+        "en": "The sky beyond the window has darkened, and the train continues steadily north."
+      },
+      "actors": ["rowan_vale", "trolley_witch"],
+      "arrival_lines": [
+        {
+          "type": "npc_dialogue",
+          "actor_id": "rowan_vale",
+          "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+          "text": {"zh": "“给你留了靠窗的位置。毕竟打败过同一只箱子的人应该坐在一起。”", "en": "“I saved you the window seat. People who defeat the same trunk ought to sit together.”"},
+          "conditions": [{"type": "affinity_at_least", "npc_id": "rowan_vale", "minimum": 1}]
+        },
+        {
+          "type": "npc_dialogue",
+          "actor_id": "rowan_vale",
+          "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+          "text": {"zh": "“这里还有位置。我也是第一次去，不知道应该紧张到什么程度。”", "en": "“There is a seat here. It is my first time too, so I am not sure how worried we are meant to be.”"},
+          "conditions": [{"type": "affinity_at_most", "npc_id": "rowan_vale", "maximum": 0}]
+        },
+        {
+          "type": "narration",
+          "text": {"zh": "你的猫头鹰在笼中转过头，认真观察着飞速后退的电线杆。", "en": "Your owl turns inside its cage and solemnly watches the telegraph poles race backwards."},
+          "conditions": [{"type": "has_item", "item_id": 8}]
+        },
+        {
+          "type": "narration",
+          "text": {"zh": "你的猫毫不客气地占据了座位一角，仿佛车票本来就是为它买的。", "en": "Your cat claims a corner of the seat as though the ticket had always been purchased in its name."},
+          "conditions": [{"type": "has_item", "item_id": 9}]
+        },
+        {
+          "type": "narration",
+          "text": {"zh": "软垫盒里传来一声低低的蛙鸣，像是在确认列车准时出发。", "en": "A low croak comes from the padded box, as though confirming that the train departed on schedule."},
+          "conditions": [{"type": "has_item", "item_id": 10}]
+        }
+      ],
+      "actions": [
+        {
+          "id": "share_sweets_with_rowan",
+          "label": {"zh": "和罗温分享糖果", "en": "Share sweets with Rowan"},
+          "player_text": {"zh": "糖果推车经过时，你买下一小袋糖果，推到两人中间。", "en": "When the trolley passes, you buy a small bag of sweets and set it between you."},
+          "aliases": ["分享糖果", "买糖果", "请罗温吃东西", "share sweets", "buy sweets"],
+          "conditions": [{"type": "missing_flag", "key": "shared_train_sweets"}],
+          "effects": [
+            {"type": "set_flag", "key": "shared_train_sweets"},
+            {"type": "change_affinity", "npc_id": "rowan_vale", "amount": 1}
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "rowan_vale",
+              "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+              "text": {"zh": "罗温挑了一颗会轻轻发光的糖。“如果分院仪式很可怕，我们至少不用空着肚子面对它。”", "en": "Rowan chooses a sweet that glows faintly. “If the Sorting is terrifying, at least we will not face it on an empty stomach.”"}
+            }
+          ]
+        },
+        {
+          "id": "watch_the_northern_landscape",
+          "label": {"zh": "安静地看窗外", "en": "Watch the landscape"},
+          "player_text": {"zh": "你靠近车窗，看田野变成山谷，云影掠过越来越陌生的土地。", "en": "You lean towards the window as fields become valleys and cloud-shadows cross unfamiliar country."},
+          "aliases": ["看窗外", "欣赏风景", "保持安静", "watch outside", "watch landscape"],
+          "conditions": [{"type": "missing_flag", "key": "watched_train_landscape"}],
+          "effects": [
+            {"type": "set_flag", "key": "watched_train_landscape"},
+            {"type": "set_npc_memory", "npc_id": "rowan_vale", "key": "shared_quiet_journey"}
+          ],
+          "response_lines": [
+            {
+              "type": "narration",
+              "text": {"zh": "有一段时间，谁都没有说话。这份沉默并不尴尬，反而像旅程本身一样平稳。", "en": "For a while, neither of you speaks. The silence is not awkward; it feels as steady as the journey itself."}
+            }
+          ]
+        },
+        {
+          "id": "prepare_to_leave_the_train",
+          "label": {"zh": "换上校袍，准备下车", "en": "Change into robes and prepare to leave"},
+          "player_text": {"zh": "广播提醒学生换上校袍。你收好车票，把行李重新扣紧。", "en": "An announcement tells students to change into school robes. You put away your ticket and fasten your luggage."},
+          "aliases": ["准备下车", "换上校袍", "抵达霍格沃茨", "prepare to leave", "change into robes"],
+          "effects": [
+            {"type": "set_flag", "key": "ready_for_hogwarts"},
+            {"type": "move_to_scene", "scene_id": "hogsmeade_station"}
+          ],
+          "response_lines": []
+        }
+      ]
+    },
+    {
+      "id": "hogsmeade_station",
+      "title": {"zh": "霍格莫德车站", "en": "Hogsmeade Station"},
+      "narration": {
+        "zh": "夜色和冷空气一起涌进车厢。站台尽头，一盏高高举起的灯在薄雾里摇晃，低年级学生正被召集到一起。山坡上方，城堡的窗户像散落的星光。",
+        "en": "Night air pours into the carriage. At the far end of the platform, a raised lantern sways in the mist while the first-years are called together. Above the hillside, the castle windows shine like scattered stars."
+      },
+      "revisit_narration": {
+        "zh": "新生们逐渐在灯光下聚齐，远处黑湖的水面映着城堡。",
+        "en": "The first-years gather beneath the lantern while the distant Black Lake reflects the castle."
+      },
+      "actors": ["keeper_bramble", "rowan_vale"],
+      "arrival_lines": [
+        {
+          "type": "npc_dialogue",
+          "actor_id": "keeper_bramble",
+          "speaker": {"zh": "布兰布尔先生", "en": "Mr. Bramble"},
+          "text": {"zh": "“一年级新生，到灯这边来！行李会有人送进城堡，你们只管跟紧。”", "en": "“First-years, over by the lantern! Your luggage will reach the castle—just stay together.”"}
+        }
+      ],
+      "actions": [
+        {
+          "id": "join_the_first_years",
+          "label": {"zh": "跟随一年级新生前往湖边", "en": "Follow the first-years to the lake"},
+          "player_text": {"zh": "你与罗温并肩加入新生队伍，跟随灯光走向湖边。", "en": "You join the line beside Rowan and follow the lantern towards the lake."},
+          "aliases": ["跟随新生", "前往湖边", "去城堡", "follow first years", "go to the lake"],
+          "effects": [
+            {"type": "set_flag", "key": "reached_hogwarts"},
+            {"type": "unlock_chapter", "chapter_id": "sorting_ceremony"},
+            {"type": "complete_chapter"}
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "rowan_vale",
+              "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+              "text": {"zh": "“不管分到哪里，明天早餐时告诉我你的楼梯有没有也会移动。”", "en": "“Wherever we are sorted, tell me at breakfast whether your staircases move too.”"}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

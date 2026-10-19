@@ -76,6 +76,9 @@ void validateEffect(const StoryEffect& effect,
         } else if constexpr (std::is_same_v<T, UnlockChapterEffect>) {
             if (!isStableId(value.chapterId))
                 result.errors << context + QStringLiteral(": invalid unlocked chapter id.");
+        } else if constexpr (std::is_same_v<T, TransitionChapterEffect>) {
+            if (!isStableId(value.chapterId))
+                result.errors << context + QStringLiteral(": invalid chapter transition id.");
         } else if constexpr (std::is_same_v<T, SetNpcMemoryEffect>) {
             if (!isStableId(value.npcId) || !isStableId(value.key))
                 result.errors << context + QStringLiteral(": invalid NPC memory effect.");
@@ -192,6 +195,7 @@ StoryValidationResult StoryContentValidator::validate(const ChapterDefinition& c
             }
 
             int movementEffects = 0;
+            int chapterTransitionEffects = 0;
             for (qsizetype index = 0; index < action.effects.size(); ++index) {
                 const auto& effect = action.effects.at(index);
                 validateEffect(effect, context + QStringLiteral(" effect %1").arg(index), sceneIds, result);
@@ -199,10 +203,16 @@ StoryValidationResult StoryContentValidator::validate(const ChapterDefinition& c
                     ++movementEffects;
                     edges[scene.id].insert(movement->sceneId);
                 }
+                if (std::holds_alternative<TransitionChapterEffect>(effect))
+                    ++chapterTransitionEffects;
                 if (std::holds_alternative<CompleteChapterEffect>(effect)) hasCompletion = true;
             }
             if (movementEffects > 1)
                 result.errors << context + QStringLiteral(": action has more than one scene transition.");
+            if (chapterTransitionEffects > 1)
+                result.errors << context + QStringLiteral(": action has more than one chapter transition.");
+            if (movementEffects > 0 && chapterTransitionEffects > 0)
+                result.errors << context + QStringLiteral(": action cannot change scene and chapter together.");
             for (qsizetype index = 0; index < action.responseLines.size(); ++index)
                 validateLine(action.responseLines.at(index),
                              context + QStringLiteral(" response line %1").arg(index),

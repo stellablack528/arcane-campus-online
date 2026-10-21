@@ -158,6 +158,9 @@ void I18n::seed()
     seedPair("npc.grey",         "灰女士",          "The Grey Lady");
     seedPair("npc.ollivander",   "魔杖店店员",      "Wand Shop Clerk");
     seedPair("npc.rowan",        "罗温·维尔",       "Rowan Vale");
+    seedPair("npc.bramble",      "布兰布尔先生",     "Mr. Bramble");
+    seedPair("npc.deputyhead",   "副校长",           "Deputy Head");
+    seedPair("npc.sortinghat",   "分院帽",           "Sorting Hat");
     seedPair("npc.status.online",    "在线",        "Online");
     seedPair("npc.status.teaching",  "授课中",      "Teaching");
     seedPair("npc.status.reading",   "阅读中",      "Reading");
@@ -184,6 +187,10 @@ void I18n::seed()
     seedPair("loc.platform934", "九又四分之三站台", "Platform Nine and Three-Quarters");
     seedPair("loc.hogwartsexpress", "霍格沃茨特快", "Hogwarts Express");
     seedPair("loc.hogsmeadestation", "霍格莫德车站", "Hogsmeade Station");
+    seedPair("loc.blacklakecrossing", "黑湖渡船", "Crossing the Black Lake");
+    seedPair("loc.entrancehall", "礼堂前厅", "Entrance Hall");
+    seedPair("loc.sortingstool", "分院帽前", "Before the Sorting Hat");
+    seedPair("loc.housetables", "学院长桌", "House Tables");
 
     // ---------------- 课程 ----------------
     seedPair("class.transfiguration", "变形术",             "Transfiguration");
@@ -225,6 +232,11 @@ void I18n::seed()
     seedPair("status.travelling", "乘车前往霍格沃茨", "Travelling to Hogwarts");
     seedPair("status.followingfirstyears", "跟随一年级新生", "Following the first-years");
     seedPair("status.journeycomplete", "已抵达霍格沃茨", "Journey to Hogwarts complete");
+    seedPair("status.crossingblacklake", "乘船穿过黑湖", "Crossing the Black Lake");
+    seedPair("status.waitingsorting", "等待分院", "Waiting for the Sorting");
+    seedPair("status.sortingceremony", "参加分院仪式", "Attending the Sorting Ceremony");
+    seedPair("status.joininghousetable", "走向学院长桌", "Joining the house table");
+    seedPair("status.freeexploration", "自主探索", "Free exploration");
     seedPair("status.none",         "暂无",         "None");
 
     // ---------------- 聊天 ----------------

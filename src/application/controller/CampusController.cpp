@@ -168,6 +168,8 @@ QString storyChannel(const story::StoryRuntimeState& state)
         return QStringLiteral("Diagon Alley");
     if (state.chapterId == QLatin1String("journey_to_hogwarts"))
         return QStringLiteral("Journey to Hogwarts");
+    if (state.chapterId == QLatin1String("sorting_ceremony"))
+        return QStringLiteral("Sorting Ceremony");
     return QStringLiteral("Story");
 }
 
@@ -193,6 +195,13 @@ std::string storyStatus(const story::StoryRuntimeState& state)
         if (state.currentSceneId == QLatin1String("platform_nine_three_quarters")) return "Boarding the Hogwarts Express";
         if (state.currentSceneId == QLatin1String("hogwarts_express")) return "Travelling to Hogwarts";
         if (state.currentSceneId == QLatin1String("hogsmeade_station")) return "Following the first-years";
+    }
+    if (state.chapterId == QLatin1String("sorting_ceremony")) {
+        if (state.chapterCompleted) return "Free exploration";
+        if (state.currentSceneId == QLatin1String("black_lake_crossing")) return "Crossing the Black Lake";
+        if (state.currentSceneId == QLatin1String("entrance_hall")) return "Waiting for the Sorting";
+        if (state.currentSceneId == QLatin1String("sorting_stool")) return "Attending the Sorting Ceremony";
+        if (state.currentSceneId == QLatin1String("house_tables")) return "Joining the house table";
     }
     return "Story in progress";
 }
@@ -313,6 +322,13 @@ CampusController::CampusController(QObject* parent)
                     (void)beginCampaignChapter(chapterId);
                 });
             });
+    connect(storyRuntimeService_.get(), &story::StoryRuntimeService::chapterCompleted,
+            this, [this](const QString& chapterId) {
+                if (chapterId != QLatin1String("sorting_ceremony")) return;
+                QTimer::singleShot(0, this, [this] {
+                    enterFreeExplorationMode(false);
+                });
+            });
     const auto updateStoryLanguage = [this](arcane::ui::I18n::Lang language) {
         storyRuntimeService_->setLanguage(language == arcane::ui::I18n::Lang::Chinese
                                               ? story::StoryLanguage::Chinese
@@ -380,7 +396,17 @@ bool CampusController::startStoryChapter(story::ChapterDefinition chapter)
         state.contentVersion = chapter.contentVersion;
         state.currentSceneId = chapter.entrySceneId;
     }
-    return storyRuntimeService_->start(std::move(chapter), std::move(state));
+    const bool started = storyRuntimeService_->start(std::move(chapter), std::move(state));
+    const auto* activeState = storyRuntimeService_->state();
+    if (started && activeState
+        && activeState->chapterId == QLatin1String("sorting_ceremony")
+        && activeState->chapterCompleted
+        && activeState->flags.contains(QStringLiteral("main_story_complete"))) {
+        QTimer::singleShot(0, this, [this] {
+            enterFreeExplorationMode(true);
+        });
+    }
+    return started;
 }
 
 void CampusController::handleEnrollment(const dto::EnrollmentRequestDTO& request)
@@ -919,6 +945,44 @@ bool CampusController::beginCampaignChapter(const QString& chapterId)
         return false;
     }
     return startStoryChapter(std::move(*chapter));
+}
+
+void CampusController::enterFreeExplorationMode(bool announce)
+{
+    const auto* state = storyRuntimeService_->state();
+    if (!state || state->chapterId != QLatin1String("sorting_ceremony")
+        || !state->chapterCompleted
+        || !state->flags.contains(QStringLiteral("main_story_complete"))) {
+        return;
+    }
+
+    auto* session = activeSession();
+    if (session) {
+        session->currentLocation = "house_tables";
+        session->currentState = "Free exploration";
+        emit playerLocationChanged(QStringLiteral("house_tables"),
+                                   QStringLiteral("Free exploration"));
+    }
+
+    storyRuntimeService_->stop();
+    emit choicesPresented({});
+
+    const bool chinese = arcane::ui::I18n::instance().language()
+        == arcane::ui::I18n::Lang::Chinese;
+    emit sceneHeaderChanged(chinese ? QStringLiteral("霍格沃茨 · 自主探索")
+                                    : QStringLiteral("Hogwarts · Free Exploration"));
+    emit inputHintChanged(chinese
+                              ? QStringLiteral("描述你想探索的地点、角色或行动……")
+                              : QStringLiteral("Describe the place, person, or action you want to explore..."));
+
+    if (announce) {
+        emit richCampusMessageProduced(
+            QStringLiteral("World"),
+            chinese ? QStringLiteral("校园指引") : QStringLiteral("Campus Guide"),
+            chinese
+                ? QStringLiteral("<b>新生序章已经完成。</b><br>你可以从校园地图、背包、同学和当前地点开始决定自己的探索方向；后续开放世界运行时会从这份已保存的角色状态继续。")
+                : QStringLiteral("<b>The first-year prologue is complete.</b><br>You may now choose your own direction through the campus map, inventory, classmates, and current location. The future open-world runtime will continue from this saved character state."));
+    }
 }
 
 void CampusController::resumeSavedStory()

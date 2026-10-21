@@ -96,6 +96,18 @@ target_link_libraries(ArcaneStoryPersistence PUBLIC
 )
 target_compile_features(ArcaneStoryPersistence PUBLIC cxx_std_20)
 
+add_library(ArcaneOpenWorldBoundary STATIC
+    src/application/open_world/model/OpenWorldSnapshot.hpp
+    src/application/open_world/mapping/OpenWorldSnapshotMapper.hpp
+    src/application/open_world/mapping/OpenWorldSnapshotMapper.cpp
+)
+target_include_directories(ArcaneOpenWorldBoundary PUBLIC src)
+target_link_libraries(ArcaneOpenWorldBoundary PUBLIC
+    ArcaneStoryEngine
+    Qt6::Core
+)
+target_compile_features(ArcaneOpenWorldBoundary PUBLIC cxx_std_20)
+
 if(BUILD_TESTING)
     add_executable(ArcaneCampusDatabaseSmokeTest
         tests/database/DatabaseSmokeTest.cpp
@@ -216,6 +228,37 @@ if(BUILD_TESTING)
             --report ${CMAKE_CURRENT_BINARY_DIR}/test-results/hogwarts_journey_report.txt
     )
     set_tests_properties(ArcaneCampusStoryCampaignTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
+    add_executable(ArcaneCampusSortingCeremonyTest
+        tests/story/SortingCeremonyTest.cpp
+        src/resources/resources.qrc
+    )
+    target_include_directories(ArcaneCampusSortingCeremonyTest PRIVATE src)
+    target_link_libraries(ArcaneCampusSortingCeremonyTest PRIVATE
+        ArcaneStoryEngine
+        Qt6::Core
+    )
+    add_test(NAME ArcaneCampusSortingCeremonyTest
+        COMMAND ArcaneCampusSortingCeremonyTest
+            --report ${CMAKE_CURRENT_BINARY_DIR}/test-results/sorting_ceremony_report.txt
+    )
+    set_tests_properties(ArcaneCampusSortingCeremonyTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
+    add_executable(ArcaneCampusOpenWorldSnapshotMapperTest
+        tests/open_world/OpenWorldSnapshotMapperTest.cpp
+    )
+    target_link_libraries(ArcaneCampusOpenWorldSnapshotMapperTest PRIVATE
+        ArcaneOpenWorldBoundary
+    )
+    add_test(NAME ArcaneCampusOpenWorldSnapshotMapperTest
+        COMMAND ArcaneCampusOpenWorldSnapshotMapperTest
+            --report ${CMAKE_CURRENT_BINARY_DIR}/test-results/open_world_snapshot_report.txt
+    )
+    set_tests_properties(ArcaneCampusOpenWorldSnapshotMapperTest PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 endif()

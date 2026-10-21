@@ -1,0 +1,299 @@
+{
+  "schema_version": 2,
+  "chapter_id": "sorting_ceremony",
+  "content_version": 1,
+  "entry_scene": "black_lake_crossing",
+  "title": {
+    "zh": "分院之夜",
+    "en": "The Sorting Night"
+  },
+  "requirements": [
+    {"type": "chapter_completed", "chapter_id": "journey_to_hogwarts"}
+  ],
+  "completion_text": {
+    "zh": "长桌上方的烛火轻轻摇曳，你第一次以霍格沃茨学生的身份坐在人群之中。<br><br><b>【新生序章 · 完成】</b><br>从创建角色、领取魔杖到抵达学院长桌，这段被安排好的主线已经结束。<b>自主探索已经开放。</b>你可以查看校园地图、整理背包、认识同学，并决定自己最先想探索的地方。之后的开放世界故事会从此刻保存下来的角色状态继续。",
+    "en": "Candles tremble above the long tables as you take your place among the students of Hogwarts for the first time.<br><br><b>[FIRST-YEAR PROLOGUE COMPLETE]</b><br>The guided story—from creating your character and claiming a wand to reaching your house table—ends here. <b>Free exploration is now open.</b> You may check the campus map, organise your inventory, meet other students, and decide what to explore first. The future open-world story will continue from the authoritative character state saved at this moment."
+  },
+  "scenes": [
+    {
+      "id": "black_lake_crossing",
+      "title": {"zh": "黑湖渡船", "en": "Crossing the Black Lake"},
+      "narration": {
+        "zh": "新生们沿着湿润的石阶走到湖边。薄雾贴着黑色水面流动，一排小船静静等在岸旁。远处的城堡占据整片夜空，塔楼窗户像被风吹散的星光。",
+        "en": "The first-years follow damp stone steps to the lakeshore. Mist drifts across the black water, where a row of small boats waits in silence. The castle fills the night ahead, its tower windows like stars scattered by the wind."
+      },
+      "revisit_narration": {
+        "zh": "最后几艘小船仍停在湖边，城堡的倒影在水面上轻轻破碎。",
+        "en": "The last few boats still wait at the shore, the castle reflection breaking softly across the water."
+      },
+      "actors": ["keeper_bramble", "rowan_vale"],
+      "arrival_lines": [
+        {
+          "type": "npc_dialogue",
+          "actor_id": "keeper_bramble",
+          "speaker": {"zh": "布兰布尔先生", "en": "Mr. Bramble"},
+          "text": {"zh": "“每条船不要超过四个人！手脚留在船里，也别试着摸水里的东西。”", "en": "“No more than four to a boat! Keep your hands inside, and do not try to touch anything in the water.”"}
+        },
+        {
+          "type": "npc_dialogue",
+          "actor_id": "rowan_vale",
+          "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+          "text": {"zh": "“我替你留了位置。经历过那只箱子和一整列火车以后，一条小船应该难不倒我们。”", "en": "“I saved you a place. After that trunk and an entire train, one small boat should not defeat us.”"},
+          "conditions": [{"type": "affinity_at_least", "npc_id": "rowan_vale", "minimum": 2}]
+        },
+        {
+          "type": "npc_dialogue",
+          "actor_id": "rowan_vale",
+          "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+          "text": {"zh": "“又见面了。要一起坐吗？至少在分院以前，船不会问我们属于哪里。”", "en": "“There you are again. Shall we share a boat? At least the boat will not ask where we belong before the Sorting does.”"},
+          "conditions": [
+            {"type": "affinity_at_most", "npc_id": "rowan_vale", "maximum": 1},
+            {"type": "npc_remembers", "npc_id": "rowan_vale", "key": "met_on_platform"}
+          ]
+        },
+        {
+          "type": "npc_dialogue",
+          "actor_id": "rowan_vale",
+          "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+          "text": {"zh": "“这里还有一个位置。我叫罗温——看来现在才正式认识也不算太晚。”", "en": "“There is one place left here. I'm Rowan—I suppose the lake is not too late for a proper introduction.”"},
+          "conditions": [{"type": "npc_missing_memory", "npc_id": "rowan_vale", "key": "met_on_platform"}]
+        }
+      ],
+      "actions": [
+        {
+          "id": "cross_the_black_lake",
+          "label": {"zh": "登上小船，穿过黑湖", "en": "Board a boat and cross the lake"},
+          "player_text": {"zh": "你踏进轻轻摇晃的小船，在罗温身边坐下。", "en": "You step into the gently rocking boat and sit beside Rowan."},
+          "aliases": ["登上小船", "穿过黑湖", "坐船去城堡", "board the boat", "cross the lake"],
+          "effects": [
+            {"type": "set_flag", "key": "crossed_black_lake"},
+            {"type": "set_npc_memory", "npc_id": "rowan_vale", "key": "crossed_black_lake_together"},
+            {"type": "move_to_scene", "scene_id": "entrance_hall"}
+          ],
+          "response_lines": [
+            {
+              "type": "narration",
+              "text": {"zh": "船队无声地离开岸边。城堡越来越近，直到高耸的石墙遮住了整片天空。", "en": "The boats glide soundlessly away from shore. The castle grows until its stone walls seem to cover the entire sky."}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "entrance_hall",
+      "title": {"zh": "礼堂前厅", "en": "Entrance Hall"},
+      "narration": {
+        "zh": "橡木大门在身后合拢，火把照亮高得看不见尽头的石墙。礼堂另一侧传来数百人的交谈声，新生们不约而同地安静下来。",
+        "en": "The oak doors close behind you, and torchlight climbs stone walls too high to follow. Hundreds of voices murmur beyond the Great Hall doors, and the first-years fall quiet together."
+      },
+      "revisit_narration": {
+        "zh": "礼堂中的声音一阵阵穿过门板，队伍又向前挪动了一小步。",
+        "en": "Waves of voices pass through the doors as the line inches forward once more."
+      },
+      "actors": ["deputy_head", "rowan_vale"],
+      "arrival_lines": [
+        {
+          "type": "npc_dialogue",
+          "actor_id": "deputy_head",
+          "speaker": {"zh": "副校长", "en": "Deputy Head"},
+          "text": {"zh": "“等候期间请保持安静。分院结束后，你们的学院将成为在校期间的家。”", "en": "“Please remain quiet while you wait. After the Sorting, your house will be your home during your years at Hogwarts.”"}
+        },
+        {
+          "type": "npc_dialogue",
+          "actor_id": "rowan_vale",
+          "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+          "text": {"zh": "罗温压低声音：“如果那顶帽子也像我的箱子那么固执，你还愿意再帮我一次吗？”", "en": "Rowan whispers, “If the hat is as stubborn as my trunk, would you help me defeat it too?”"},
+          "conditions": [{"type": "npc_remembers", "npc_id": "rowan_vale", "key": "helped_with_trunk"}]
+        }
+      ],
+      "actions": [
+        {
+          "id": "enter_the_great_hall",
+          "label": {"zh": "跟随队伍进入礼堂", "en": "Follow the line into the Great Hall"},
+          "player_text": {"zh": "你的名字即将被念到。你跟随新生队伍走进礼堂。", "en": "Your name will be called soon. You follow the first-years into the Great Hall."},
+          "aliases": ["进入礼堂", "跟随队伍", "参加分院", "enter the great hall", "follow the line"],
+          "effects": [
+            {"type": "set_flag", "key": "entered_great_hall"},
+            {"type": "move_to_scene", "scene_id": "sorting_stool"}
+          ],
+          "response_lines": [
+            {
+              "type": "narration",
+              "text": {"zh": "礼堂大门向内打开。漂浮的蜡烛一直延伸到被施过魔法的夜空之下，一张矮凳和一顶旧尖帽正等在所有目光中央。", "en": "The doors open inward. Floating candles stretch beneath an enchanted night sky, while a small stool and an ancient pointed hat wait beneath every watching eye."}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sorting_stool",
+      "title": {"zh": "分院帽前", "en": "Before the Sorting Hat"},
+      "narration": {
+        "zh": "副校长念出你的名字。礼堂里的声音忽然消失，只剩长桌两侧无数张面孔和矮凳上的旧帽子。",
+        "en": "The Deputy Head calls your name. Every voice in the hall disappears, leaving only hundreds of faces and the old hat upon its stool."
+      },
+      "revisit_narration": {
+        "zh": "矮凳仍在礼堂中央等待，分院帽的帽檐微微弯起，仿佛早已看见了你的答案。",
+        "en": "The stool still waits at the centre of the hall. The Sorting Hat's brim curls slightly, as though it has already seen your answer."
+      },
+      "actors": ["deputy_head", "sorting_hat"],
+      "arrival_lines": [
+        {
+          "type": "npc_dialogue",
+          "actor_id": "deputy_head",
+          "speaker": {"zh": "副校长", "en": "Deputy Head"},
+          "text": {"zh": "“请坐到凳子上，戴上分院帽。”", "en": "“Take your seat and put on the Sorting Hat.”"}
+        }
+      ],
+      "actions": [
+        {
+          "id": "be_sorted_into_gryffindor",
+          "label": {"zh": "戴上分院帽", "en": "Put on the Sorting Hat"},
+          "player_text": {"zh": "你坐上矮凳，把分院帽戴到头上。", "en": "You sit upon the stool and lower the Sorting Hat onto your head."},
+          "aliases": ["戴上分院帽", "开始分院", "坐上凳子", "put on the hat", "begin sorting"],
+          "conditions": [{"type": "character_attribute_is", "attribute": "house", "value": "Gryffindor"}],
+          "effects": [
+            {"type": "set_flag", "key": "sorting_hat_spoke"},
+            {"type": "set_flag", "key": "sorted_into_gryffindor"},
+            {"type": "set_npc_memory", "npc_id": "rowan_vale", "key": "saw_sorting"},
+            {"type": "move_to_scene", "scene_id": "house_tables"}
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "sorting_hat",
+              "speaker": {"zh": "分院帽", "en": "Sorting Hat"},
+              "text": {"zh": "“你会害怕，但不会让害怕替你决定方向。愿意先迈出那一步的人——格兰芬多！”", "en": "“You will know fear, but you will not let it choose your direction. One who steps forward first—GRYFFINDOR!”"}
+            }
+          ]
+        },
+        {
+          "id": "be_sorted_into_slytherin",
+          "label": {"zh": "戴上分院帽", "en": "Put on the Sorting Hat"},
+          "player_text": {"zh": "你坐上矮凳，把分院帽戴到头上。", "en": "You sit upon the stool and lower the Sorting Hat onto your head."},
+          "aliases": ["戴上分院帽", "开始分院", "坐上凳子", "put on the hat", "begin sorting"],
+          "conditions": [{"type": "character_attribute_is", "attribute": "house", "value": "Slytherin"}],
+          "effects": [
+            {"type": "set_flag", "key": "sorting_hat_spoke"},
+            {"type": "set_flag", "key": "sorted_into_slytherin"},
+            {"type": "set_npc_memory", "npc_id": "rowan_vale", "key": "saw_sorting"},
+            {"type": "move_to_scene", "scene_id": "house_tables"}
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "sorting_hat",
+              "speaker": {"zh": "分院帽", "en": "Sorting Hat"},
+              "text": {"zh": "“你看得见目标，也懂得选择抵达它的道路。把野心变成能力吧——斯莱特林！”", "en": "“You see the destination, and you understand how paths are chosen. Turn ambition into ability—SLYTHERIN!”"}
+            }
+          ]
+        },
+        {
+          "id": "be_sorted_into_ravenclaw",
+          "label": {"zh": "戴上分院帽", "en": "Put on the Sorting Hat"},
+          "player_text": {"zh": "你坐上矮凳，把分院帽戴到头上。", "en": "You sit upon the stool and lower the Sorting Hat onto your head."},
+          "aliases": ["戴上分院帽", "开始分院", "坐上凳子", "put on the hat", "begin sorting"],
+          "conditions": [{"type": "character_attribute_is", "attribute": "house", "value": "Ravenclaw"}],
+          "effects": [
+            {"type": "set_flag", "key": "sorting_hat_spoke"},
+            {"type": "set_flag", "key": "sorted_into_ravenclaw"},
+            {"type": "set_npc_memory", "npc_id": "rowan_vale", "key": "saw_sorting"},
+            {"type": "move_to_scene", "scene_id": "house_tables"}
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "sorting_hat",
+              "speaker": {"zh": "分院帽", "en": "Sorting Hat"},
+              "text": {"zh": "“答案从不会让你满足，因为你总会发现下一个问题。让好奇心带你飞翔——拉文克劳！”", "en": "“An answer will never satisfy you for long, because another question always follows. Let curiosity give you wings—RAVENCLAW!”"}
+            }
+          ]
+        },
+        {
+          "id": "be_sorted_into_hufflepuff",
+          "label": {"zh": "戴上分院帽", "en": "Put on the Sorting Hat"},
+          "player_text": {"zh": "你坐上矮凳，把分院帽戴到头上。", "en": "You sit upon the stool and lower the Sorting Hat onto your head."},
+          "aliases": ["戴上分院帽", "开始分院", "坐上凳子", "put on the hat", "begin sorting"],
+          "conditions": [{"type": "character_attribute_is", "attribute": "house", "value": "Hufflepuff"}],
+          "effects": [
+            {"type": "set_flag", "key": "sorting_hat_spoke"},
+            {"type": "set_flag", "key": "sorted_into_hufflepuff"},
+            {"type": "set_npc_memory", "npc_id": "rowan_vale", "key": "saw_sorting"},
+            {"type": "move_to_scene", "scene_id": "house_tables"}
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "sorting_hat",
+              "speaker": {"zh": "分院帽", "en": "Sorting Hat"},
+              "text": {"zh": "“你愿意留下，愿意倾听，也愿意把艰难的事情做到最后。忠诚会成为你的力量——赫奇帕奇！”", "en": "“You stay, you listen, and you finish what is difficult. Loyalty will become your strength—HUFFLEPUFF!”"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "house_tables",
+      "title": {"zh": "学院长桌", "en": "The House Tables"},
+      "narration": {
+        "zh": "掌声从一张长桌旁响起。你摘下分院帽，穿过烛光和注视，走向从今以后属于自己的位置。",
+        "en": "Applause rises from one of the long tables. You remove the hat and cross the candlelight towards the place that will now be yours."
+      },
+      "revisit_narration": {
+        "zh": "学院长桌旁仍有人为新同学腾出位置，金色餐盘映着上方漂浮的烛火。",
+        "en": "Students still make room along the house table, while golden plates reflect the candles floating overhead."
+      },
+      "actors": ["rowan_vale"],
+      "arrival_lines": [
+        {
+          "type": "narration",
+          "text": {"zh": "格兰芬多长桌爆发出欢呼，红金色的领带在人群中格外明亮。", "en": "The Gryffindor table erupts in cheers, red-and-gold ties bright among the crowd."},
+          "conditions": [{"type": "character_attribute_is", "attribute": "house", "value": "Gryffindor"}]
+        },
+        {
+          "type": "narration",
+          "text": {"zh": "斯莱特林长桌响起整齐的掌声，银绿色在烛光下泛着冷静的光泽。", "en": "Measured applause rises from the Slytherin table, silver and green gleaming beneath the candles."},
+          "conditions": [{"type": "character_attribute_is", "attribute": "house", "value": "Slytherin"}]
+        },
+        {
+          "type": "narration",
+          "text": {"zh": "拉文克劳长桌的人们向两侧挪开，蓝铜色之间有人举起一本书向你致意。", "en": "Students at the Ravenclaw table make room, and someone among the blue and bronze raises a book in greeting."},
+          "conditions": [{"type": "character_attribute_is", "attribute": "house", "value": "Ravenclaw"}]
+        },
+        {
+          "type": "narration",
+          "text": {"zh": "赫奇帕奇长桌传来最热烈的欢迎，黄黑色的人群已经为你留好座位。", "en": "The warmest welcome comes from the Hufflepuff table, where the yellow-and-black crowd has already saved you a seat."},
+          "conditions": [{"type": "character_attribute_is", "attribute": "house", "value": "Hufflepuff"}]
+        },
+        {
+          "type": "npc_dialogue",
+          "actor_id": "rowan_vale",
+          "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+          "text": {"zh": "罗温隔着人群向你挥手：“明天早餐见。别忘了我们的楼梯约定！”", "en": "Rowan waves across the hall. “Breakfast tomorrow. Do not forget our staircase agreement!”"},
+          "conditions": [{"type": "npc_remembers", "npc_id": "rowan_vale", "key": "crossed_black_lake_together"}]
+        }
+      ],
+      "actions": [
+        {
+          "id": "take_your_place_at_the_table",
+          "label": {"zh": "在学院长桌旁坐下", "en": "Take your place at the house table"},
+          "player_text": {"zh": "你在新同学为你留出的位置坐下，抬头望向礼堂上空的星夜。", "en": "You sit in the space your new classmates have made and look up at the starlit ceiling."},
+          "aliases": ["坐到长桌旁", "加入学院", "坐下", "take my seat", "join the house table"],
+          "effects": [
+            {"type": "set_flag", "key": "house_table_reached"},
+            {"type": "set_flag", "key": "main_story_complete"},
+            {"type": "set_flag", "key": "open_world_handoff_ready"},
+            {"type": "unlock_chapter", "chapter_id": "first_night_at_hogwarts"},
+            {"type": "complete_chapter"}
+          ],
+          "response_lines": [
+            {
+              "type": "system_notice",
+              "text": {"zh": "角色档案、NPC 记忆和主线完成状态已经保存。中央叙事框将退出固定剧情模式，等待你决定自己的探索方向。", "en": "Your character record, NPC memories, and main-story completion state have been saved. The central narrative frame will now leave guided-story mode and wait for you to choose your own direction."}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

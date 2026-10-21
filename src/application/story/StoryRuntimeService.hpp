@@ -45,6 +45,7 @@ signals:
     void inputHintChanged(const QString& hint);
     void choicesPresented(const QStringList& labels);
     void runtimeStateChanged(const QString& sceneId, const QStringList& flags);
+    void chapterCompleted(const QString& chapterId);
     void chapterTransitionRequested(const QString& chapterId);
     void runtimeError(const QString& message);
 

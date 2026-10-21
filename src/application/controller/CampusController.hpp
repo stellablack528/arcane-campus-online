@@ -114,6 +114,7 @@ private:
                           const QStringList& flags = {});
     [[nodiscard]] bool ensureStoryCampaign();
     [[nodiscard]] bool beginCampaignChapter(const QString& chapterId);
+    void enterFreeExplorationMode(bool announce);
     void resumeSavedStory();
 
     std::unique_ptr<service::SessionService> sessionService_;

@@ -1,0 +1,17 @@
+Arcane Campus Online - Standalone Sorting Ceremony report
+=========================================================
+[PASS] Sorting Ceremony content loads
+[PASS] Chapter IDs, bilingual text and scene graph validate
+[PASS] Journey completion is required before Sorting
+[PASS] Gryffindor receives its own Hat verdict and completes
+[PASS] Rowan's earlier relationship changes the lake scene and persists
+[PASS] Completed main-story state restores without reopening guided choices
+[PASS] Slytherin receives its own Hat verdict and completes
+[PASS] Ravenclaw receives its own Hat verdict and completes
+[PASS] Hufflepuff receives its own Hat verdict and completes
+[PASS] A mid-chapter resume restores scene and Rowan memory dialogue
+[PASS] A player Rowan does not remember receives the first-meeting branch
+---------------------------------------------------------
+OVERALL: PASS
+PLAYABLE FLOW: Black Lake -> Entrance Hall -> Sorting Hat -> House Table
+INTEGRATION STATUS: Registered in the built-in campaign and hands off to free exploration.

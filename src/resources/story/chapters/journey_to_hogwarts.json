@@ -290,7 +290,7 @@
           "aliases": ["跟随新生", "前往湖边", "去城堡", "follow first years", "go to the lake"],
           "effects": [
             {"type": "set_flag", "key": "reached_hogwarts"},
-            {"type": "unlock_chapter", "chapter_id": "sorting_ceremony"},
+            {"type": "transition_to_chapter", "chapter_id": "sorting_ceremony"},
             {"type": "complete_chapter"}
           ],
           "response_lines": [

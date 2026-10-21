@@ -39,9 +39,14 @@
 diagon_alley.json
   → DiagonAlleyCatalog（读取与查询）
   └→ DiagonAlleyChapterAdapter ┐
-journey_to_hogwarts.json ───────┴→ StoryCampaignService → StoryRuntimeService
+journey_to_hogwarts.json ───────┤
+sorting_ceremony.json ──────────┴→ StoryCampaignService → StoryRuntimeService
   → StoryEngine → StoryPersistenceService → CampusController（中央叙事框与状态面板）
 ```
+
+`sorting_ceremony.json` 已按同一份 v2 契约注册进生产战役。入学旅程结束后通过
+`transition_to_chapter` 原子切换到黑湖；分院结束会写入 `main_story_complete` 和
+`open_world_handoff_ready`，退出固定选项模式并把中央输入交还给自主探索入口。
 
 AI 可用于生成风格化叙事，但不能直接决定扣款、发放物品或修改存档。所有会改变角色状态的动作仍由确定性的本地规则执行。
 
@@ -65,3 +70,4 @@ AI 可用于生成风格化叙事，但不能直接决定扣款、发放物品�
 7. 运行 `ArcaneCampusDiagonAlleyRuntimeTest`，确认旧入口内容包、自由输入、NPC 记忆和采购闭环均通过。
 8. 运行 `ArcaneCampusDiagonAlleyParityTest`，确认旧入口和通用引擎的完整结果仍等价。
 9. 运行 `ArcaneCampusStoryCampaignTest`，确认跨章节、NPC 记忆、宠物分支、恢复和最终解锁均通过。
+10. 运行 `ArcaneCampusSortingCeremonyTest`，确认四学院分支、前置章节、NPC 记忆和中途恢复均通过。

@@ -124,6 +124,7 @@ bool StoryRuntimeService::commitAndPublish(StoryExecutionResult result)
     }
 
     const auto nextChapterId = result.delta.nextChapterId;
+    const bool chapterWasCompleted = state_.chapterCompleted;
     QString error;
     StoryRuntimeState committedState = state_;
     if (!engine_.applyDelta(committedState, result.delta, &error)) {
@@ -147,6 +148,8 @@ bool StoryRuntimeService::commitAndPublish(StoryExecutionResult result)
     QStringList flags(state_.flags.begin(), state_.flags.end());
     flags.sort();
     emit runtimeStateChanged(state_.currentSceneId, flags);
+    if (!chapterWasCompleted && state_.chapterCompleted)
+        emit chapterCompleted(state_.chapterId);
     if (nextChapterId) emit chapterTransitionRequested(*nextChapterId);
     return true;
 }

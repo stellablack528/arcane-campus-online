@@ -111,11 +111,18 @@ The legacy `DiagonAlleyService` is no longer linked into the application target.
 
 ## Built-in first-year campaign
 
-`StoryCampaignService` currently registers two chapters:
+`StoryCampaignService` currently registers three chapters:
 
 1. `diagon_alley_shopping` — adapted from the v1 catalog;
 2. `journey_to_hogwarts` — native v2 JSON covering King's Cross, Platform Nine and Three-Quarters, the Hogwarts Express, and Hogsmeade Station.
+3. `sorting_ceremony` — native v2 JSON covering the Black Lake, Entrance Hall, the Sorting Hat, and the house tables.
 
-The journey remembers whether the player helped Rowan Vale, changes later greetings and train dialogue, reflects the pet bought in Diagon Alley, supports resuming mid-route, and unlocks `sorting_ceremony` on completion. Sorting is an unlocked future chapter, not yet a playable content pack.
+The journey remembers whether the player helped Rowan Vale, changes later greetings and train dialogue, reflects the pet bought in Diagon Alley, supports resuming mid-route, and transitions atomically into `sorting_ceremony` on completion.
 
-`ArcaneCampusStoryCampaignTest` performs the full cross-chapter route and writes a human-readable report with `--report <path>`.
+The Sorting chapter reads the saved `house` attribute instead of asking the player to choose again and carries Rowan's memory and affinity into conditional dialogue. Completing it commits `main_story_complete` and `open_world_handoff_ready`, publishes the first-year prologue ending, and then releases the central input from guided-story mode. Login can restore this completed state without reopening obsolete choices.
+
+`ArcaneCampusStoryCampaignTest` performs the full cross-chapter route from Diagon Alley through Sorting and the free-exploration handoff, and writes a human-readable report with `--report <path>`.
+
+`ArcaneCampusSortingCeremonyTest` runs the new chapter in isolation for all four houses, verifies prerequisite rejection, NPC-memory branches, resume behavior, completion state, and the `first_night_at_hogwarts` unlock.
+
+The future TaleState adapter should begin only when the two handoff flags are present. The database-backed `StoryRuntimeState` remains authoritative; a TaleState Agent may propose actions and narration, while accepted world changes must still return through a validated delta and atomic commit. No TaleState binary dependency is linked at this stage.

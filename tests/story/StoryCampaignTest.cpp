@@ -38,13 +38,13 @@ bool writeReport(const QString& path, const Report& report)
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) return false;
     QTextStream output(&file);
     output.setEncoding(QStringConverter::Utf8);
-    output << "Arcane Campus Online - Multi-chapter Hogwarts journey report\n";
-    output << "============================================================\n";
+    output << "Arcane Campus Online - Complete first-year prologue report\n";
+    output << "==========================================================\n";
     for (const auto& line : report.lines) output << line << '\n';
-    output << "------------------------------------------------------------\n";
+    output << "----------------------------------------------------------\n";
     output << "OVERALL: " << (report.passed ? "PASS" : "FAIL") << '\n';
     output << "PLAYABLE FLOW: Diagon Alley -> King's Cross -> Platform 9 3/4 -> "
-              "Hogwarts Express -> Hogsmeade Station\n";
+              "Hogwarts Express -> Hogsmeade -> Black Lake -> Sorting -> Free Exploration\n";
     return true;
 }
 
@@ -73,14 +73,16 @@ int main(int argc, char* argv[])
                  loadErrors.join(QStringLiteral("; ")));
     report.check(campaign.chapterIds()
                      == QStringList{QStringLiteral("diagon_alley_shopping"),
-                                    QStringLiteral("journey_to_hogwarts")},
-                 QStringLiteral("Campaign catalog exposes both playable chapters"));
+                                    QStringLiteral("journey_to_hogwarts"),
+                                    QStringLiteral("sorting_ceremony")},
+                 QStringLiteral("Campaign catalog exposes all three playable chapters"));
 
     const auto diagonAlley = campaign.chapter(QStringLiteral("diagon_alley_shopping"));
     const auto journey = campaign.chapter(QStringLiteral("journey_to_hogwarts"));
-    report.check(diagonAlley.has_value() && journey.has_value(),
-                 QStringLiteral("Both chapter definitions are available to the runtime"));
-    if (!diagonAlley || !journey) return 1;
+    const auto sorting = campaign.chapter(QStringLiteral("sorting_ceremony"));
+    report.check(diagonAlley.has_value() && journey.has_value() && sorting.has_value(),
+                 QStringLiteral("All chapter definitions are available to the runtime"));
+    if (!diagonAlley || !journey || !sorting) return 1;
 
     story::StoryRuntimeState shoppingComplete;
     shoppingComplete.characterId = 42;
@@ -118,6 +120,8 @@ int main(int argc, char* argv[])
     journeyState.currentSceneId = journey->entrySceneId;
     journeyState.gold = 10;
     journeyState.inventory = shoppingComplete.inventory;
+    journeyState.characterAttributes.insert(QStringLiteral("house"),
+                                             QStringLiteral("Ravenclaw"));
     journeyState.completedChapters = shoppingComplete.completedChapters;
     journeyState.unlockedChapters = departureRuntime.state()
         ? departureRuntime.state()->unlockedChapters : QSet<QString>{};
@@ -147,6 +151,7 @@ int main(int argc, char* argv[])
     story::StoryRuntimeService resumedRuntime;
     acceptAllCommits(resumedRuntime);
     bool warmResumeSeen = false;
+    QString sortingTransitionTarget;
     QObject::connect(&resumedRuntime, &story::StoryRuntimeService::narrativeProduced,
                      [&](const QString&, const QString& text) {
                          warmResumeSeen = warmResumeSeen
@@ -154,6 +159,9 @@ int main(int argc, char* argv[])
                          petNarrationSeen = petNarrationSeen
                              || text.contains(QStringLiteral("猫头鹰在笼中"));
                      });
+    QObject::connect(&resumedRuntime,
+                     &story::StoryRuntimeService::chapterTransitionRequested,
+                     [&](const QString& chapterId) { sortingTransitionTarget = chapterId; });
     routeAccepted = resumedRuntime.start(*journey, resumedState)
         && resumedRuntime.submitText(QStringLiteral("上车"))
         && resumedRuntime.submitText(QStringLiteral("分享糖果"))
@@ -167,8 +175,56 @@ int main(int argc, char* argv[])
     report.check(routeAccepted && finalState && finalState->chapterCompleted
                      && finalState->currentSceneId == QLatin1String("hogsmeade_station")
                      && finalState->flags.contains(QStringLiteral("reached_hogwarts"))
-                     && finalState->unlockedChapters.contains(QStringLiteral("sorting_ceremony")),
-                 QStringLiteral("The complete journey reaches Hogwarts and unlocks Sorting"));
+                     && finalState->unlockedChapters.contains(QStringLiteral("sorting_ceremony"))
+                     && sortingTransitionTarget == QLatin1String("sorting_ceremony"),
+                 QStringLiteral("The complete journey reaches Hogwarts and transitions to Sorting"));
+
+    story::StoryRuntimeState sortingState;
+    sortingState.characterId = 42;
+    sortingState.chapterId = sorting->chapterId;
+    sortingState.contentVersion = sorting->contentVersion;
+    sortingState.currentSceneId = sorting->entrySceneId;
+    sortingState.gold = finalState ? finalState->gold : 10;
+    sortingState.inventory = finalState ? finalState->inventory : shoppingComplete.inventory;
+    sortingState.characterAttributes = finalState
+        ? finalState->characterAttributes : journeyState.characterAttributes;
+    sortingState.completedChapters = finalState
+        ? finalState->completedChapters : QSet<QString>{QStringLiteral("journey_to_hogwarts")};
+    sortingState.unlockedChapters = finalState
+        ? finalState->unlockedChapters : QSet<QString>{QStringLiteral("sorting_ceremony")};
+    sortingState.npcAffinities = finalState
+        ? finalState->npcAffinities : QHash<QString, int>{};
+    sortingState.npcMemoryFacts = finalState
+        ? finalState->npcMemoryFacts : QHash<QString, QSet<QString>>{};
+
+    story::StoryRuntimeService sortingRuntime;
+    acceptAllCommits(sortingRuntime);
+    bool mainStoryEndingSeen = false;
+    QString completedChapter;
+    QObject::connect(&sortingRuntime, &story::StoryRuntimeService::narrativeProduced,
+                     [&](const QString&, const QString& text) {
+                         mainStoryEndingSeen = mainStoryEndingSeen
+                             || (text.contains(QStringLiteral("新生序章"))
+                                 && text.contains(QStringLiteral("自主探索")));
+                     });
+    QObject::connect(&sortingRuntime, &story::StoryRuntimeService::chapterCompleted,
+                     [&](const QString& chapterId) { completedChapter = chapterId; });
+    routeAccepted = sortingRuntime.start(*sorting, sortingState)
+        && sortingRuntime.submitAction(QStringLiteral("cross_the_black_lake"))
+        && sortingRuntime.submitAction(QStringLiteral("enter_the_great_hall"))
+        && sortingRuntime.submitAction(QStringLiteral("be_sorted_into_ravenclaw"))
+        && sortingRuntime.submitAction(QStringLiteral("take_your_place_at_the_table"));
+    const auto* prologueFinalState = sortingRuntime.state();
+    report.check(routeAccepted && prologueFinalState
+                     && prologueFinalState->chapterCompleted
+                     && prologueFinalState->currentSceneId == QLatin1String("house_tables")
+                     && prologueFinalState->flags.contains(QStringLiteral("main_story_complete"))
+                     && prologueFinalState->flags.contains(
+                         QStringLiteral("open_world_handoff_ready"))
+                     && completedChapter == QLatin1String("sorting_ceremony"),
+                 QStringLiteral("Sorting completes the guided main story and emits its handoff"));
+    report.check(mainStoryEndingSeen,
+                 QStringLiteral("The final narrative explicitly guides the player to free exploration"));
 
     const bool reportWritten = writeReport(reportPath, report);
     for (const auto& line : report.lines) std::cout << line.toStdString() << '\n';

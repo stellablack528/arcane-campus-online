@@ -27,12 +27,16 @@ constexpr std::array<MoveTarget, 5> kMoveTargets = {{
     {"hogsmeade",               "loc.hogsmeade"},
 }};
 
-constexpr std::array<MoveTarget, 10> kLocationLabels = {{
+constexpr std::array<MoveTarget, 14> kLocationLabels = {{
     {"diagon_alley",             "loc.diagonalley"},
     {"kings_cross",              "loc.kingscross"},
     {"platform_nine_three_quarters", "loc.platform934"},
     {"hogwarts_express",         "loc.hogwartsexpress"},
     {"hogsmeade_station",        "loc.hogsmeadestation"},
+    {"black_lake_crossing",      "loc.blacklakecrossing"},
+    {"entrance_hall",            "loc.entrancehall"},
+    {"sorting_stool",            "loc.sortingstool"},
+    {"house_tables",             "loc.housetables"},
     {"great_hall",               "loc.greathall"},
     {"transfiguration_classroom", "loc.classroom"},
     {"library",                  "loc.library"},
@@ -74,6 +78,21 @@ const QHash<QString, std::vector<Person>>& peopleByLocation()
             {"npc_rowan_vale", "npc.rowan"},
         }},
         {"hogwarts_express", {
+            {"npc_rowan_vale", "npc.rowan"},
+        }},
+        {"black_lake_crossing", {
+            {"npc_rowan_vale", "npc.rowan"},
+            {"keeper_bramble", "npc.bramble"},
+        }},
+        {"entrance_hall", {
+            {"npc_rowan_vale", "npc.rowan"},
+            {"deputy_head", "npc.deputyhead"},
+        }},
+        {"sorting_stool", {
+            {"deputy_head", "npc.deputyhead"},
+            {"sorting_hat", "npc.sortinghat"},
+        }},
+        {"house_tables", {
             {"npc_rowan_vale", "npc.rowan"},
         }},
     };

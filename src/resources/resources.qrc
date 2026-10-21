@@ -5,5 +5,6 @@
         <file>data/diagon_alley.json</file>
         <file>story/schemas/chapter_v2.schema.json</file>
         <file>story/chapters/journey_to_hogwarts.json</file>
+        <file>story/chapters/sorting_ceremony.json</file>
     </qresource>
 </RCC>

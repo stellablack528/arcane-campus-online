@@ -43,6 +43,7 @@ The platform aims to provide an immersive text-based social experience while ser
 | 💬 聊天事件面板 | 羊皮纸风格，支持多频道（Location / World / Party）|
 | 📖 对角巷序章 | 四家商店自由探索、采购闭环、断点续玩 |
 | 🚂 入学旅程 | 国王十字 → 九又四分之三站台 → 霍格沃茨特快 → 霍格莫德车站 |
+| 🎩 分院与主线终点 | 黑湖渡船、四学院专属分院、学院长桌与自主探索交接 |
 | ⌨️ 自由行动输入 | 中英文动作解析；按钮是建议而非唯一路径 |
 | 🧠 NPC 记忆 | 交谈与忽略会改变好感和之后的招呼 |
 | 📦 数据驱动剧情 | 商店、NPC、商品与双语叙事由 JSON 内容包提供 |
@@ -263,7 +264,8 @@ HogwartsOnline/
 │   │   ├── StoryRuntimeServiceTest.cpp   # 提交边界、自由输入与中央叙事信号
 │   │   ├── StoryPersistenceServiceTest.cpp # 多表事务、恢复、并发版本与回滚
 │   │   ├── DiagonAlleyParityTest.cpp    # 新旧完整游玩结果等价性
-│   │   └── StoryCampaignTest.cpp        # 跨章节、NPC 记忆、恢复与入学旅程闭环
+│   │   ├── StoryCampaignTest.cpp        # 从对角巷到分院结束的完整主线闭环
+│   │   └── SortingCeremonyTest.cpp      # 四学院、NPC 记忆与完成态恢复
 │   └── database/
 │       ├── DatabaseSmokeTest.cpp       # 冒烟测试（无需数据库）
 │       └── MySqlIntegrationTest.cpp    # MySQL 集成测试
@@ -298,6 +300,7 @@ HogwartsOnline/
 - [x] **剧情运行桥** (StoryRuntimeService 提交成功后再驱动中央叙事框)
 - [x] **剧情事务与恢复** (金币、背包、NPC 记忆、章节状态和事件日志原子提交)
 - [x] **入学多章节闭环** (对角巷 → 国王十字 → 九又四分之三站台 → 特快列车 → 霍格莫德)
+- [x] **完整新生序章主流程** (角色创建 → 对角巷 → 入学旅程 → 分院 → 自主探索交接)
 
 ### 🚧 进行中 / In Progress
 
@@ -306,6 +309,7 @@ HogwartsOnline/
 
 ### 📋 规划中 / Planned
 
+- [ ] TaleState 开放世界运行时适配（权威状态快照、行动协议与叙事回传）
 - [ ] Redis Integration（缓存层）
 - [ ] Room System 完整实现（CampusService 接 RoomDAO）
 - [ ] Friend System 完整实现（SocialService 接 FriendDAO）
@@ -397,7 +401,8 @@ ctest --output-on-failure
 - **StoryRuntimeServiceTest** — 提交后发布与中央叙事框信号
 - **StoryPersistenceServiceTest** — 完整恢复、多表原子提交、并发版本拒绝与失败回滚
 - **DiagonAlleyParityTest** — 新旧对角巷完整游玩结果等价性
-- **StoryCampaignTest** — 跨章节切换、NPC 记忆、宠物条件旁白、断点恢复与入学旅程完成
+- **StoryCampaignTest** — 跨章节切换、NPC 记忆、分院与自主探索交接的完整主线
+- **SortingCeremonyTest** — 四学院结果、NPC 记忆、中途及完成态恢复
 
 ---
 

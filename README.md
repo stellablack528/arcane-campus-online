@@ -43,7 +43,9 @@ The platform aims to provide an immersive text-based social experience while ser
 | 💬 聊天事件面板 | 羊皮纸风格，支持多频道（Location / World / Party）|
 | 📖 对角巷序章 | 四家商店自由探索、采购闭环、断点续玩 |
 | 🚂 入学旅程 | 国王十字 → 九又四分之三站台 → 霍格沃茨特快 → 霍格莫德车站 |
-| 🎩 分院与主线终点 | 黑湖渡船、四学院专属分院、学院长桌与自主探索交接 |
+| 🎩 分院与魔咒课 | 黑湖渡船、四学院专属分院、漂浮咒练习，完成后进入自主探索 |
+| 📚 自己翻页的书 | 礼堂、图书馆、庭院可往返调查；漂浮咒和求助都能推进，处理方式影响 NPC 下次见面的回应 |
+| 🕊️ 校园联机试玩 | 同场景聊天、移动后场景隔离、跨场景猫头鹰私信（可信网络试玩） |
 | ⌨️ 自由行动输入 | 中英文动作解析；按钮是建议而非唯一路径 |
 | 🧠 NPC 记忆 | 交谈与忽略会改变好感和之后的招呼 |
 | 📦 数据驱动剧情 | 商店、NPC、商品与双语叙事由 JSON 内容包提供 |
@@ -60,6 +62,10 @@ The platform aims to provide an immersive text-based social experience while ser
 
 DeepSeek 密钥只从本机设置或环境变量读取，不进入源码与 Git。配置方式与安全边界见
 [docs/AI_CONFIGURATION.md](docs/AI_CONFIGURATION.md)。
+
+本机双人试玩：先运行构建目录中的 `ArcaneCampusLiveServer.exe`，再分别启动两个客户端；双方完成魔咒课后进入同一场景，在“地点”频道发言。输入 `/owl 昵称 内容` 可以跨场景送信。详细步骤与当前联机边界见 [魔咒课与联机校园任务报告](docs/reports/CHARMS_AND_LIVE_CAMPUS_TASK_REPORT.md)。
+
+魔咒课后可以在礼堂找罗温、在图书馆调查旧书，或在庭院查看喷泉刻字，开启 [“自己翻页的书”探索事件](docs/reports/TURNING_PAGES_EXPLORATION_TASK_REPORT.md)。
 
 ### 🗄️ 后端数据层（MySQL）
 

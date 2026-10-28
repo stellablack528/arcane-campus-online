@@ -6,5 +6,7 @@
         <file>story/schemas/chapter_v2.schema.json</file>
         <file>story/chapters/journey_to_hogwarts.json</file>
         <file>story/chapters/sorting_ceremony.json</file>
+        <file>story/chapters/first_charms_lesson.json</file>
+        <file>story/chapters/turning_pages.json</file>
     </qresource>
 </RCC>

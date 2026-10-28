@@ -23,6 +23,8 @@ bool StoryCampaignService::loadBuiltIn(QStringList& errors)
     (void)staged.add(adapter.build(diagonAlley), errors);
     (void)staged.load(QStringLiteral(":/story/chapters/journey_to_hogwarts.json"), errors);
     (void)staged.load(QStringLiteral(":/story/chapters/sorting_ceremony.json"), errors);
+    (void)staged.load(QStringLiteral(":/story/chapters/first_charms_lesson.json"), errors);
+    (void)staged.load(QStringLiteral(":/story/chapters/turning_pages.json"), errors);
     errors.append(staged.validateTransitions());
     if (!errors.isEmpty()) return false;
 

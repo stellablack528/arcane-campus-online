@@ -44,7 +44,7 @@ bool writeReport(const QString& path, const Report& report)
     output << "----------------------------------------------------------\n";
     output << "OVERALL: " << (report.passed ? "PASS" : "FAIL") << '\n';
     output << "PLAYABLE FLOW: Diagon Alley -> King's Cross -> Platform 9 3/4 -> "
-              "Hogwarts Express -> Hogsmeade -> Black Lake -> Sorting -> Free Exploration\n";
+              "Hogwarts Express -> Hogsmeade -> Black Lake -> Sorting -> Charms -> Free Exploration\n";
     return true;
 }
 
@@ -73,16 +73,20 @@ int main(int argc, char* argv[])
                  loadErrors.join(QStringLiteral("; ")));
     report.check(campaign.chapterIds()
                      == QStringList{QStringLiteral("diagon_alley_shopping"),
+                                    QStringLiteral("first_charms_lesson"),
                                     QStringLiteral("journey_to_hogwarts"),
-                                    QStringLiteral("sorting_ceremony")},
-                 QStringLiteral("Campaign catalog exposes all three playable chapters"));
+                                    QStringLiteral("sorting_ceremony"),
+                                    QStringLiteral("turning_pages")},
+                 QStringLiteral("Campaign catalog exposes all five playable chapters"));
 
     const auto diagonAlley = campaign.chapter(QStringLiteral("diagon_alley_shopping"));
     const auto journey = campaign.chapter(QStringLiteral("journey_to_hogwarts"));
     const auto sorting = campaign.chapter(QStringLiteral("sorting_ceremony"));
-    report.check(diagonAlley.has_value() && journey.has_value() && sorting.has_value(),
+    const auto charms = campaign.chapter(QStringLiteral("first_charms_lesson"));
+    report.check(diagonAlley.has_value() && journey.has_value() && sorting.has_value()
+                     && charms.has_value(),
                  QStringLiteral("All chapter definitions are available to the runtime"));
-    if (!diagonAlley || !journey || !sorting) return 1;
+    if (!diagonAlley || !journey || !sorting || !charms) return 1;
 
     story::StoryRuntimeState shoppingComplete;
     shoppingComplete.characterId = 42;
@@ -204,7 +208,7 @@ int main(int argc, char* argv[])
     QObject::connect(&sortingRuntime, &story::StoryRuntimeService::narrativeProduced,
                      [&](const QString&, const QString& text) {
                          mainStoryEndingSeen = mainStoryEndingSeen
-                             || (text.contains(QStringLiteral("新生序章"))
+                             || (text.contains(QStringLiteral("魔咒课"))
                                  && text.contains(QStringLiteral("自主探索")));
                      });
     QObject::connect(&sortingRuntime, &story::StoryRuntimeService::chapterCompleted,
@@ -218,13 +222,32 @@ int main(int argc, char* argv[])
     report.check(routeAccepted && prologueFinalState
                      && prologueFinalState->chapterCompleted
                      && prologueFinalState->currentSceneId == QLatin1String("house_tables")
-                     && prologueFinalState->flags.contains(QStringLiteral("main_story_complete"))
-                     && prologueFinalState->flags.contains(
-                         QStringLiteral("open_world_handoff_ready"))
+                     && prologueFinalState->unlockedChapters.contains(
+                         QStringLiteral("first_charms_lesson"))
+                     && !prologueFinalState->flags.contains(QStringLiteral("main_story_complete"))
                      && completedChapter == QLatin1String("sorting_ceremony"),
-                 QStringLiteral("Sorting completes the guided main story and emits its handoff"));
+                 QStringLiteral("Sorting leads into the first Charms lesson"));
     report.check(mainStoryEndingSeen,
-                 QStringLiteral("The final narrative explicitly guides the player to free exploration"));
+                 QStringLiteral("Sorting narrative guides the player toward exploration"));
+
+    story::StoryRuntimeState charmsState = prologueFinalState ? *prologueFinalState : sortingState;
+    charmsState.chapterId = charms->chapterId;
+    charmsState.contentVersion = charms->contentVersion;
+    charmsState.currentSceneId = charms->entrySceneId;
+    charmsState.chapterCompleted = false;
+    story::StoryRuntimeService charmsRuntime;
+    acceptAllCommits(charmsRuntime);
+    const bool classStarted = charmsRuntime.start(*charms, charmsState);
+    const bool castBeforePractice = charmsRuntime.submitAction(QStringLiteral("cast_levitation_charm"));
+    const bool classCompleted = charmsRuntime.submitAction(QStringLiteral("practice_levitation"))
+        && charmsRuntime.submitAction(QStringLiteral("cast_levitation_charm"));
+    const auto* completedClass = charmsRuntime.state();
+    report.check(classStarted && !castBeforePractice && classCompleted && completedClass
+                     && completedClass->chapterCompleted
+                     && completedClass->flags.contains(QStringLiteral("levitation_mastered"))
+                     && completedClass->flags.contains(QStringLiteral("main_story_complete"))
+                     && completedClass->flags.contains(QStringLiteral("open_world_handoff_ready")),
+                 QStringLiteral("Practice and casting complete Charms and unlock exploration"));
 
     const bool reportWritten = writeReport(reportPath, report);
     for (const auto& line : report.lines) std::cout << line.toStdString() << '\n';

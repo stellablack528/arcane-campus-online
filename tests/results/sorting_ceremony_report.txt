@@ -14,4 +14,4 @@ Arcane Campus Online - Standalone Sorting Ceremony report
 ---------------------------------------------------------
 OVERALL: PASS
 PLAYABLE FLOW: Black Lake -> Entrance Hall -> Sorting Hat -> House Table
-INTEGRATION STATUS: Registered in the built-in campaign and hands off to free exploration.
+INTEGRATION STATUS: Registered in the built-in campaign and transitions to Charms.

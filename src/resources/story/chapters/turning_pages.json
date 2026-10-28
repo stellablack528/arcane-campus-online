@@ -1,0 +1,590 @@
+{
+  "schema_version": 2,
+  "chapter_id": "turning_pages",
+  "content_version": 1,
+  "entry_scene": "great_hall",
+  "title": {
+    "zh": "自己翻页的书",
+    "en": "The Book That Turns Its Pages"
+  },
+  "requirements": [
+    {
+      "type": "chapter_completed",
+      "chapter_id": "first_charms_lesson"
+    }
+  ],
+  "completion_text": {
+    "zh": "<b>【一段故事留下了痕迹】</b><br>你处理这本书的方式已经被记住。校园仍然开放；下次遇到罗温或教授，他们会记得你的选择。",
+    "en": "<b>[A STORY LEFT ITS MARK]</b><br>The way you treated the book is remembered. The campus remains open; Rowan or the professor will remember your choice."
+  },
+  "scenes": [
+    {
+      "id": "great_hall",
+      "title": {
+        "zh": "礼堂 · 传闻",
+        "en": "Great Hall · A Rumour"
+      },
+      "narration": {
+        "zh": "餐盘碰撞的声音里，罗温正给几个同学讲一册会自己翻页的旧书。你可以听，也可以先去别处看看。",
+        "en": "Over the clatter of plates, Rowan tells students about an old book that turns its own pages. You may listen, or explore elsewhere first."
+      },
+      "revisit_narration": {
+        "zh": "礼堂仍旧热闹，罗温朝你点头，像是等你说出自己的发现。",
+        "en": "The hall is still lively. Rowan nods, as if waiting to hear what you found."
+      },
+      "actors": [
+        "rowan_vale"
+      ],
+      "arrival_lines": [
+        {
+          "type": "npc_dialogue",
+          "actor_id": "rowan_vale",
+          "speaker": {
+            "zh": "罗温·维尔",
+            "en": "Rowan Vale"
+          },
+          "text": {
+            "zh": "“你还记得车上的糖果吗？那本书也像在找人说话。”",
+            "en": "“Remember the sweets on the train? That book seems to be looking for someone to talk to.”"
+          },
+          "conditions": [
+            {
+              "type": "npc_remembers",
+              "npc_id": "rowan_vale",
+              "key": "shared_quiet_journey"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "ask_rowan_about_book",
+          "label": {
+            "zh": "问罗温：谁在翻页？",
+            "en": "Ask Rowan who turns the pages"
+          },
+          "player_text": {
+            "zh": "你问罗温，那本书究竟想让人看见什么。",
+            "en": "You ask Rowan what the book is trying to show."
+          },
+          "aliases": [
+            "问罗温",
+            "和罗温说话",
+            "ask Rowan"
+          ],
+          "conditions": [
+            {
+              "type": "missing_flag",
+              "key": "rowan_hint"
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "rowan_hint"
+            }
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "rowan_vale",
+              "speaker": {
+                "zh": "罗温·维尔",
+                "en": "Rowan Vale"
+              },
+              "text": {
+                "zh": "“我只看到一行：‘请不要把我忘在喷泉旁。’也许它在寻找写下这句话的人。”",
+                "en": "“I saw one line: ‘Please don't leave me by the fountain.’ Maybe it's searching for whoever wrote it.”"
+              }
+            }
+          ]
+        },
+        {
+          "id": "hall_to_library",
+          "label": {
+            "zh": "去图书馆",
+            "en": "Go to the library"
+          },
+          "aliases": [
+            "去图书馆",
+            "go to library"
+          ],
+          "effects": [
+            {
+              "type": "move_to_scene",
+              "scene_id": "library"
+            }
+          ]
+        },
+        {
+          "id": "hall_to_courtyard",
+          "label": {
+            "zh": "去庭院",
+            "en": "Go to the courtyard"
+          },
+          "aliases": [
+            "去庭院",
+            "go to courtyard"
+          ],
+          "effects": [
+            {
+              "type": "move_to_scene",
+              "scene_id": "courtyard"
+            }
+          ]
+        },
+        {
+          "id": "share_story_with_rowan",
+          "label": {
+            "zh": "把故事讲给罗温和同学",
+            "en": "Share the story with Rowan and classmates"
+          },
+          "aliases": [
+            "告诉罗温",
+            "分享故事",
+            "tell Rowan"
+          ],
+          "conditions": [
+            {
+              "type": "has_flag",
+              "key": "page_read"
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "book_shared_with_rowan"
+            },
+            {
+              "type": "set_npc_memory",
+              "npc_id": "rowan_vale",
+              "key": "shared_erins_story"
+            },
+            {
+              "type": "change_affinity",
+              "npc_id": "rowan_vale",
+              "amount": 1
+            },
+            {
+              "type": "complete_chapter"
+            }
+          ],
+          "response_lines": [
+            {
+              "type": "narration",
+              "text": {
+                "zh": "你选择让这段被遗忘的善意重新被人听见。罗温认真记下艾琳的名字。",
+                "en": "You let a forgotten kindness be heard again. Rowan carefully writes down Erin's name."
+              }
+            },
+            {
+              "type": "npc_dialogue",
+              "actor_id": "rowan_vale",
+              "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"},
+              "text": {"zh": "“我会记住艾琳，也会记住是你选择讲出这件事。”", "en": "“I will remember Erin, and that you chose to tell her story.”"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "library",
+      "title": {
+        "zh": "图书馆 · 旧书",
+        "en": "Library · The Old Book"
+      },
+      "narration": {
+        "zh": "一本薄薄的旧书在书架下自行翻页。它没有发光，也没有奖励；页边写着许多被划掉的名字。",
+        "en": "A thin old book turns its pages beneath a shelf. It offers no glow or prize; many names are crossed out in its margins."
+      },
+      "revisit_narration": {
+        "zh": "那本书还在这里，停在你刚才读过的一页。",
+        "en": "The book remains here, open to the page you last read."
+      },
+      "actors": [
+        "librarian_mira"
+      ],
+      "arrival_lines": [
+        {
+          "type": "npc_dialogue",
+          "actor_id": "librarian_mira",
+          "speaker": {
+            "zh": "图书管理员米拉",
+            "en": "Librarian Mira"
+          },
+          "text": {
+            "zh": "“它不是在捣乱。先看清楚，再决定要不要告诉所有人。”",
+            "en": "“It isn't misbehaving. Look closely before deciding who should know.”"
+          }
+        },
+        {
+          "type": "narration",
+          "text": {
+            "zh": "你想起庭院喷泉上的刻字，书页的缺口似乎正好对应那个名字。",
+            "en": "You recall the inscription on the courtyard fountain. The torn page seems to match that name."
+          },
+          "conditions": [
+            {
+              "type": "has_flag",
+              "key": "fountain_seen"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "inspect_turning_book",
+          "label": {
+            "zh": "观察翻页规律",
+            "en": "Observe how the book turns"
+          },
+          "aliases": [
+            "观察旧书",
+            "调查书",
+            "inspect book"
+          ],
+          "conditions": [
+            {
+              "type": "missing_flag",
+              "key": "book_found"
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "book_found"
+            }
+          ],
+          "response_lines": [
+            {
+              "type": "narration",
+              "text": {
+                "zh": "书页总在一个被撕掉的名字处停下。它在等人补完一句话，而不是索取魔法。",
+                "en": "The pages always stop at a torn-out name. It wants a sentence restored, not a spell."
+              }
+            }
+          ]
+        },
+        {
+          "id": "lift_page_with_charm",
+          "label": {
+            "zh": "用漂浮咒托起脆弱书页",
+            "en": "Lift the fragile page with your charm"
+          },
+          "aliases": [
+            "用漂浮咒",
+            "漂浮咒",
+            "wingardium leviosa"
+          ],
+          "conditions": [
+            {
+              "type": "has_flag",
+              "key": "book_found"
+            },
+            {
+              "type": "has_flag",
+              "key": "levitation_mastered"
+            },
+            {
+              "type": "missing_flag",
+              "key": "page_read"
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "page_read"
+            },
+            {
+              "type": "set_flag",
+              "key": "page_lifted_safely"
+            }
+          ],
+          "response_lines": [
+            {
+              "type": "narration",
+              "text": {
+                "zh": "你让书页悬在空中，不碰它脆弱的边缘。背面写着：‘献给曾为陌生人留灯的艾琳。’这是记忆，不是藏宝图。",
+                "en": "You hold the page aloft without touching its fragile edge. On the back: ‘For Erin, who left a light for strangers.’ It is a memory, not a treasure map."
+              }
+            }
+          ]
+        },
+        {
+          "id": "ask_mira_to_open_page",
+          "label": {
+            "zh": "请米拉帮忙保护书页",
+            "en": "Ask Mira to protect the page"
+          },
+          "aliases": [
+            "请管理员帮忙",
+            "问米拉",
+            "ask Mira"
+          ],
+          "conditions": [
+            {
+              "type": "has_flag",
+              "key": "book_found"
+            },
+            {
+              "type": "missing_flag",
+              "key": "page_read"
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "page_read"
+            },
+            {
+              "type": "set_flag",
+              "key": "asked_for_help"
+            }
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "librarian_mira",
+              "speaker": {
+                "zh": "图书管理员米拉",
+                "en": "Librarian Mira"
+              },
+              "text": {
+                "zh": "“好问题。纸太旧，先让我垫一张保护纸。”她展开书页：‘献给曾为陌生人留灯的艾琳。’",
+                "en": "“Good question. The paper is old; let me support it.” She unfolds the page: ‘For Erin, who left a light for strangers.’"
+              }
+            }
+          ]
+        },
+        {
+          "id": "library_to_hall",
+          "label": {
+            "zh": "回礼堂",
+            "en": "Return to the Great Hall"
+          },
+          "aliases": [
+            "去礼堂",
+            "return to hall"
+          ],
+          "effects": [
+            {
+              "type": "move_to_scene",
+              "scene_id": "great_hall"
+            }
+          ]
+        },
+        {
+          "id": "library_to_courtyard",
+          "label": {
+            "zh": "去庭院看看",
+            "en": "Visit the courtyard"
+          },
+          "aliases": [
+            "去庭院",
+            "go to courtyard"
+          ],
+          "effects": [
+            {
+              "type": "move_to_scene",
+              "scene_id": "courtyard"
+            }
+          ]
+        },
+        {
+          "id": "keep_story_private",
+          "label": {
+            "zh": "暂时不公开，尊重写书人的沉默",
+            "en": "Keep the story private for now"
+          },
+          "aliases": [
+            "保守秘密",
+            "暂时不说",
+            "keep private"
+          ],
+          "conditions": [
+            {
+              "type": "has_flag",
+              "key": "page_read"
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "book_kept_private"
+            },
+            {
+              "type": "set_npc_memory",
+              "npc_id": "librarian_mira",
+              "key": "respected_erins_privacy"
+            },
+            {
+              "type": "complete_chapter"
+            }
+          ],
+          "response_lines": [
+            {
+              "type": "npc_dialogue",
+              "actor_id": "librarian_mira",
+              "speaker": {
+                "zh": "图书管理员米拉",
+                "en": "Librarian Mira"
+              },
+              "text": {
+                "zh": "“有时，能理解一个故事，并不意味着我们有权替它的主人公开。”",
+                "en": "“Understanding a story does not always give us the right to publish it for its owner.”"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "courtyard",
+      "title": {
+        "zh": "庭院 · 喷泉",
+        "en": "Courtyard · The Fountain"
+      },
+      "narration": {
+        "zh": "喷泉边的石灯白天也亮着。有人把刻字擦得很干净，却没有留下解释。",
+        "en": "The stone lamp beside the fountain stays lit even by day. Someone has cleaned the inscription but left no explanation."
+      },
+      "revisit_narration": {
+        "zh": "石灯仍亮着，水声盖过远处的谈话。",
+        "en": "The stone lamp is still lit; water drowns out distant conversation."
+      },
+      "actors": [
+        "prof_flitwick"
+      ],
+      "arrival_lines": [
+        {
+          "type": "npc_dialogue",
+          "actor_id": "prof_flitwick",
+          "speaker": {
+            "zh": "弗立维教授",
+            "en": "Professor Flitwick"
+          },
+          "text": {
+            "zh": "“有些魔法的用处，是帮我们更轻地触碰旧事。”",
+            "en": "“Some magic helps us touch old things more gently.”"
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "read_fountain_inscription",
+          "label": {
+            "zh": "读喷泉旁的刻字",
+            "en": "Read the fountain inscription"
+          },
+          "aliases": [
+            "看喷泉",
+            "读刻字",
+            "read fountain"
+          ],
+          "conditions": [
+            {
+              "type": "missing_flag",
+              "key": "fountain_seen"
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "fountain_seen"
+            }
+          ],
+          "response_lines": [
+            {
+              "type": "narration",
+              "text": {
+                "zh": "刻字写着：‘艾琳，曾为晚归的人留一盏灯。’书页上的呼唤有了名字。",
+                "en": "The inscription reads: ‘Erin, who left a light for those returning late.’ The book's call has a name."
+              }
+            }
+          ]
+        },
+        {
+          "id": "courtyard_to_library",
+          "label": {
+            "zh": "去图书馆",
+            "en": "Go to the library"
+          },
+          "aliases": [
+            "去图书馆",
+            "go to library"
+          ],
+          "effects": [
+            {
+              "type": "move_to_scene",
+              "scene_id": "library"
+            }
+          ]
+        },
+        {
+          "id": "courtyard_to_hall",
+          "label": {
+            "zh": "回礼堂",
+            "en": "Return to the Great Hall"
+          },
+          "aliases": [
+            "去礼堂",
+            "return to hall"
+          ],
+          "effects": [
+            {
+              "type": "move_to_scene",
+              "scene_id": "great_hall"
+            }
+          ]
+        },
+        {
+          "id": "ask_professor_to_archive",
+          "label": {
+            "zh": "请教授妥善收藏这段记忆",
+            "en": "Ask the professor to preserve the memory"
+          },
+          "aliases": [
+            "交给教授",
+            "妥善收藏",
+            "ask professor"
+          ],
+          "conditions": [
+            {
+              "type": "has_flag",
+              "key": "page_read"
+            }
+          ],
+          "effects": [
+            {
+              "type": "set_flag",
+              "key": "book_archived"
+            },
+            {
+              "type": "set_npc_memory",
+              "npc_id": "prof_flitwick",
+              "key": "trusted_with_erins_story"
+            },
+            {
+              "type": "complete_chapter"
+            }
+          ],
+          "response_lines": [
+            {
+              "type": "narration",
+              "text": {
+                "zh": "你选择让故事被妥善保存，而不是成为走廊里的传闻。教授答应在档案中留下艾琳的名字。",
+                "en": "You choose careful preservation over a corridor rumour. The professor promises to keep Erin's name in the archive."
+              }
+            },
+            {
+              "type": "npc_dialogue",
+              "actor_id": "prof_flitwick",
+              "speaker": {"zh": "弗立维教授", "en": "Professor Flitwick"},
+              "text": {"zh": "“谢谢你把它交给我。我会让后来的人也有机会读到，却不会让她成为谈资。”", "en": "“Thank you for trusting me with it. Others will be able to read it, without turning her into gossip.”"}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

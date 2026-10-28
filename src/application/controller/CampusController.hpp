@@ -52,6 +52,7 @@ public:
     // Starts a generic chapter from a consistent database snapshot when live
     // storage is configured. Diagon Alley uses this runtime in production.
     [[nodiscard]] bool startStoryChapter(story::ChapterDefinition chapter);
+    [[nodiscard]] bool hasActiveStory() const noexcept;
     // 入学注册：从 EnrollmentDialog 获取请求后直接调用（非信号槽驱动）。
     void handleEnrollment(const dto::EnrollmentRequestDTO& request);
 
@@ -130,6 +131,8 @@ private:
     std::unique_ptr<story::persistence::StoryPersistenceService> storyPersistenceService_;
     std::unique_ptr<service::StoryProgressService> storyProgressService_;
     std::unique_ptr<core::DeepSeekClient> deepSeekClient_;
+    bool freeExplorationActive_ = false;
+    QString rememberedEncounterOutcome_;
 };
 
 } // namespace arcane::application::controller

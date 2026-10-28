@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "chapter_id": "first_charms_lesson",
+  "content_version": 1,
+  "entry_scene": "charms_classroom",
+  "title": {"zh": "第一堂魔咒课", "en": "The First Charms Lesson"},
+  "requirements": [{"type": "chapter_completed", "chapter_id": "sorting_ceremony"}],
+  "completion_text": {
+    "zh": "<b>【第一堂魔咒课 · 完成】</b><br>你掌握了漂浮咒，课堂的钟声响起。校园已经向你开放：去礼堂找同学，去图书馆查资料，或走到庭院听风。和同处一地的玩家说话；想联系别处的人，就派猫头鹰。",
+    "en": "<b>[FIRST CHARMS LESSON COMPLETE]</b><br>You have learned the Levitation Charm. The bell rings, and the campus opens to you. Meet students in the Great Hall, read in the library, or visit the courtyard. Speak to players nearby, or send an owl to someone elsewhere."
+  },
+  "scenes": [
+    {
+      "id": "charms_classroom",
+      "title": {"zh": "魔咒课教室", "en": "Charms Classroom"},
+      "narration": {"zh": "窗边的羽毛整齐排在课桌上。弗立维教授踮起脚尖，示意大家拿出魔杖。", "en": "Feathers line the desks by the window. Professor Flitwick rises on tiptoe and asks everyone to draw a wand."},
+      "revisit_narration": {"zh": "羽毛轻轻颤动，等待你的咒语。", "en": "A feather trembles, waiting for your spell."},
+      "actors": ["prof_flitwick", "rowan_vale"],
+      "arrival_lines": [
+        {"type": "npc_dialogue", "actor_id": "prof_flitwick", "speaker": {"zh": "弗立维教授", "en": "Professor Flitwick"}, "text": {"zh": "“手腕轻轻一抖，念清楚：羽加迪姆·勒维奥萨。”", "en": "“Swish and flick. Say it clearly: Wingardium Leviosa.”"}}
+      ],
+      "actions": [
+        {
+          "id": "practice_levitation",
+          "label": {"zh": "练习挥杖与发音", "en": "Practise the wand movement"},
+          "player_text": {"zh": "你认真练习挥杖和发音，羽毛终于离开桌面一寸。", "en": "You practise the movement and pronunciation until the feather rises an inch."},
+          "aliases": ["练习", "挥杖", "practice", "swish and flick"],
+          "conditions": [{"type": "missing_flag", "key": "levitation_practised"}],
+          "effects": [{"type": "set_flag", "key": "levitation_practised"}],
+          "response_lines": [
+            {"type": "npc_dialogue", "actor_id": "prof_flitwick", "speaker": {"zh": "弗立维教授", "en": "Professor Flitwick"}, "text": {"zh": "“很好！现在保持注意力，让它飞得更高。”", "en": "“Excellent! Now keep your focus and lift it higher.”"}}
+          ]
+        },
+        {
+          "id": "cast_levitation_charm",
+          "label": {"zh": "施展漂浮咒", "en": "Cast the Levitation Charm"},
+          "player_text": {"zh": "你喊出咒语，羽毛旋转着升到烛光里。", "en": "You speak the incantation, and the feather spins up into the candlelight."},
+          "aliases": ["羽加迪姆·勒维奥萨", "漂浮咒", "wingardium leviosa", "cast"],
+          "conditions": [{"type": "has_flag", "key": "levitation_practised"}, {"type": "missing_flag", "key": "levitation_mastered"}],
+          "effects": [{"type": "set_flag", "key": "levitation_mastered"}, {"type": "set_flag", "key": "main_story_complete"}, {"type": "set_flag", "key": "open_world_handoff_ready"}, {"type": "complete_chapter"}],
+          "response_lines": [
+            {"type": "npc_dialogue", "actor_id": "rowan_vale", "speaker": {"zh": "罗温·维尔", "en": "Rowan Vale"}, "text": {"zh": "“你做到了！下课后去图书馆看看？我听说那里有一本会自己翻页的书。”", "en": "“You did it! Library after class? I heard there is a book that turns its own pages.”"}}
+          ]
+        }
+      ]
+    }
+  ]
+}

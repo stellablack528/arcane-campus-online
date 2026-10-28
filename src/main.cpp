@@ -7,6 +7,7 @@
 #include "ui/MainWindow.h"
 #include "ui/EnrollmentDialog.h"
 #include "application/controller/CampusController.hpp"
+#include "network/CampusWireClient.hpp"
 
 #include "DBConnection.hpp"
 #include "DatabaseConfigLoader.hpp"
@@ -110,8 +111,42 @@ int main(int argc, char *argv[])
         loginWindow->deleteLater();
     });
 
+    auto* liveClient = new arcane::network::CampusWireClient(&app);
+    auto liveName = std::make_shared<QString>();
+    QObject::connect(campusController, &arcane::application::controller::CampusController::loginAccepted,
+                     &app, [liveName](const QString& name, const QString&) { *liveName = name; });
+    QObject::connect(campusController, &arcane::application::controller::CampusController::playerLocationChanged,
+                     &app, [liveClient, liveName](const QString& location, const QString& state) {
+        if (state == QLatin1String("Free exploration") && !liveClient->connected() && !liveName->isEmpty())
+            liveClient->join(*liveName, location);
+        else if (liveClient->connected()) liveClient->move(location);
+    });
+    QObject::connect(liveClient, &arcane::network::CampusWireClient::messageReceived,
+                     mainWindow, &MainWindow::appendCampusMessage);
     QObject::connect(mainWindow, &MainWindow::sendChatRequested,
-                     campusController, &arcane::application::controller::CampusController::handleChat);
+                     campusController, [campusController, liveClient](const QString& channel, const QString& text) {
+        if (text.startsWith(QStringLiteral("/owl "))) {
+            const auto parts = text.mid(5).split(QLatin1Char(' '), Qt::SkipEmptyParts);
+            if (parts.size() >= 2 && liveClient->connected())
+                liveClient->owl(parts.first(), text.mid(5 + parts.first().size() + 1));
+            return;
+        }
+        if (liveClient->connected() && !campusController->hasActiveStory()
+            && (channel == QLatin1String("Location") || channel == QStringLiteral("地点"))) {
+            if (text == QLatin1String("去图书馆") || text == QLatin1String("去礼堂")
+                || text == QLatin1String("去庭院") || text.startsWith(QLatin1String("go to "))
+                || text.contains(QStringLiteral("翻页")) || text.contains(QStringLiteral("罗温"))
+                || text.contains(QStringLiteral("旧书")) || text.contains(QStringLiteral("教授"))
+                || text.contains(QStringLiteral("米拉")) || text.contains(QStringLiteral("管理员"))
+                || text.contains(QStringLiteral("调查")) || text.contains(QStringLiteral("喷泉"))
+                || text.contains(QStringLiteral("刻字"))
+                || text.compare(QStringLiteral("investigate book"), Qt::CaseInsensitive) == 0)
+                campusController->handleChat(channel, text);
+            else liveClient->say(text);
+            return;
+        }
+        campusController->handleChat(channel, text);
+    });
     QObject::connect(mainWindow, &MainWindow::moveToLocationRequested,
                      campusController, &arcane::application::controller::CampusController::handleMove);
     QObject::connect(mainWindow, &MainWindow::joinClassRequested,

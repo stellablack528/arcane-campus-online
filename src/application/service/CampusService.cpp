@@ -14,7 +14,8 @@ namespace {
 // Fallback tables used in demo mode (no DAO wired in).
 const std::unordered_map<std::string, std::string> fallbackLocations{
     {"great_hall", "Great Hall"}, {"transfiguration_classroom", "Transfiguration Classroom"},
-    {"library", "Library"}, {"courtyard", "Courtyard"}, {"hogsmeade", "Hogsmeade"}};
+    {"library", "Library"}, {"courtyard", "Courtyard"}, {"hogsmeade", "Hogsmeade"},
+    {"charms_classroom", "Charms Classroom"}};
 const std::unordered_map<std::string, std::string> fallbackCourses{
     {"transfiguration", "Transfiguration Classroom"}, {"charms", "Charms Classroom"},
     {"herbology", "Greenhouse Three"}, {"defense", "Defense Classroom"}};

@@ -11,6 +11,18 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
 include(CTest)
 
+add_library(ArcaneCampusWire STATIC
+    src/network/CampusWireServer.hpp
+    src/network/CampusWireServer.cpp
+    src/network/CampusWireClient.hpp
+    src/network/CampusWireClient.cpp
+)
+target_include_directories(ArcaneCampusWire PUBLIC src)
+target_link_libraries(ArcaneCampusWire PUBLIC Qt6::Core Qt6::Network)
+
+add_executable(ArcaneCampusLiveServer src/server/CampusLiveServerMain.cpp)
+target_link_libraries(ArcaneCampusLiveServer PRIVATE ArcaneCampusWire)
+
 set(ARCANE_MYSQL_ROOT "D:/mysql-8.0.25-winx64" CACHE PATH "MySQL Server or Connector/C installation")
 find_path(ARCANE_MYSQL_INCLUDE_DIR mysql.h
     HINTS "${ARCANE_MYSQL_ROOT}/include"
@@ -109,6 +121,12 @@ target_link_libraries(ArcaneOpenWorldBoundary PUBLIC
 target_compile_features(ArcaneOpenWorldBoundary PUBLIC cxx_std_20)
 
 if(BUILD_TESTING)
+    add_executable(ArcaneCampusWireTest tests/network/CampusWireTest.cpp)
+    target_link_libraries(ArcaneCampusWireTest PRIVATE ArcaneCampusWire)
+    add_test(NAME ArcaneCampusWireTest COMMAND ArcaneCampusWireTest)
+    set_tests_properties(ArcaneCampusWireTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
     add_executable(ArcaneCampusDatabaseSmokeTest
         tests/database/DatabaseSmokeTest.cpp
     )
@@ -248,6 +266,17 @@ if(BUILD_TESTING)
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 
+    add_executable(ArcaneCampusTurningPagesTest
+        tests/story/TurningPagesTest.cpp
+        src/resources/resources.qrc
+    )
+    target_include_directories(ArcaneCampusTurningPagesTest PRIVATE src)
+    target_link_libraries(ArcaneCampusTurningPagesTest PRIVATE ArcaneStoryEngine Qt6::Core)
+    add_test(NAME ArcaneCampusTurningPagesTest COMMAND ArcaneCampusTurningPagesTest)
+    set_tests_properties(ArcaneCampusTurningPagesTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
     add_executable(ArcaneCampusOpenWorldSnapshotMapperTest
         tests/open_world/OpenWorldSnapshotMapperTest.cpp
     )
@@ -327,6 +356,7 @@ qt_add_executable(HogwartsOnline
     src/application/world/WorldEvent.cpp
     src/core/DeepSeekClient.hpp
     src/core/DeepSeekClient.cpp
+    src/network/CampusWireClient.hpp
     src/ui/LoginWindow.h
     src/ui/LoginWindow.cpp
     src/ui/I18n.hpp
@@ -364,6 +394,7 @@ target_link_libraries(HogwartsOnline PRIVATE
     ArcaneCampusDatabase
     ArcaneStoryEngine
     ArcaneStoryPersistence
+    ArcaneCampusWire
     Qt6::Widgets
     Qt6::Network
 )

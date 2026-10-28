@@ -14,6 +14,14 @@ namespace arcane::application::controller {
 
 namespace {
 
+QString storySceneForCampusLocation(const QString& location)
+{
+    if (location == QLatin1String("Great Hall")) return QStringLiteral("great_hall");
+    if (location == QLatin1String("Library")) return QStringLiteral("library");
+    if (location == QLatin1String("Courtyard")) return QStringLiteral("courtyard");
+    return location;
+}
+
 // Per-channel NPC persona used as the AI system prompt.
 struct NpcPersona {
     const char* name;
@@ -170,6 +178,10 @@ QString storyChannel(const story::StoryRuntimeState& state)
         return QStringLiteral("Journey to Hogwarts");
     if (state.chapterId == QLatin1String("sorting_ceremony"))
         return QStringLiteral("Sorting Ceremony");
+    if (state.chapterId == QLatin1String("first_charms_lesson"))
+        return QStringLiteral("Charms Class");
+    if (state.chapterId == QLatin1String("turning_pages"))
+        return QStringLiteral("The Turning Pages");
     return QStringLiteral("Story");
 }
 
@@ -197,12 +209,16 @@ std::string storyStatus(const story::StoryRuntimeState& state)
         if (state.currentSceneId == QLatin1String("hogsmeade_station")) return "Following the first-years";
     }
     if (state.chapterId == QLatin1String("sorting_ceremony")) {
-        if (state.chapterCompleted) return "Free exploration";
+        if (state.chapterCompleted) return "Sorting Ceremony complete";
         if (state.currentSceneId == QLatin1String("black_lake_crossing")) return "Crossing the Black Lake";
         if (state.currentSceneId == QLatin1String("entrance_hall")) return "Waiting for the Sorting";
         if (state.currentSceneId == QLatin1String("sorting_stool")) return "Attending the Sorting Ceremony";
         if (state.currentSceneId == QLatin1String("house_tables")) return "Joining the house table";
     }
+    if (state.chapterId == QLatin1String("first_charms_lesson"))
+        return state.chapterCompleted ? "Free exploration" : "Attending class";
+    if (state.chapterId == QLatin1String("turning_pages"))
+        return state.chapterCompleted ? "Free exploration" : "Investigating";
     return "Story in progress";
 }
 
@@ -324,7 +340,8 @@ CampusController::CampusController(QObject* parent)
             });
     connect(storyRuntimeService_.get(), &story::StoryRuntimeService::chapterCompleted,
             this, [this](const QString& chapterId) {
-                if (chapterId != QLatin1String("sorting_ceremony")) return;
+                if (chapterId != QLatin1String("first_charms_lesson")
+                    && chapterId != QLatin1String("turning_pages")) return;
                 QTimer::singleShot(0, this, [this] {
                     enterFreeExplorationMode(false);
                 });
@@ -376,8 +393,14 @@ void CampusController::configureStoryPersistence(
 
 bool CampusController::startStoryChapter(story::ChapterDefinition chapter)
 {
+    const bool startingFromExploration = freeExplorationActive_;
+    const QString currentLocation = activeSession()
+        ? storySceneForCampusLocation(QString::fromStdString(activeSession()->currentLocation))
+        : QString();
+    freeExplorationActive_ = false;
     const auto* session = activeSession();
     if (!session) {
+        freeExplorationActive_ = startingFromExploration;
         emit feedbackProduced(QStringLiteral("Enter the campus before starting a story chapter."));
         return false;
     }
@@ -386,20 +409,37 @@ bool CampusController::startStoryChapter(story::ChapterDefinition chapter)
     if (storyPersistenceService_) {
         const auto restored = storyPersistenceService_->load(chapter, session->characterId);
         if (!restored.success) {
+            freeExplorationActive_ = startingFromExploration;
             emit feedbackProduced(restored.error);
             return false;
         }
         state = restored.state;
+        if (!restored.found && startingFromExploration
+            && chapter.chapterId == QLatin1String("turning_pages")
+            && chapter.findScene(currentLocation))
+            state.currentSceneId = currentLocation;
     } else {
         state.characterId = session->characterId;
         state.chapterId = chapter.chapterId;
         state.contentVersion = chapter.contentVersion;
         state.currentSceneId = chapter.entrySceneId;
+        if (startingFromExploration && chapter.chapterId == QLatin1String("turning_pages")
+            && chapter.findScene(currentLocation))
+            state.currentSceneId = currentLocation;
     }
     const bool started = storyRuntimeService_->start(std::move(chapter), std::move(state));
+    if (!started) freeExplorationActive_ = startingFromExploration;
     const auto* activeState = storyRuntimeService_->state();
     if (started && activeState
         && activeState->chapterId == QLatin1String("sorting_ceremony")
+        && activeState->chapterCompleted) {
+        QTimer::singleShot(0, this, [this] {
+            (void)beginCampaignChapter(QStringLiteral("first_charms_lesson"));
+        });
+    }
+    if (started && activeState
+        && (activeState->chapterId == QLatin1String("first_charms_lesson")
+            || activeState->chapterId == QLatin1String("turning_pages"))
         && activeState->chapterCompleted
         && activeState->flags.contains(QStringLiteral("main_story_complete"))) {
         QTimer::singleShot(0, this, [this] {
@@ -407,6 +447,11 @@ bool CampusController::startStoryChapter(story::ChapterDefinition chapter)
         });
     }
     return started;
+}
+
+bool CampusController::hasActiveStory() const noexcept
+{
+    return storyRuntimeService_ && storyRuntimeService_->isActive();
 }
 
 void CampusController::handleEnrollment(const dto::EnrollmentRequestDTO& request)
@@ -510,6 +555,65 @@ void CampusController::handleLogin(const QString& studentName, const QString& ho
 
 void CampusController::handleChat(const QString& channel, const QString& text)
 {
+    if (freeExplorationActive_) {
+        const QString action = text.trimmed();
+        const auto* session = activeSession();
+        const QString location = session
+            ? storySceneForCampusLocation(QString::fromStdString(session->currentLocation))
+            : QString();
+        if (action == QLatin1String("去图书馆") || action == QLatin1String("go to library")) {
+            handleMove(QStringLiteral("library"));
+            return;
+        }
+        if (action == QLatin1String("去礼堂") || action == QLatin1String("go to great hall")) {
+            handleMove(QStringLiteral("great_hall"));
+            return;
+        }
+        if (action == QLatin1String("去庭院") || action == QLatin1String("go to courtyard")) {
+            handleMove(QStringLiteral("courtyard"));
+            return;
+        }
+        const bool sceneInvestigation =
+            (location == QLatin1String("great_hall")
+             && (action.contains(QStringLiteral("罗温")) || action.contains(QStringLiteral("调查礼堂"))))
+            || (location == QLatin1String("library")
+                && (action.contains(QStringLiteral("调查")) || action.contains(QStringLiteral("观察旧书"))))
+            || (location == QLatin1String("courtyard")
+                && (action.contains(QStringLiteral("喷泉")) || action.contains(QStringLiteral("刻字"))));
+        if ((action.contains(QStringLiteral("翻页")) || action.contains(QStringLiteral("调查旧书"))
+             || action.compare(QStringLiteral("investigate book"), Qt::CaseInsensitive) == 0
+             || sceneInvestigation)
+            && (location == QLatin1String("great_hall")
+                || location == QLatin1String("library")
+                || location == QLatin1String("courtyard"))
+            && rememberedEncounterOutcome_.isEmpty()) {
+            (void)beginCampaignChapter(QStringLiteral("turning_pages"));
+            return;
+        }
+        if (action.contains(QStringLiteral("罗温")) && location == QLatin1String("great_hall")
+            && !rememberedEncounterOutcome_.isEmpty()) {
+            emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("罗温·维尔"),
+                rememberedEncounterOutcome_ == QLatin1String("shared")
+                    ? QStringLiteral("“艾琳的名字现在有人记得了。谢谢你愿意把故事讲出来。”")
+                    : rememberedEncounterOutcome_ == QLatin1String("archived")
+                        ? QStringLiteral("“你请教授好好保存了那页纸。我想，那样也很好。”")
+                        : QStringLiteral("“我没再听到那本书的消息。如果你想保留沉默，我不会追问。”"));
+            return;
+        }
+        if (action.contains(QStringLiteral("教授")) && location == QLatin1String("courtyard")
+            && rememberedEncounterOutcome_ == QLatin1String("archived")) {
+            emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("弗立维教授"),
+                QStringLiteral("“艾琳的名字已经写进档案。你的慎重帮了她。”"));
+            return;
+        }
+        if ((action.contains(QStringLiteral("米拉")) || action.contains(QStringLiteral("管理员")))
+            && location == QLatin1String("library")
+            && rememberedEncounterOutcome_ == QLatin1String("private")) {
+            emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("图书管理员米拉"),
+                QStringLiteral("“那页仍放在原处。我记得你替它保留了安静。”"));
+            return;
+        }
+    }
     const dto::ChatSendRequestDTO request{channel.toStdString(), text.trimmed().toStdString()};
     const auto validation = chatService_->validate(request);
     if (!validation.success) {
@@ -711,6 +815,34 @@ void CampusController::handlePrologueChoice(int index)
 
 void CampusController::handleMove(const QString& locationId)
 {
+    if (storyRuntimeService_->isActive()) {
+        const auto* state = storyRuntimeService_->state();
+        if (!state || state->chapterId != QLatin1String("turning_pages")) {
+            emit feedbackProduced(QStringLiteral("先完成当前剧情，再探索校园。"));
+            return;
+        }
+        const QString from = state->currentSceneId;
+        if (from == locationId) return;
+        const QHash<QString, QString> routes{
+            {QStringLiteral("great_hall:library"), QStringLiteral("hall_to_library")},
+            {QStringLiteral("great_hall:courtyard"), QStringLiteral("hall_to_courtyard")},
+            {QStringLiteral("library:great_hall"), QStringLiteral("library_to_hall")},
+            {QStringLiteral("library:courtyard"), QStringLiteral("library_to_courtyard")},
+            {QStringLiteral("courtyard:great_hall"), QStringLiteral("courtyard_to_hall")},
+            {QStringLiteral("courtyard:library"), QStringLiteral("courtyard_to_library")}};
+        const auto route = routes.value(from + QLatin1Char(':') + locationId);
+        if (!route.isEmpty()) {
+            (void)storyRuntimeService_->submitAction(route);
+            return;
+        }
+        storyRuntimeService_->stop();
+        freeExplorationActive_ = true;
+        emit choicesPresented({});
+        emit sceneHeaderChanged(QStringLiteral("霍格沃茨 · 自主探索"));
+        emit inputHintChanged(QStringLiteral("描述你想探索的地点、角色或行动……"));
+        emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("旁白"),
+            QStringLiteral("你暂时放下旧书的线索。以后仍可回来继续调查。"));
+    }
     auto* session = activeSession();
     if (!session) {
         publish({false, "Enter the campus before travelling."});
@@ -719,6 +851,26 @@ void CampusController::handleMove(const QString& locationId)
     const auto result = campusService_->moveTo(*session, {locationId.toStdString()});
     publish(result);
     if (result.success) {
+        const QString scene = locationId == QLatin1String("library")
+            ? QStringLiteral("书架间有一册会自行翻页的魔咒史，几位同学正在低声讨论。")
+            : locationId == QLatin1String("courtyard")
+                ? QStringLiteral("庭院里晚风吹动长袍，有学生正在练习刚学会的漂浮咒。")
+                : locationId == QLatin1String("great_hall")
+                    ? QStringLiteral("礼堂的长桌重新热闹起来，今天的课堂传闻正在学生之间流转。")
+                    : QStringLiteral("你来到新的场景。留意身边的人，也可以主动发言。 ");
+        emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("旁白"), scene);
+        if (locationId == QLatin1String("great_hall")) {
+            emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("罗温·维尔"),
+                rememberedEncounterOutcome_.isEmpty()
+                    ? QStringLiteral("“图书馆那本自己翻页的书像在找人。你想一起查查吗？输入‘和罗温说话’或‘调查翻页的书’。”")
+                    : QStringLiteral("“关于那本书，我还记得你当时的选择。想聊聊就叫我。”"));
+        } else if (locationId == QLatin1String("courtyard")) {
+            emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("弗立维教授"),
+                QStringLiteral("“喷泉旁那盏灯有一段很久以前的故事。你可以读读刻字。”"));
+        } else if (locationId == QLatin1String("library")) {
+            emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("图书管理员米拉"),
+                QStringLiteral("“那本自己翻页的旧书可以调查，但请轻一些。”"));
+        }
         // 宵禁+限制区域+活点地图检查
         const int hour = QTime::currentTime().hour();
         const bool curfewActive = world::WorldClock::isCurfew(hour);
@@ -758,6 +910,10 @@ void CampusController::handleMove(const QString& locationId)
 
 void CampusController::handleCourseJoin(const QString& courseId)
 {
+    if (storyRuntimeService_->isActive()) {
+        emit feedbackProduced(QStringLiteral("先完成当前剧情，再选择课程。"));
+        return;
+    }
     auto* session = activeSession();
     if (!session) {
         publish({false, "Enter the campus before joining a class."});
@@ -950,21 +1106,30 @@ bool CampusController::beginCampaignChapter(const QString& chapterId)
 void CampusController::enterFreeExplorationMode(bool announce)
 {
     const auto* state = storyRuntimeService_->state();
-    if (!state || state->chapterId != QLatin1String("sorting_ceremony")
+    if (!state || (state->chapterId != QLatin1String("first_charms_lesson")
+                   && state->chapterId != QLatin1String("turning_pages"))
         || !state->chapterCompleted
         || !state->flags.contains(QStringLiteral("main_story_complete"))) {
         return;
     }
 
+    const QString freeLocation = state->currentSceneId;
+    if (state->chapterId == QLatin1String("turning_pages")) {
+        rememberedEncounterOutcome_ = state->flags.contains(QStringLiteral("book_shared_with_rowan"))
+            ? QStringLiteral("shared")
+            : state->flags.contains(QStringLiteral("book_archived"))
+                ? QStringLiteral("archived") : QStringLiteral("private");
+    }
     auto* session = activeSession();
     if (session) {
-        session->currentLocation = "house_tables";
+        session->currentLocation = freeLocation.toStdString();
         session->currentState = "Free exploration";
-        emit playerLocationChanged(QStringLiteral("house_tables"),
+        emit playerLocationChanged(freeLocation,
                                    QStringLiteral("Free exploration"));
     }
 
     storyRuntimeService_->stop();
+    freeExplorationActive_ = true;
     emit choicesPresented({});
 
     const bool chinese = arcane::ui::I18n::instance().language()
@@ -980,8 +1145,8 @@ void CampusController::enterFreeExplorationMode(bool announce)
             QStringLiteral("World"),
             chinese ? QStringLiteral("校园指引") : QStringLiteral("Campus Guide"),
             chinese
-                ? QStringLiteral("<b>新生序章已经完成。</b><br>你可以从校园地图、背包、同学和当前地点开始决定自己的探索方向；后续开放世界运行时会从这份已保存的角色状态继续。")
-                : QStringLiteral("<b>The first-year prologue is complete.</b><br>You may now choose your own direction through the campus map, inventory, classmates, and current location. The future open-world runtime will continue from this saved character state."));
+                ? QStringLiteral("<b>校园向你开放。</b><br>礼堂里的罗温想谈一本自己翻页的书；你也可以先去图书馆、庭院，或者自由交谈。")
+                : QStringLiteral("<b>The campus is open.</b><br>Rowan in the Great Hall has heard of a book that turns its own pages. You can also visit the library or courtyard, or speak freely."));
     }
 }
 

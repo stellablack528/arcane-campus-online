@@ -237,6 +237,8 @@ void I18n::seed()
     seedPair("status.sortingceremony", "参加分院仪式", "Attending the Sorting Ceremony");
     seedPair("status.joininghousetable", "走向学院长桌", "Joining the house table");
     seedPair("status.freeexploration", "自主探索", "Free exploration");
+    seedPair("status.attendingclass", "正在上魔咒课", "Attending Charms class");
+    seedPair("loc.charmsclassroom", "魔咒课教室", "Charms Classroom");
     seedPair("status.none",         "暂无",         "None");
 
     // ---------------- 聊天 ----------------

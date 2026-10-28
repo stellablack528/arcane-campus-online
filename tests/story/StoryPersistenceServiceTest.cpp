@@ -121,6 +121,10 @@ public:
                 {"chapter_id", "earlier_chapter"}, {"status", "completed"},
                 {"state_json", R"({"unlocked_chapters":["side_story"]})"},
             });
+            result.rows.push_back({
+                {"chapter_id", "first_charms_lesson"}, {"status", "completed"},
+                {"state_json", R"({"flags":["levitation_mastered","main_story_complete","open_world_handoff_ready"]})"},
+            });
         } else if (sql.find("FROM character_wands") != std::string::npos) {
             result.rows.push_back({{"wood_id", "oak"}, {"core_id", "phoenix"}});
         } else if (sql.find("FROM character_story_states") != std::string::npos
@@ -267,6 +271,8 @@ int main(int argc, char* argv[])
                          && loaded.state.inventory.value(7) == 2
                          && loaded.state.flags.contains(QStringLiteral("saved"))
                          && loaded.state.flags.contains(QStringLiteral("legacy"))
+                         && loaded.state.flags.contains(QStringLiteral("levitation_mastered"))
+                         && loaded.state.flags.contains(QStringLiteral("main_story_complete"))
                          && loaded.state.visitedScenes.contains(QStringLiteral("start"))
                          && loaded.state.unlockedChapters.contains(QStringLiteral("bonus")),
                      "chapter, gold, inventory, flags, visits, and unlocks restore");

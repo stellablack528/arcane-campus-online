@@ -27,7 +27,7 @@ constexpr std::array<MoveTarget, 5> kMoveTargets = {{
     {"hogsmeade",               "loc.hogsmeade"},
 }};
 
-constexpr std::array<MoveTarget, 14> kLocationLabels = {{
+constexpr std::array<MoveTarget, 15> kLocationLabels = {{
     {"diagon_alley",             "loc.diagonalley"},
     {"kings_cross",              "loc.kingscross"},
     {"platform_nine_three_quarters", "loc.platform934"},
@@ -37,6 +37,7 @@ constexpr std::array<MoveTarget, 14> kLocationLabels = {{
     {"entrance_hall",            "loc.entrancehall"},
     {"sorting_stool",            "loc.sortingstool"},
     {"house_tables",             "loc.housetables"},
+    {"charms_classroom",         "loc.charmsclassroom"},
     {"great_hall",               "loc.greathall"},
     {"transfiguration_classroom", "loc.classroom"},
     {"library",                  "loc.library"},
@@ -93,6 +94,10 @@ const QHash<QString, std::vector<Person>>& peopleByLocation()
             {"sorting_hat", "npc.sortinghat"},
         }},
         {"house_tables", {
+            {"npc_rowan_vale", "npc.rowan"},
+        }},
+        {"charms_classroom", {
+            {"prof_flitwick", "npc.flitwick"},
             {"npc_rowan_vale", "npc.rowan"},
         }},
     };

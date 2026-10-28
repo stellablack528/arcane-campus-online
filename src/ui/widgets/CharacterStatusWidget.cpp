@@ -37,6 +37,7 @@ void CharacterStatusWidget::setCampusState(const QString &location, const QStrin
     else if (location == QLatin1String("entrance_hall")) locationText = TR("loc.entrancehall");
     else if (location == QLatin1String("sorting_stool")) locationText = TR("loc.sortingstool");
     else if (location == QLatin1String("house_tables")) locationText = TR("loc.housetables");
+    else if (location == QLatin1String("charms_classroom")) locationText = TR("loc.charmsclassroom");
     m_locationValue->setText(locationText);
 
     QString stateText = state;
@@ -52,6 +53,7 @@ void CharacterStatusWidget::setCampusState(const QString &location, const QStrin
     else if (state == QLatin1String("Attending the Sorting Ceremony")) stateText = TR("status.sortingceremony");
     else if (state == QLatin1String("Joining the house table")) stateText = TR("status.joininghousetable");
     else if (state == QLatin1String("Free exploration")) stateText = TR("status.freeexploration");
+    else if (state == QLatin1String("Attending class")) stateText = TR("status.attendingclass");
     m_stateValue->setText(stateText);
     if (location == QLatin1String("diagon_alley")
         || location == QLatin1String("kings_cross")

@@ -1,15 +1,16 @@
 Arcane Campus Online - Complete first-year prologue report
 ==========================================================
 [PASS] Built-in campaign loads and validates
-[PASS] Campaign catalog exposes all three playable chapters
+[PASS] Campaign catalog exposes all five playable chapters
 [PASS] All chapter definitions are available to the runtime
 [PASS] Completed shopping can explicitly transition to King's Cross
 [PASS] Station choices reach the platform and establish NPC memory
 [PASS] Resume restores Rowan's memory and changes the greeting
 [PASS] The train scene reflects the companion purchased in Diagon Alley
 [PASS] The complete journey reaches Hogwarts and transitions to Sorting
-[PASS] Sorting completes the guided main story and emits its handoff
-[PASS] The final narrative explicitly guides the player to free exploration
+[PASS] Sorting leads into the first Charms lesson
+[PASS] Sorting narrative guides the player toward exploration
+[PASS] Practice and casting complete Charms and unlock exploration
 ----------------------------------------------------------
 OVERALL: PASS
-PLAYABLE FLOW: Diagon Alley -> King's Cross -> Platform 9 3/4 -> Hogwarts Express -> Hogsmeade -> Black Lake -> Sorting -> Free Exploration
+PLAYABLE FLOW: Diagon Alley -> King's Cross -> Platform 9 3/4 -> Hogwarts Express -> Hogsmeade -> Black Lake -> Sorting -> Charms -> Free Exploration

@@ -52,7 +52,7 @@ bool writeReport(const QString& path, const Report& report)
     output << "---------------------------------------------------------\n";
     output << "OVERALL: " << (report.passed ? "PASS" : "FAIL") << '\n';
     output << "PLAYABLE FLOW: Black Lake -> Entrance Hall -> Sorting Hat -> House Table\n";
-    output << "INTEGRATION STATUS: Registered in the built-in campaign and hands off to free exploration.\n";
+    output << "INTEGRATION STATUS: Registered in the built-in campaign and transitions to Charms.\n";
     return true;
 }
 
@@ -158,11 +158,11 @@ int main(int argc, char* argv[])
                          && finalState->currentSceneId == QLatin1String("house_tables")
                          && finalState->flags.contains(houseCase.resultFlag)
                          && finalState->flags.contains(QStringLiteral("house_table_reached"))
-                         && finalState->flags.contains(QStringLiteral("main_story_complete"))
-                         && finalState->flags.contains(
+                         && !finalState->flags.contains(QStringLiteral("main_story_complete"))
+                         && !finalState->flags.contains(
                              QStringLiteral("open_world_handoff_ready"))
                          && finalState->unlockedChapters.contains(
-                             QStringLiteral("first_night_at_hogwarts"))
+                             QStringLiteral("first_charms_lesson"))
                          && allNarrative.contains(houseCase.hatPhrase),
                      QStringLiteral("%1 receives its own Hat verdict and completes")
                          .arg(houseCase.house));
@@ -183,8 +183,8 @@ int main(int argc, char* argv[])
             report.check(completedResumeRuntime.start(*loaded.chapter, completedState)
                              && completedResumeRuntime.state()
                              && completedResumeRuntime.state()->chapterCompleted
-                             && completedResumeRuntime.state()->flags.contains(
-                                 QStringLiteral("open_world_handoff_ready"))
+                             && completedResumeRuntime.state()->unlockedChapters.contains(
+                                 QStringLiteral("first_charms_lesson"))
                              && completedResumeRuntime.visibleActionIds().isEmpty(),
                          QStringLiteral("Completed main-story state restores without reopening guided choices"));
         }

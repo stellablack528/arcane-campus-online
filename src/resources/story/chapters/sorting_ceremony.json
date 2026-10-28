@@ -11,8 +11,8 @@
     {"type": "chapter_completed", "chapter_id": "journey_to_hogwarts"}
   ],
   "completion_text": {
-    "zh": "长桌上方的烛火轻轻摇曳，你第一次以霍格沃茨学生的身份坐在人群之中。<br><br><b>【新生序章 · 完成】</b><br>从创建角色、领取魔杖到抵达学院长桌，这段被安排好的主线已经结束。<b>自主探索已经开放。</b>你可以查看校园地图、整理背包、认识同学，并决定自己最先想探索的地方。之后的开放世界故事会从此刻保存下来的角色状态继续。",
-    "en": "Candles tremble above the long tables as you take your place among the students of Hogwarts for the first time.<br><br><b>[FIRST-YEAR PROLOGUE COMPLETE]</b><br>The guided story—from creating your character and claiming a wand to reaching your house table—ends here. <b>Free exploration is now open.</b> You may check the campus map, organise your inventory, meet other students, and decide what to explore first. The future open-world story will continue from the authoritative character state saved at this moment."
+    "zh": "长桌上方的烛火轻轻摇曳，你第一次以霍格沃茨学生的身份坐在人群之中。<br><br><b>【分院之夜 · 完成】</b><br>明天第一堂魔咒课正在等你。学会漂浮咒后，就能开始自主探索校园。",
+    "en": "Candles tremble above the long tables as you take your place among the students of Hogwarts for the first time.<br><br><b>[SORTING NIGHT COMPLETE]</b><br>Your first Charms lesson awaits. Master the Levitation Charm, then explore the campus freely."
   },
   "scenes": [
     {
@@ -281,15 +281,13 @@
           "aliases": ["坐到长桌旁", "加入学院", "坐下", "take my seat", "join the house table"],
           "effects": [
             {"type": "set_flag", "key": "house_table_reached"},
-            {"type": "set_flag", "key": "main_story_complete"},
-            {"type": "set_flag", "key": "open_world_handoff_ready"},
-            {"type": "unlock_chapter", "chapter_id": "first_night_at_hogwarts"},
+            {"type": "transition_to_chapter", "chapter_id": "first_charms_lesson"},
             {"type": "complete_chapter"}
           ],
           "response_lines": [
             {
               "type": "system_notice",
-              "text": {"zh": "角色档案、NPC 记忆和主线完成状态已经保存。中央叙事框将退出固定剧情模式，等待你决定自己的探索方向。", "en": "Your character record, NPC memories, and main-story completion state have been saved. The central narrative frame will now leave guided-story mode and wait for you to choose your own direction."}
+              "text": {"zh": "分院结果和 NPC 记忆已经保存。接下来前往第一堂魔咒课。", "en": "Your Sorting result and NPC memories are saved. Your first Charms lesson begins next."}
             }
           ]
         }

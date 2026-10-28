@@ -324,6 +324,24 @@ StoryLoadResult StoryPersistenceService::load(const ChapterDefinition& chapter,
                 loaded.error)) {
             return loaded;
         }
+        // Skills are character-wide facts. Other chapter flags remain local.
+        if (id == QLatin1String("first_charms_lesson")
+            && database::detail::value(row, "status") == "completed") {
+            const auto document = QJsonDocument::fromJson(QByteArray::fromStdString(
+                database::detail::value(row, "state_json")));
+            bool valid = true;
+            const auto learned = parseStringArray(
+                document.object().value(QStringLiteral("flags")), valid);
+            if (!document.isObject() || !valid) {
+                loaded.error = QStringLiteral("The saved Charms skill state is invalid.");
+                return loaded;
+            }
+            for (const auto& fact : {QStringLiteral("levitation_mastered"),
+                                     QStringLiteral("main_story_complete"),
+                                     QStringLiteral("open_world_handoff_ready")}) {
+                if (learned.contains(fact)) state.flags.insert(fact);
+            }
+        }
     }
 
     const auto wand = connection_->query(

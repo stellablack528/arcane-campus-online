@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network Sql)
 include(CTest)
 
 add_library(ArcaneCampusWire STATIC
@@ -28,13 +28,10 @@ find_path(ARCANE_MYSQL_INCLUDE_DIR mysql.h
     HINTS "${ARCANE_MYSQL_ROOT}/include"
 )
 
-if(NOT WIN32 OR NOT ARCANE_MYSQL_INCLUDE_DIR)
-    message(FATAL_ERROR "A Windows MySQL C API installation is required. Set ARCANE_MYSQL_ROOT to its root directory.")
-endif()
-
 add_library(ArcaneCampusDatabase STATIC
     database/include/IDatabaseDriver.hpp
     database/include/DatabaseConfigLoader.hpp
+    database/include/LocalSaveBootstrap.hpp
     database/include/DBConnection.hpp
     database/include/DBConnectionPool.hpp
     database/include/DBTransaction.hpp
@@ -50,10 +47,11 @@ add_library(ArcaneCampusDatabase STATIC
     database/include/StoryDAO.hpp
     database/src/DBConnection.cpp
     database/src/DatabaseConfigLoader.cpp
-    database/src/MySqlDatabaseDriver.hpp
-    database/src/MySqlDatabaseDriver.cpp
+    database/src/LocalSaveBootstrap.cpp
     database/src/NoopDatabaseDriver.hpp
     database/src/NoopDatabaseDriver.cpp
+    database/src/SqliteDatabaseDriver.hpp
+    database/src/SqliteDatabaseDriver.cpp
     database/src/DBConnectionPool.cpp
     database/src/DBTransaction.cpp
     database/src/UserDAO.cpp
@@ -72,11 +70,18 @@ target_include_directories(ArcaneCampusDatabase PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/database/include
 )
 
-target_include_directories(ArcaneCampusDatabase PRIVATE
-    ${ARCANE_MYSQL_INCLUDE_DIR}
-)
+if(WIN32 AND ARCANE_MYSQL_INCLUDE_DIR)
+    target_sources(ArcaneCampusDatabase PRIVATE
+        database/src/MySqlDatabaseDriver.hpp
+        database/src/MySqlDatabaseDriver.cpp)
+    target_include_directories(ArcaneCampusDatabase PRIVATE ${ARCANE_MYSQL_INCLUDE_DIR})
+    target_compile_definitions(ArcaneCampusDatabase PRIVATE ARCANE_HAS_MYSQL)
+endif()
 
-target_link_libraries(ArcaneCampusDatabase PRIVATE ws2_32)
+target_link_libraries(ArcaneCampusDatabase PRIVATE Qt6::Sql)
+if(WIN32)
+    target_link_libraries(ArcaneCampusDatabase PRIVATE ws2_32)
+endif()
 
 target_compile_features(ArcaneCampusDatabase PUBLIC cxx_std_20)
 
@@ -121,6 +126,22 @@ target_link_libraries(ArcaneOpenWorldBoundary PUBLIC
 target_compile_features(ArcaneOpenWorldBoundary PUBLIC cxx_std_20)
 
 if(BUILD_TESTING)
+    add_executable(ArcaneCampusLocalSaveTest
+        tests/database/LocalSaveTest.cpp
+        src/application/service/SessionService.cpp
+        src/application/diagon_alley/DiagonAlleyCatalog.cpp
+        src/application/story/adapters/DiagonAlleyChapterAdapter.cpp
+        src/ui/I18n.cpp
+        src/resources/resources.qrc
+    )
+    target_include_directories(ArcaneCampusLocalSaveTest PRIVATE src)
+    target_link_libraries(ArcaneCampusLocalSaveTest PRIVATE
+        ArcaneCampusDatabase ArcaneStoryEngine ArcaneStoryPersistence Qt6::Core)
+    add_test(NAME ArcaneCampusLocalSaveTest COMMAND ArcaneCampusLocalSaveTest)
+    set_tests_properties(ArcaneCampusLocalSaveTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
     add_executable(ArcaneCampusLoginFlowTest
         tests/ui/LoginFlowTest.cpp
         src/ui/LoginWindow.h

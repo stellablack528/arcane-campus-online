@@ -3,6 +3,7 @@
         <file>qss/dark_wood.qss</file>
         <file>data/wand_customization.json</file>
         <file>data/diagon_alley.json</file>
+        <file alias="database/local_save_v1.sql">../../database/sql/local_save_v1.sql</file>
         <file>story/schemas/chapter_v2.schema.json</file>
         <file>story/chapters/journey_to_hogwarts.json</file>
         <file>story/chapters/sorting_ceremony.json</file>

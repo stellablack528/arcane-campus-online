@@ -14,6 +14,7 @@ namespace arcane::database {
 
 enum class DatabaseDriverKind {
     MySql,
+    Sqlite,
     Noop,
 };
 

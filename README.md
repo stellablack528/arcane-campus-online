@@ -1,8 +1,8 @@
 # Arcane Campus Online 🏰
 
-> A multiplayer online text RPG social platform built with C++20, MySQL, and Qt6.
+> A multiplayer online text RPG built with C++20 and Qt6, with automatic local SQLite saves and optional MySQL development support.
 >
-> 基于 C++20 + MySQL + Qt6 构建的多人在线文字 RPG 社交平台。
+> 基于 C++20 + Qt6 构建的多人在线文字 RPG；单人剧情自动保存到本地 SQLite，MySQL 作为可选开发配置。
 
 ---
 
@@ -52,6 +52,7 @@ The platform aims to provide an immersive text-based social experience while ser
 | ⚙️ 通用剧情引擎基础 | 类型化条件/效果、StoryDelta、统一叙事事件、内容校验与图可达性检查 |
 | 🎭 剧情运行时 | 通用引擎已接管多章节主流程；提交成功后才把场景、旁白、NPC、玩家行动与选项送入中央叙事框 |
 | 💾 剧情事务与恢复 | 原子保存金币、背包、NPC 记忆、章节进度与事件日志；支持完整断点恢复 |
+| 💽 零配置本地存档 | 首次启动自动创建 SQLite，退出后继续角色与剧情；MySQL 开发库仍可选用 |
 | 🎒 背包系统 | **真实数据库对接**（InventoryDAO）|
 | 🗺️ 活点地图 | **真实数据库对接**（InventoryDAO + LocationDAO）|
 | 📋 任务系统 | **真实数据库对接**（QuestDAO）|
@@ -85,7 +86,7 @@ DeepSeek 密钥只从本机设置或环境变量读取，不进入源码与 Git�
 |---|---|
 | 开发语言 / Language | **C++20** |
 | 操作系统 / OS | Windows / Linux（开发用 Windows，生产用 Ubuntu） |
-| 数据库 / Database | **MySQL 8.0**（InnoDB, utf8mb4）|
+| 数据库 / Database | **SQLite 本地自动存档**；MySQL 8.0 可选 |
 | 数据库抽象 | **Strategy Pattern · Connection Pool (RAII) · DAO Pattern** |
 | 服务端分层 | Controller → Service → DAO → DO / DTO / VO |
 | 客户端 / Client | **Qt6 Widgets** · QSS 主题（墨绿炭黑·Quiet Library Theme） |
@@ -305,6 +306,7 @@ HogwartsOnline/
 - [x] **通用叙事输出** (场景、旁白、NPC、玩家行动、系统、选项与完成事件)
 - [x] **剧情运行桥** (StoryRuntimeService 提交成功后再驱动中央叙事框)
 - [x] **剧情事务与恢复** (金币、背包、NPC 记忆、章节状态和事件日志原子提交)
+- [x] **零配置本地存档** (首次启动自动初始化 SQLite，新生剧情和人物记忆可重启继续)
 - [x] **入学多章节闭环** (对角巷 → 国王十字 → 九又四分之三站台 → 特快列车 → 霍格莫德)
 - [x] **完整新生序章主流程** (角色创建 → 对角巷 → 入学旅程 → 分院 → 自主探索交接)
 
@@ -331,52 +333,12 @@ HogwartsOnline/
 | 依赖 | 版本 |
 |------|------|
 | CMake | 3.20+ |
-| Qt6 | 6.5+ (Widgets 组件) |
-| MySQL | 8.0+ |
-| MySQL C API | 8.0+ (libmysql.dll / libmysqlclient) |
+| Qt6 | 6.5+ (Core、Widgets、Network、Sql 组件及 SQLite 插件) |
+| MySQL / MySQL C API | 仅使用 MySQL 开发配置时需要 |
 | 编译器 | MSVC 2022 / MinGW / GCC 11+ |
 | C++ 标准 | C++20 |
 
-### 1️⃣ 初始化数据库 / Initialize Database
-
-```powershell
-# Windows PowerShell
-cd database/scripts
-.\import_mysql.ps1
-```
-
-或者手动在 Navicat / MySQL CLI 中执行：
-
-```bash
-mysql -u root -p < database/sql/init_mysql.sql
-mysql -u root -p < database/sql/seed_mysql.sql
-```
-
-### 2️⃣ 配置数据库连接 / Configure Database
-
-复制配置模板并修改密码：
-
-```bash
-cp database/config/database.ini.example database.ini
-```
-
-编辑 `database.ini`：
-
-```ini
-driver=mysql
-host=127.0.0.1
-port=3306
-database=arcane_campus_online
-username=root
-password=******            ; 修改为你的 MySQL 密码
-character_set=utf8mb4
-client_library_path=D:/mysql-8.0.25-winx64/bin/libmysql.dll
-```
-
-> **或者**设置环境变量 `ARCANE_DB_PASSWORD`，密码不会被提交到 git。
-> **或者**设置环境变量 `ARCANE_DB_CONFIG` 指定配置文件路径。
-
-### 3️⃣ 构建项目 / Build
+### 1️⃣ 构建项目 / Build
 
 ```bash
 mkdir build && cd build
@@ -384,14 +346,16 @@ cmake .. -G "MinGW Makefiles"   # 或者 "Visual Studio 17 2022"
 cmake --build .
 ```
 
-### 4️⃣ 运行 / Run
+### 2️⃣ 运行 / Run
 
-使用 Qt Creator 的完整新生试玩步骤见 [本地试玩指南](docs/PLAY_LOCAL_QT_CREATOR.md)。新生剧情需要 MySQL；数据库未连接时，客户端会在登录页显示原因。
+首次启动会在系统的应用数据目录自动创建 `campus.sqlite`，包含所需房间、物品和剧情存档表；之后的选择和角色状态会自动保存。无需安装或配置 MySQL。Qt Creator 操作见 [本地试玩指南](docs/PLAY_LOCAL_QT_CREATOR.md)。
 
 ```bash
 ./HogwartsOnline.exe           # Windows
 ./HogwartsOnline               # Linux
 ```
+
+已有 MySQL 开发环境可继续使用 [数据库配置模板](database/config/database.ini.example) 与 `database/scripts/import_mysql.ps1`。设置 `ARCANE_DB_CONFIG`，或在运行目录放置 `database.ini`，客户端就会使用该数据库；若连接失败，会明确提示，不会悄悄切换到另一份空存档。
 
 ---
 

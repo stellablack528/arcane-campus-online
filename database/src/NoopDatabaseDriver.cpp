@@ -4,7 +4,11 @@ namespace arcane::database {
 
 bool NoopDatabaseDriver::connect(const DBConfig& config)
 {
-    static_cast<void>(config);
+    if (config.driver == DatabaseDriverKind::MySql) {
+        lastError_ = "MySQL support is not included in this build.";
+        connected_ = false;
+        return false;
+    }
     connected_ = true;
     return connected_;
 }

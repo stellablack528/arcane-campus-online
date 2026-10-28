@@ -121,10 +121,10 @@ void I18n::seed()
     seedPair("login.house",       "学院",                 "House");
     seedPair("login.enter",       "继续已有角色",         "Continue Existing Character");
     seedPair("login.enroll",      "创建新生角色",         "Create a First-Year Character");
-    seedPair("login.hint",        "新玩家请创建新生；已有角色用注册时的用户名和学院继续剧情。",
-                                  "New players start with enrollment. Returning players use their registered username and house.");
-    seedPair("login.database_unavailable", "数据库未连接，新生剧情暂时无法启动。请检查 Qt Creator 的运行环境与 database.ini。",
-                                            "Database unavailable. Check the Qt Creator run environment and database.ini to start the first-year story.");
+    seedPair("login.hint",        "新生从对角巷开始，进度会自动保存在本机；已有角色用用户名和学院继续。",
+                                  "First years begin in Diagon Alley. Progress saves locally; returning players use their username and house.");
+    seedPair("login.database_unavailable", "无法打开本地存档或已配置的数据库，新生剧情暂时无法启动。",
+                                            "Could not open the local save or configured database. The first-year story cannot start.");
     seedPair("login.name_required", "请填写注册时的用户名；新玩家请点击“创建新生角色”。",
                                      "Enter your registered username, or create a first-year character.");
 

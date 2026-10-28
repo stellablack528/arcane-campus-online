@@ -1,7 +1,9 @@
 #include <QApplication>
+#include <QDir>
 #include <QFile>
 #include <QFont>
 #include <QIODevice>
+#include <QStandardPaths>
 
 #include "ui/LoginWindow.h"
 #include "ui/MainWindow.h"
@@ -11,6 +13,7 @@
 
 #include "DBConnection.hpp"
 #include "DatabaseConfigLoader.hpp"
+#include "LocalSaveBootstrap.hpp"
 #include "UserDAO.hpp"
 #include "CharacterDAO.hpp"
 #include "InventoryDAO.hpp"
@@ -26,14 +29,31 @@
 
 namespace {
 
-// New-student stories require the database; keep the failure visible on the login screen.
+// An explicit database.ini keeps the MySQL development path. Ordinary players
+// receive a local SQLite save automatically, without database configuration.
 std::shared_ptr<arcane::database::DBConnection> tryCreateConnection(QString* failure)
 {
-    std::filesystem::path configPath;
+    std::filesystem::path configPath = "database.ini";
+    bool configuredExternally = false;
     if (const char* path = std::getenv("ARCANE_DB_CONFIG")) {
         configPath = path;
-    } else {
-        configPath = std::filesystem::path("database.ini");
+        configuredExternally = true;
+    }
+    if (!configuredExternally && !std::filesystem::exists(configPath)) {
+        QString saveFolder = qEnvironmentVariable("ARCANE_LOCAL_SAVE_DIR");
+        if (saveFolder.isEmpty()) {
+            saveFolder = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+        }
+        if (saveFolder.isEmpty()) {
+            if (failure) *failure = QStringLiteral("Could not locate a writable local save folder.");
+            return nullptr;
+        }
+        std::string localError;
+        const auto savePath = QDir(saveFolder).filePath(QStringLiteral("campus.sqlite"));
+        auto local = arcane::database::LocalSaveBootstrap::open(
+            std::filesystem::path(savePath.toStdWString()), &localError);
+        if (!local && failure) *failure = QString::fromStdString(localError);
+        return local;
     }
 
     std::string error;

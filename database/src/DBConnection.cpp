@@ -1,7 +1,10 @@
 #include "DBConnection.hpp"
 
 #include "NoopDatabaseDriver.hpp"
+#ifdef ARCANE_HAS_MYSQL
 #include "MySqlDatabaseDriver.hpp"
+#endif
+#include "SqliteDatabaseDriver.hpp"
 
 #include <utility>
 
@@ -9,9 +12,17 @@ namespace arcane::database {
 
 DBConnection::DBConnection(DBConfig config)
     : config_(std::move(config))
+#ifdef ARCANE_HAS_MYSQL
     , driver_(config_.driver == DatabaseDriverKind::MySql
                   ? std::unique_ptr<IDatabaseDriver>(std::make_unique<MySqlDatabaseDriver>())
+                  : config_.driver == DatabaseDriverKind::Sqlite
+                      ? std::unique_ptr<IDatabaseDriver>(std::make_unique<SqliteDatabaseDriver>())
+                      : std::unique_ptr<IDatabaseDriver>(std::make_unique<NoopDatabaseDriver>()))
+#else
+    , driver_(config_.driver == DatabaseDriverKind::Sqlite
+                  ? std::unique_ptr<IDatabaseDriver>(std::make_unique<SqliteDatabaseDriver>())
                   : std::unique_ptr<IDatabaseDriver>(std::make_unique<NoopDatabaseDriver>()))
+#endif
 {
 }
 

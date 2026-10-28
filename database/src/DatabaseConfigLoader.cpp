@@ -69,6 +69,8 @@ std::optional<DBConfig> DatabaseConfigLoader::loadFromFile(const std::filesystem
         if (key == "driver") {
             if (value == "mysql") {
                 config.driver = DatabaseDriverKind::MySql;
+            } else if (value == "sqlite") {
+                config.driver = DatabaseDriverKind::Sqlite;
             } else if (value == "noop") {
                 config.driver = DatabaseDriverKind::Noop;
             } else {

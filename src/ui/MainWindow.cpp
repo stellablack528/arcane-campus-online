@@ -60,6 +60,10 @@ void MainWindow::updatePlayerLocation(const QString &location, const QString &st
 void MainWindow::showFeedback(const QString &text)
 {
     statusBar()->showMessage(text, 5000);
+    if (isVisible() && !text.isEmpty()) {
+        m_chatEvents->appendMessage(QStringLiteral("System"),
+                                    QStringLiteral("Campus Notice"), text);
+    }
 }
 
 void MainWindow::displayMaraudersMap(const QString &spellQuote,
@@ -122,16 +126,16 @@ void MainWindow::presentChoices(const QStringList &labels)
 void MainWindow::buildMenu()
 {
     auto *roleMenu = menuBar()->addMenu(TR("menu.character"));
-    roleMenu->addAction(TR("menu.character.profile"));
-    roleMenu->addAction(TR("menu.character.relationships"));
+    roleMenu->addAction(TR("menu.character.profile"))->setEnabled(false);
+    roleMenu->addAction(TR("menu.character.relationships"))->setEnabled(false);
 
     auto *campusMenu = menuBar()->addMenu(TR("menu.campus"));
     auto *mapAction = campusMenu->addAction(TR("menu.campus.map"));
     connect(mapAction, &QAction::triggered, this, [this] { emit useMaraudersMapRequested(0); });
     auto *nightPatrolAction = campusMenu->addAction(TR("menu.campus.nightpatrol"));
     connect(nightPatrolAction, &QAction::triggered, this, [this] { emit nightPatrolRequested({}); });
-    campusMenu->addAction(TR("menu.campus.courses"));
-    campusMenu->addAction(TR("menu.campus.activities"));
+    campusMenu->addAction(TR("menu.campus.courses"))->setEnabled(false);
+    campusMenu->addAction(TR("menu.campus.activities"))->setEnabled(false);
 
     // 剧情菜单：每个选择都会真实影响风评与人际关系。
     auto *storyMenu = menuBar()->addMenu(TR("menu.story"));
@@ -151,8 +155,8 @@ void MainWindow::buildMenu()
     addChoice("study_late_library","story.study");
 
     auto *socialMenu = menuBar()->addMenu(TR("menu.social"));
-    socialMenu->addAction("Friends");
-    socialMenu->addAction("Owl Mail");
+    socialMenu->addAction("Friends")->setEnabled(false);
+    socialMenu->addAction("Owl Mail")->setEnabled(false);
 
     auto *systemMenu = menuBar()->addMenu(TR("menu.system"));
     auto *refreshInventoryAction = systemMenu->addAction(TR("menu.system.refreshinv"));
@@ -162,7 +166,7 @@ void MainWindow::buildMenu()
         ApiKeyDialog dialog(this);
         dialog.exec();
     });
-    systemMenu->addAction(TR("menu.system.logout"));
+    systemMenu->addAction(TR("menu.system.logout"))->setEnabled(false);
 }
 
 void MainWindow::buildUi()

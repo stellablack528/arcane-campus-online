@@ -14,6 +14,8 @@ class LoginWindow : public QWidget
 
 public:
     explicit LoginWindow(QWidget *parent = nullptr);
+    void setDatabaseAvailable(bool available, const QString &reason = {});
+    void showFeedback(const QString &text);
 
 signals:
     void loginRequested(const QString &studentName, const QString &houseName);
@@ -35,4 +37,7 @@ private:
     QLabel *m_nameLabel = nullptr;
     QLabel *m_houseLabel = nullptr;
     QLabel *m_hintLabel = nullptr;
+    bool m_databaseAvailable = true;
+    QString m_connectionReason;
+    QString m_feedbackText;
 };

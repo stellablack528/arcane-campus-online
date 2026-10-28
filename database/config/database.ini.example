@@ -7,4 +7,4 @@ database=arcane_campus_online
 username=root
 password=
 character_set=utf8mb4
-client_library_path=D:/mysql-8.0.25-winx64/bin/libmysql.dll
+client_library_path=D:/mysql-8.0.25-winx64/lib/libmysql.dll

@@ -52,7 +52,6 @@ void LoginWindow::buildUi()
     m_nameLabel = new QLabel(panel);
     m_nameEdit = new QLineEdit(panel);
     m_nameEdit->setPlaceholderText("Julie Dumbledore");
-    m_nameEdit->setText("New Student");
     m_nameEdit->setMinimumWidth(520);
     m_nameEdit->setMinimumHeight(46);
     m_nameEdit->setClearButtonEnabled(true);
@@ -85,6 +84,7 @@ void LoginWindow::buildUi()
     m_hintLabel = new QLabel(this);
     m_hintLabel->setObjectName("LoginHint");
     m_hintLabel->setAlignment(Qt::AlignCenter);
+    m_hintLabel->setWordWrap(true);
 
     rootLayout->addStretch();
     rootLayout->addWidget(m_titleLabel);
@@ -108,25 +108,46 @@ void LoginWindow::retranslateUi()
     if (m_houseLabel)    m_houseLabel->setText(TR("login.house"));
     if (m_loginButton)   m_loginButton->setText(TR("login.enter"));
     if (m_enrollButton)  m_enrollButton->setText(TR("login.enroll"));
-    if (m_hintLabel)     m_hintLabel->setText(TR("login.hint"));
+    if (m_hintLabel) {
+        m_hintLabel->setText(!m_feedbackText.isEmpty() ? m_feedbackText
+            : !m_databaseAvailable
+                ? TR("login.database_unavailable") + QStringLiteral("\n") + m_connectionReason
+                : TR("login.hint"));
+    }
 
     if (m_houseCombo) {
         const int cur = m_houseCombo->currentIndex();
         m_houseCombo->clear();
-        m_houseCombo->addItems({
-            TR("house.ravenclaw"),
-            TR("house.gryffindor"),
-            TR("house.hufflepuff"),
-            TR("house.slytherin"),
-        });
+        m_houseCombo->addItem(TR("house.ravenclaw"), QStringLiteral("Ravenclaw"));
+        m_houseCombo->addItem(TR("house.gryffindor"), QStringLiteral("Gryffindor"));
+        m_houseCombo->addItem(TR("house.hufflepuff"), QStringLiteral("Hufflepuff"));
+        m_houseCombo->addItem(TR("house.slytherin"), QStringLiteral("Slytherin"));
         if (cur >= 0 && cur < m_houseCombo->count()) m_houseCombo->setCurrentIndex(cur);
     }
 }
 
 void LoginWindow::onLoginClicked()
 {
-    const QString studentName = m_nameEdit->text().trimmed().isEmpty()
-        ? QStringLiteral("New Student")
-        : m_nameEdit->text().trimmed();
-    emit loginRequested(studentName, m_houseCombo->currentText());
+    const QString studentName = m_nameEdit->text().trimmed();
+    if (studentName.isEmpty()) {
+        showFeedback(TR("login.name_required"));
+        return;
+    }
+    emit loginRequested(studentName, m_houseCombo->currentData().toString());
+}
+
+void LoginWindow::setDatabaseAvailable(bool available, const QString &reason)
+{
+    m_databaseAvailable = available;
+    m_connectionReason = reason;
+    m_feedbackText.clear();
+    m_loginButton->setEnabled(available);
+    m_enrollButton->setEnabled(available);
+    retranslateUi();
+}
+
+void LoginWindow::showFeedback(const QString &text)
+{
+    m_feedbackText = text;
+    retranslateUi();
 }

@@ -26,10 +26,8 @@
 
 namespace {
 
-// Attempts to build a live database connection from database.ini (or the env var
-// ARCANE_DB_CONFIG). Returns nullptr when no database is configured, in which case
-// the application falls back to demo mode.
-std::shared_ptr<arcane::database::DBConnection> tryCreateConnection()
+// New-student stories require the database; keep the failure visible on the login screen.
+std::shared_ptr<arcane::database::DBConnection> tryCreateConnection(QString* failure)
 {
     std::filesystem::path configPath;
     if (const char* path = std::getenv("ARCANE_DB_CONFIG")) {
@@ -41,11 +39,13 @@ std::shared_ptr<arcane::database::DBConnection> tryCreateConnection()
     std::string error;
     const auto config = arcane::database::DatabaseConfigLoader::loadFromFile(configPath, &error);
     if (!config) {
+        if (failure) *failure = QString::fromStdString(error);
         return nullptr;
     }
 
     auto connection = std::make_shared<arcane::database::DBConnection>(*config);
     if (!connection->connect()) {
+        if (failure) *failure = QString::fromStdString(connection->lastError());
         return nullptr;
     }
     return connection;
@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
     auto *mainWindow = new MainWindow;
     auto *campusController = new arcane::application::controller::CampusController(&app);
 
-    // Wire the live database when a connection is available; otherwise stay in demo mode.
-    if (auto connection = tryCreateConnection()) {
+    QString databaseError;
+    if (auto connection = tryCreateConnection(&databaseError)) {
         auto userDao = std::make_shared<arcane::database::UserDAO>(connection);
         auto characterDao = std::make_shared<arcane::database::CharacterDAO>(connection);
         auto messageDao = std::make_shared<arcane::database::MessageDAO>(connection);
@@ -91,6 +91,8 @@ int main(int argc, char *argv[])
         campusController->configureSocialService(friendDao, characterDao);
         campusController->configureStoryProgressService(storyDao, characterDao);
         campusController->configureStoryPersistence(connection);
+    } else if (qEnvironmentVariable("ARCANE_DEMO_MODE") != QLatin1String("1")) {
+        loginWindow->setDatabaseAvailable(false, databaseError);
     }
 
     QObject::connect(loginWindow, &LoginWindow::loginRequested,
@@ -206,6 +208,8 @@ int main(int argc, char *argv[])
                      mainWindow, &MainWindow::updatePlayerGold);
     QObject::connect(campusController, &arcane::application::controller::CampusController::feedbackProduced,
                      mainWindow, &MainWindow::showFeedback);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::feedbackProduced,
+                     loginWindow, &LoginWindow::showFeedback);
     QObject::connect(campusController, &arcane::application::controller::CampusController::maraudersMapRevealed,
                      mainWindow, &MainWindow::displayMaraudersMap);
     QObject::connect(campusController, &arcane::application::controller::CampusController::inventoryRefreshed,

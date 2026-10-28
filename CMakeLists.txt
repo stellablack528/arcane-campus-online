@@ -121,6 +121,21 @@ target_link_libraries(ArcaneOpenWorldBoundary PUBLIC
 target_compile_features(ArcaneOpenWorldBoundary PUBLIC cxx_std_20)
 
 if(BUILD_TESTING)
+    add_executable(ArcaneCampusLoginFlowTest
+        tests/ui/LoginFlowTest.cpp
+        src/ui/LoginWindow.h
+        src/ui/LoginWindow.cpp
+        src/ui/I18n.hpp
+        src/ui/I18n.cpp
+    )
+    target_include_directories(ArcaneCampusLoginFlowTest PRIVATE src)
+    target_link_libraries(ArcaneCampusLoginFlowTest PRIVATE Qt6::Widgets)
+    add_test(NAME ArcaneCampusLoginFlowTest COMMAND ArcaneCampusLoginFlowTest)
+    set_tests_properties(ArcaneCampusLoginFlowTest PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
     add_executable(ArcaneCampusWireTest tests/network/CampusWireTest.cpp)
     target_link_libraries(ArcaneCampusWireTest PRIVATE ArcaneCampusWire)
     add_test(NAME ArcaneCampusWireTest COMMAND ArcaneCampusWireTest)

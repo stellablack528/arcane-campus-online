@@ -28,6 +28,15 @@ ON DUPLICATE KEY UPDATE
     max_players = VALUES(max_players),
     is_restricted = VALUES(is_restricted);
 
+-- Optional exploration location. Keep the INSERT idempotent for existing databases.
+INSERT INTO rooms (room_name, room_type, description, max_players, is_restricted)
+VALUES ('Courtyard', 'public', 'A quiet courtyard beside the fountain.', 120, FALSE)
+ON DUPLICATE KEY UPDATE
+    room_type = VALUES(room_type),
+    description = VALUES(description),
+    max_players = VALUES(max_players),
+    is_restricted = VALUES(is_restricted);
+
 INSERT INTO characters
     (character_id, user_id, nickname, house, level, experience, gold, current_room_id, title)
 VALUES

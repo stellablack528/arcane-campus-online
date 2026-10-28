@@ -116,13 +116,17 @@ void I18n::seed()
 
     // ---------------- 登录页 ----------------
     seedPair("login.title",       "霍格沃兹在线",         "Hogwarts Online");
-    seedPair("login.subtitle",    "秋学期 · 第三周 · 学生入口", "Autumn Term - Week Three - Student Entrance");
-    seedPair("login.studentname", "学生姓名",             "Student Name");
+    seedPair("login.subtitle",    "新生入学 · 从对角巷开始", "First Year · Begin in Diagon Alley");
+    seedPair("login.studentname", "已注册用户名",           "Existing Username");
     seedPair("login.house",       "学院",                 "House");
-    seedPair("login.enter",       "进入校园",             "Enter Campus");
-    seedPair("login.enroll",      "新生？前往注册",       "New Student? Enroll Here");
-    seedPair("login.hint",        "今日：大礼堂早餐开放，首节课 09:00 开始。",
-                                  "Today: Breakfast is open in the Great Hall. First class begins at 09:00.");
+    seedPair("login.enter",       "继续已有角色",         "Continue Existing Character");
+    seedPair("login.enroll",      "创建新生角色",         "Create a First-Year Character");
+    seedPair("login.hint",        "新玩家请创建新生；已有角色用注册时的用户名和学院继续剧情。",
+                                  "New players start with enrollment. Returning players use their registered username and house.");
+    seedPair("login.database_unavailable", "数据库未连接，新生剧情暂时无法启动。请检查 Qt Creator 的运行环境与 database.ini。",
+                                            "Database unavailable. Check the Qt Creator run environment and database.ini to start the first-year story.");
+    seedPair("login.name_required", "请填写注册时的用户名；新玩家请点击“创建新生角色”。",
+                                     "Enter your registered username, or create a first-year character.");
 
     // ---------------- 时钟 / 时段 ----------------
     seedPair("time.autumn",  "秋学期 · 第三周",     "Autumn Term - Week Three");

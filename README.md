@@ -386,6 +386,8 @@ cmake --build .
 
 ### 4️⃣ 运行 / Run
 
+使用 Qt Creator 的完整新生试玩步骤见 [本地试玩指南](docs/PLAY_LOCAL_QT_CREATOR.md)。新生剧情需要 MySQL；数据库未连接时，客户端会在登录页显示原因。
+
 ```bash
 ./HogwartsOnline.exe           # Windows
 ./HogwartsOnline               # Linux

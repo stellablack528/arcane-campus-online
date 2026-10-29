@@ -19,6 +19,8 @@ QString storySceneForCampusLocation(const QString& location)
     if (location == QLatin1String("Great Hall")) return QStringLiteral("great_hall");
     if (location == QLatin1String("Library")) return QStringLiteral("library");
     if (location == QLatin1String("Courtyard")) return QStringLiteral("courtyard");
+    if (location == QLatin1String("Transfiguration Classroom")) return QStringLiteral("transfiguration_classroom");
+    if (location == QLatin1String("Hogsmeade")) return QStringLiteral("hogsmeade");
     return location;
 }
 
@@ -107,6 +109,7 @@ QString buildNarrativeHtml(const vo::NarrativeResultVO& result)
 // 拼接风评卡片的富文本日志。
 QString buildReputationHtml(const vo::ReputationVO& rep)
 {
+    const bool chinese = ui::I18n::instance().language() == ui::I18n::Lang::Chinese;
     auto statLine = [](const QString& label, int v, const QString& standing) {
         const QString color = v >= 0 ? QStringLiteral("#7ec88a") : QStringLiteral("#e08a8a");
         return QStringLiteral(
@@ -119,16 +122,18 @@ QString buildReputationHtml(const vo::ReputationVO& rep)
     QString html = QStringLiteral(
         "<div style='background:#1c231e; border:1px solid #364239; border-radius:4px;"
         " padding:8px 10px; margin:4px 0;'>"
-        "<span style='color:#e8d5a4; font-weight:700;'>\xf0\x9f\x93\x96 Reputation</span><br>");
-    html.append(statLine(QStringLiteral("Peers"), rep.peerReputation,
+        "<span style='color:#e8d5a4; font-weight:700;'>%1</span><br>")
+                       .arg(TR("log.reputation.label").toHtmlEscaped());
+    html.append(statLine(chinese ? QStringLiteral("同学") : QStringLiteral("Peers"), rep.peerReputation,
                          QString::fromStdString(rep.peerStanding)));
-    html.append(statLine(QStringLiteral("Teachers"), rep.teacherReputation,
+    html.append(statLine(chinese ? QStringLiteral("教授") : QStringLiteral("Teachers"), rep.teacherReputation,
                          QString::fromStdString(rep.teacherStanding)));
-    html.append(statLine(QStringLiteral("Housemates"), rep.houseReputation,
+    html.append(statLine(chinese ? QStringLiteral("同院同学") : QStringLiteral("Housemates"), rep.houseReputation,
                          QString::fromStdString(rep.houseStanding)));
     html.append(QStringLiteral(
         "<hr style='border:0; border-top:1px solid #2a342d; margin:6px 0;'>"
-        "<span style='color:#9aa49a; font-size:11px;'>Relationships:</span>"));
+        "<span style='color:#9aa49a; font-size:11px;'>%1</span>")
+                    .arg(chinese ? QStringLiteral("人物关系：") : QStringLiteral("Relationships:")));
     for (const auto& r : rep.relationships) {
         const QString name = QString::fromStdString(r.displayName).toHtmlEscaped();
         const QString role = QString::fromStdString(r.role).toHtmlEscaped();
@@ -573,6 +578,14 @@ void CampusController::handleChat(const QString& channel, const QString& text)
             handleMove(QStringLiteral("courtyard"));
             return;
         }
+        if (action == QLatin1String("去变形术教室") || action == QLatin1String("go to transfiguration classroom")) {
+            handleMove(QStringLiteral("transfiguration_classroom"));
+            return;
+        }
+        if (action == QLatin1String("去霍格莫德") || action == QLatin1String("go to hogsmeade")) {
+            handleMove(QStringLiteral("hogsmeade"));
+            return;
+        }
         const bool sceneInvestigation =
             (location == QLatin1String("great_hall")
              && (action.contains(QStringLiteral("罗温")) || action.contains(QStringLiteral("调查礼堂"))))
@@ -849,15 +862,30 @@ void CampusController::handleMove(const QString& locationId)
         return;
     }
     const auto result = campusService_->moveTo(*session, {locationId.toStdString()});
-    publish(result);
+    if (!result.success) {
+        publish(result);
+        return;
+    }
     if (result.success) {
+        // The UI and story runtime use stable scene IDs; the DAO uses room names.
+        session->currentLocation = locationId.toStdString();
+        session->currentState = "Free exploration";
+        const QHash<QString, QString> sceneTitles{
+            {QStringLiteral("great_hall"), TR("loc.greathall")},
+            {QStringLiteral("transfiguration_classroom"), TR("loc.classroom")},
+            {QStringLiteral("library"), TR("loc.library")},
+            {QStringLiteral("courtyard"), TR("loc.courtyard")},
+            {QStringLiteral("hogsmeade"), TR("loc.hogsmeade")}};
+        emit sceneHeaderChanged(sceneTitles.value(locationId, locationId));
         const QString scene = locationId == QLatin1String("library")
             ? QStringLiteral("书架间有一册会自行翻页的魔咒史，几位同学正在低声讨论。")
             : locationId == QLatin1String("courtyard")
                 ? QStringLiteral("庭院里晚风吹动长袍，有学生正在练习刚学会的漂浮咒。")
                 : locationId == QLatin1String("great_hall")
                     ? QStringLiteral("礼堂的长桌重新热闹起来，今天的课堂传闻正在学生之间流转。")
-                    : QStringLiteral("你来到新的场景。留意身边的人，也可以主动发言。 ");
+                    : locationId == QLatin1String("transfiguration_classroom")
+                        ? QStringLiteral("变形术教室的桌面收拾得整整齐齐。这里暂时没有正在发生的事件，你可以观察四周，或前往别处。")
+                        : QStringLiteral("霍格莫德的街道在你面前展开。这里的故事还未开始，你可以停留片刻，或返回校园。");
         emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("旁白"), scene);
         if (locationId == QLatin1String("great_hall")) {
             emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("罗温·维尔"),
@@ -954,9 +982,39 @@ void CampusController::handleItemGift(const QString& itemId, const QString& npcI
 
 void CampusController::handleStudy(const QString& locationId)
 {
-    publish(locationId == QStringLiteral("library")
-        ? vo::OperationResultVO{true, "You settle in for a Library study session."}
-        : vo::OperationResultVO{false, "Study is unavailable at this location."});
+    if (locationId != QLatin1String("library")) {
+        emit feedbackProduced(QStringLiteral("只有在图书馆才能安静学习。"));
+        return;
+    }
+    const bool chinese = arcane::ui::I18n::instance().language()
+        == arcane::ui::I18n::Lang::Chinese;
+    emit campusMessageProduced(QStringLiteral("Story"),
+        chinese ? QStringLiteral("旁白") : QStringLiteral("Narrator"),
+        chinese ? QStringLiteral("你在书架旁坐下，安静地读了一会儿书。")
+                : QStringLiteral("You find a quiet place beside the shelves and read for a while."));
+}
+
+void CampusController::handleRest(const QString& locationId)
+{
+    if (!activeSession()) return;
+    if (storyRuntimeService_->isActive() || prologueService_->isActive()) {
+        emit feedbackProduced(QStringLiteral("先完成当前剧情，再找地方休息。"));
+        return;
+    }
+    const QString place = locationId == QLatin1String("library") ? TR("loc.library")
+        : locationId == QLatin1String("courtyard") ? TR("loc.courtyard")
+        : locationId == QLatin1String("transfiguration_classroom") ? TR("loc.classroom")
+        : locationId == QLatin1String("hogsmeade") ? TR("loc.hogsmeade")
+        : locationId == QLatin1String("great_hall") ? TR("loc.greathall")
+        : QString();
+    const bool chinese = arcane::ui::I18n::instance().language()
+        == arcane::ui::I18n::Lang::Chinese;
+    emit campusMessageProduced(QStringLiteral("Story"),
+        chinese ? QStringLiteral("旁白") : QStringLiteral("Narrator"),
+        chinese ? (place.isEmpty() ? QStringLiteral("你稍作休息，整理了一下思绪。")
+                                   : QStringLiteral("你在%1稍作休息，整理了一下思绪。").arg(place))
+                : (place.isEmpty() ? QStringLiteral("You take a short break and gather your thoughts.")
+                                   : QStringLiteral("You take a short break in %1 and gather your thoughts.").arg(place)));
 }
 
 void CampusController::handleActivity(const QString& activityId)
@@ -966,8 +1024,23 @@ void CampusController::handleActivity(const QString& activityId)
 
 void CampusController::handleMemberSelected(const QString& memberId)
 {
-    publish(memberId.isEmpty() ? vo::OperationResultVO{false, "No campus member selected."}
-                               : vo::OperationResultVO{true, "Selected campus member: " + memberId.toStdString()});
+    if (memberId.isEmpty()) return;
+    const QHash<QString, QString> names{
+        {QStringLiteral("npc_gareth"), TR("npc.gareth")},
+        {QStringLiteral("npc_hermione"), TR("npc.hermione")},
+        {QStringLiteral("prof_mcgonagall"), TR("npc.mcgonagall")},
+        {QStringLiteral("player_002"), TR("npc.cedric")},
+        {QStringLiteral("ghost_gray_lady"), TR("npc.grey")},
+        {QStringLiteral("shop_ollivander"), TR("npc.ollivander")},
+        {QStringLiteral("npc_rowan_vale"), TR("npc.rowan")},
+        {QStringLiteral("keeper_bramble"), TR("npc.bramble")},
+        {QStringLiteral("deputy_head"), TR("npc.deputyhead")},
+        {QStringLiteral("sorting_hat"), TR("npc.sortinghat")},
+        {QStringLiteral("prof_flitwick"), TR("npc.flitwick")}};
+    emit campusMessageProduced(QStringLiteral("Location"), names.value(memberId, memberId),
+        arcane::ui::I18n::instance().language() == arcane::ui::I18n::Lang::Chinese
+            ? QStringLiteral("对方向你点点头，暂时没有新的话题。")
+            : QStringLiteral("They nod to you, but have nothing new to say just yet."));
 }
 
 void CampusController::handlePrivateChat(const QString& memberId)

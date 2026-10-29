@@ -60,6 +60,8 @@ void CampusWireClient::move(const QString& location)
     if (id == QLatin1String("Great Hall")) id = QStringLiteral("great_hall");
     else if (id == QLatin1String("Library")) id = QStringLiteral("library");
     else if (id == QLatin1String("Courtyard")) id = QStringLiteral("courtyard");
+    else if (id == QLatin1String("Transfiguration Classroom")) id = QStringLiteral("transfiguration_classroom");
+    else if (id == QLatin1String("Hogsmeade")) id = QStringLiteral("hogsmeade");
     if (id == location_) return;
     location_ = id;
     send({{"type", "move"}, {"location", id}});

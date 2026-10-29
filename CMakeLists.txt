@@ -157,6 +157,21 @@ if(BUILD_TESTING)
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 
+    add_executable(ArcaneCampusLocationPanelTest
+        tests/ui/LocationPanelTest.cpp
+        src/ui/widgets/LocationPanel.h
+        src/ui/widgets/LocationPanel.cpp
+        src/ui/I18n.hpp
+        src/ui/I18n.cpp
+    )
+    target_include_directories(ArcaneCampusLocationPanelTest PRIVATE src)
+    target_link_libraries(ArcaneCampusLocationPanelTest PRIVATE Qt6::Widgets)
+    add_test(NAME ArcaneCampusLocationPanelTest COMMAND ArcaneCampusLocationPanelTest)
+    set_tests_properties(ArcaneCampusLocationPanelTest PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
     add_executable(ArcaneCampusWireTest tests/network/CampusWireTest.cpp)
     target_link_libraries(ArcaneCampusWireTest PRIVATE ArcaneCampusWire)
     add_test(NAME ArcaneCampusWireTest COMMAND ArcaneCampusWireTest)
@@ -392,7 +407,6 @@ qt_add_executable(HogwartsOnline
     src/application/world/WorldEvent.cpp
     src/core/DeepSeekClient.hpp
     src/core/DeepSeekClient.cpp
-    src/network/CampusWireClient.hpp
     src/ui/LoginWindow.h
     src/ui/LoginWindow.cpp
     src/ui/I18n.hpp

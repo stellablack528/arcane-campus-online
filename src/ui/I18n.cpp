@@ -162,6 +162,7 @@ void I18n::seed()
     seedPair("npc.grey",         "灰女士",          "The Grey Lady");
     seedPair("npc.ollivander",   "魔杖店店员",      "Wand Shop Clerk");
     seedPair("npc.rowan",        "罗温·维尔",       "Rowan Vale");
+    seedPair("npc.flitwick",     "弗立维教授",       "Professor Flitwick");
     seedPair("npc.bramble",      "布兰布尔先生",     "Mr. Bramble");
     seedPair("npc.deputyhead",   "副校长",           "Deputy Head");
     seedPair("npc.sortinghat",   "分院帽",           "Sorting Hat");
@@ -182,7 +183,7 @@ void I18n::seed()
 
     // ---------------- 地点 ----------------
     seedPair("loc.greathall", "大礼堂",  "Great Hall");
-    seedPair("loc.classroom", "教室",    "Classroom");
+    seedPair("loc.classroom", "变形术教室", "Transfiguration Classroom");
     seedPair("loc.library",   "图书馆",  "Library");
     seedPair("loc.courtyard", "庭院",    "Courtyard");
     seedPair("loc.hogsmeade", "霍格莫德","Hogsmeade");
@@ -215,6 +216,19 @@ void I18n::seed()
     seedPair("item.potion",     "药剂",           "Potion");
     seedPair("item.quill",      "羽毛笔",         "Quill");
     seedPair("item.galleon",    "加隆",           "Galleons");
+    seedPair("item.map",        "活点地图",       "Marauder's Map");
+    seedPair("item.owl",        "猫头鹰",         "Owl");
+    seedPair("item.cat",        "猫",             "Cat");
+    seedPair("item.toad",       "蟾蜍",           "Toad");
+    seedPair("item.robe",       "校服长袍",       "School Robe");
+    seedPair("item.books",      "一年级课本与羽毛笔", "First-Year Book and Writing Set");
+    seedPair("item.potionkit",  "一年级魔药课用品", "First-Year Potion Kit");
+    seedPair("inventory.food",    "食物与饮品", "Food & Drinks");
+    seedPair("inventory.magic",   "魔法用品",   "Magical Supplies");
+    seedPair("inventory.special", "特殊用品",   "Special Items");
+    seedPair("inventory.gifts",   "好感礼物",   "Relationship Gifts");
+    seedPair("inventory.empty",   "暂无物品",   "No items yet");
+    seedPair("inventory.quantity", "数量",     "Quantity");
     seedPair("item.inspect",    "检视",           "Inspect");
     seedPair("item.gift",       "赠予 NPC",       "Gift to NPC");
 
@@ -243,6 +257,7 @@ void I18n::seed()
     seedPair("status.freeexploration", "自主探索", "Free exploration");
     seedPair("status.attendingclass", "正在上魔咒课", "Attending Charms class");
     seedPair("loc.charmsclassroom", "魔咒课教室", "Charms Classroom");
+    seedPair("location.no_people", "这里暂时没有可交谈的人。", "Nobody is here to talk to yet.");
     seedPair("status.none",         "暂无",         "None");
 
     // ---------------- 聊天 ----------------
@@ -291,7 +306,7 @@ void I18n::seed()
     seedPair("log.housepoints.loses", "失去", "loses");
     seedPair("log.narrative.label",   "📜 剧情选择", "📜 Choice");
     seedPair("log.narrative.consequence", "后果：", "Consequence: ");
-    seedPair("log.reputation.label",  "📖 风评", "📖 Reputation");
+    seedPair("log.reputation.label",  "风评", "Reputation");
     seedPair("log.reputation.peer",   "同学",   "Peers");
     seedPair("log.reputation.teacher","老师",   "Teachers");
     seedPair("log.reputation.house",  "室友",   "Housemates");

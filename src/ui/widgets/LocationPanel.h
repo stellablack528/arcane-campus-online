@@ -23,10 +23,12 @@ public:
 public slots:
     // 根据 locationId 更新"当前地点"标题与此地角色列表。
     void setCurrentLocation(const QString &locationId);
+    void setMaraudersMapAvailable(bool available);
 
 signals:
     void moveToLocationRequested(const QString &locationId);
     void studyRequested(const QString &locationId);
+    void restRequested(const QString &locationId);
     void joinActivityRequested(const QString &activityId);
     void useMaraudersMapRequested(std::uint64_t roomId);
     void nightPatrolRequested(const QString &targetId);

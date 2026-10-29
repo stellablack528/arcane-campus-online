@@ -8,6 +8,7 @@
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QVBoxLayout>
 
 #include <array>
@@ -69,9 +70,6 @@ const QHash<QString, std::vector<Person>>& peopleByLocation()
         {"ravenclaw_tower", {
             {"ghost_gray_lady", "npc.grey"},
         }},
-        {"hogsmeade", {
-            {"shop_ollivander", "npc.ollivander"},
-        }},
         {"diagon_alley", {
             {"shop_ollivander", "npc.ollivander"},
         }},
@@ -122,9 +120,20 @@ LocationPanel::LocationPanel(QWidget *parent)
 
 void LocationPanel::buildUi()
 {
-    auto *root = new QVBoxLayout(this);
+    auto *shell = new QVBoxLayout(this);
+    shell->setContentsMargins(0, 0, 0, 0);
+    auto *scroll = new QScrollArea(this);
+    scroll->setObjectName("LocationScrollArea");
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    auto *content = new QWidget(scroll);
+    auto *root = new QVBoxLayout(content);
     root->setContentsMargins(14, 14, 14, 14);
-    root->setSpacing(12);
+    root->setSpacing(14);
+    root->setSizeConstraint(QLayout::SetMinimumSize);
+    scroll->setWidget(content);
+    shell->addWidget(scroll);
 
     // ---- 当前地点 ----
     auto *locBox = new QGroupBox(this);
@@ -155,22 +164,28 @@ void LocationPanel::buildUi()
     auto *row1 = new QHBoxLayout;
     m_talkBtn = new QPushButton(actionBox);
     m_talkBtn->setObjectName("LocationActionBtn");
+    m_talkBtn->setMinimumHeight(38);
     m_studyBtn = new QPushButton(actionBox);
     m_studyBtn->setObjectName("LocationActionBtn");
+    m_studyBtn->setMinimumHeight(38);
     row1->addWidget(m_talkBtn);
     row1->addWidget(m_studyBtn);
 
     auto *row2 = new QHBoxLayout;
     m_restBtn = new QPushButton(actionBox);
     m_restBtn->setObjectName("LocationActionBtn");
+    m_restBtn->setMinimumHeight(38);
     m_mapBtn = new QPushButton(actionBox);
     m_mapBtn->setObjectName("LocationActionBtn");
+    m_mapBtn->setMinimumHeight(38);
     row2->addWidget(m_restBtn);
     row2->addWidget(m_mapBtn);
+    m_mapBtn->hide();
 
     auto *row3 = new QHBoxLayout;
     m_nightBtn = new QPushButton(actionBox);
     m_nightBtn->setObjectName("LocationActionBtn");
+    m_nightBtn->setMinimumHeight(38);
     row3->addWidget(m_nightBtn);
 
     actionLayout->addWidget(m_sectionActions);
@@ -178,6 +193,19 @@ void LocationPanel::buildUi()
     actionLayout->addLayout(row2);
     actionLayout->addLayout(row3);
     root->addWidget(actionBox);
+    connect(m_talkBtn, &QPushButton::clicked, this, [this] {
+        auto *person = m_peopleList->currentItem();
+        if (!person && m_peopleList->count() > 0) person = m_peopleList->item(0);
+        if (person) emit memberSelected(person->data(Qt::UserRole).toString());
+    });
+    connect(m_studyBtn, &QPushButton::clicked, this,
+            [this] { emit studyRequested(m_currentLocationId); });
+    connect(m_restBtn, &QPushButton::clicked, this,
+            [this] { emit restRequested(m_currentLocationId); });
+    connect(m_mapBtn, &QPushButton::clicked, this,
+            [this] { emit useMaraudersMapRequested(0); });
+    connect(m_nightBtn, &QPushButton::clicked, this,
+            [this] { emit nightPatrolRequested({}); });
 
     // ---- 前往 ----
     auto *moveBox = new QGroupBox(this);
@@ -187,21 +215,17 @@ void LocationPanel::buildUi()
 
     m_sectionMove = new QLabel(moveBox);
     m_sectionMove->setObjectName("SectionCaption");
+    moveLayout->addWidget(m_sectionMove);
 
     for (const auto& target : kMoveTargets) {
         auto *btn = new QPushButton(moveBox);
         btn->setObjectName("LocationMoveBtn");
+        btn->setMinimumHeight(40);
         moveLayout->addWidget(btn);
         const QString locId = QString::fromLatin1(target.locationId);
         m_moveButtons[locId] = btn;
-        connect(btn, &QPushButton::clicked, this, [this, locId] {
-            emit moveToLocationRequested(locId);
-            if (locId == QLatin1String("library")) {
-                emit studyRequested(locId);
-            } else if (locId == QLatin1String("hogsmeade")) {
-                emit joinActivityRequested(QStringLiteral("hogsmeade_weekend"));
-            }
-        });
+        connect(btn, &QPushButton::clicked, this,
+                [this, locId] { emit moveToLocationRequested(locId); });
     }
     root->addWidget(moveBox);
 
@@ -217,6 +241,7 @@ void LocationPanel::buildUi()
     m_peopleList = new QListWidget(hereBox);
     m_peopleList->setObjectName("PeopleHereList");
     m_peopleList->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_peopleList->setMinimumHeight(110);
 
     connect(m_peopleList, &QListWidget::itemClicked, this, [this](QListWidgetItem *item) {
         const QString id = item ? item->data(Qt::UserRole).toString() : QString();
@@ -227,7 +252,8 @@ void LocationPanel::buildUi()
 
     hereLayout->addWidget(m_sectionHere);
     hereLayout->addWidget(m_peopleList, 1);
-    root->addWidget(hereBox, 1);
+    root->addWidget(hereBox);
+    root->addStretch();
 }
 
 void LocationPanel::retranslateUi()
@@ -260,6 +286,9 @@ void LocationPanel::retranslateUi()
 void LocationPanel::setCurrentLocation(const QString &locationId)
 {
     m_currentLocationId = locationId;
+    for (auto it = m_moveButtons.cbegin(); it != m_moveButtons.cend(); ++it) {
+        it.value()->setEnabled(it.key() != locationId);
+    }
 
     auto it = std::find_if(kLocationLabels.begin(), kLocationLabels.end(),
         [this](const MoveTarget& t) { return QString::fromLatin1(t.locationId) == m_currentLocationId; });
@@ -276,14 +305,25 @@ void LocationPanel::setCurrentLocation(const QString &locationId)
     refreshPeopleHere();
 }
 
+void LocationPanel::setMaraudersMapAvailable(bool available)
+{
+    m_mapBtn->setVisible(available);
+}
+
 void LocationPanel::refreshPeopleHere()
 {
     m_peopleList->clear();
     const auto& map = peopleByLocation();
     const auto it = map.constFind(m_currentLocationId);
-    if (it == map.constEnd()) return;
+    if (it == map.constEnd()) {
+        auto *placeholder = new QListWidgetItem(TR("location.no_people"), m_peopleList);
+        placeholder->setFlags(Qt::NoItemFlags);
+        m_talkBtn->setEnabled(false);
+        return;
+    }
     for (const auto& p : *it) {
         auto *item = new QListWidgetItem(TRQ(QString::fromLatin1(p.nameKey)), m_peopleList);
         item->setData(Qt::UserRole, QString::fromLatin1(p.memberId));
     }
+    m_talkBtn->setEnabled(m_peopleList->count() > 0);
 }

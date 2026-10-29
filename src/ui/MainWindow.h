@@ -14,6 +14,7 @@ class HouseRankingWidget;
 class InventoryWidget;
 class LocationPanel;
 class QComboBox;
+class QAction;
 class QFrame;
 class QLabel;
 class QTabWidget;
@@ -38,6 +39,7 @@ public slots:
                              std::uint32_t onlineCount,
                              const std::vector<arcane::application::vo::MapPlayerVO> &players);
     void refreshInventory(const std::vector<arcane::application::vo::InventoryItemVO> &items);
+    void setMaraudersMapAvailable(bool available);
     void onHousePointsChanged(const QString &house, int delta, const QString &reason);
     // 富文本广播通道：body 原样插入聊天面板（学院色日志/剧情回馈）。
     void appendRichCampusMessage(const QString &channel, const QString &speaker, const QString &htmlBody);
@@ -56,6 +58,7 @@ signals:
     void courseDetailsRequested(const QString &courseId);
     void professorInfoRequested(const QString &professorId);
     void studyRequested(const QString &locationId);
+    void restRequested(const QString &locationId);
     void activityJoinRequested(const QString &activityId);
     void memberSelected(const QString &memberId);
     void privateChatRequested(const QString &memberId);
@@ -96,4 +99,6 @@ private:
     QTabWidget *m_rightTabs = nullptr;
     QToolButton *m_leftDrawerButton = nullptr;
     QToolButton *m_rightDrawerButton = nullptr;
+    QAction *m_mapAction = nullptr;
+    bool m_mapAvailable = false;
 };

@@ -67,6 +67,7 @@ public slots:
     void handleItemInspect(const QString& itemId);
     void handleItemGift(const QString& itemId, const QString& npcId);
     void handleStudy(const QString& locationId);
+    void handleRest(const QString& locationId);
     void handleActivity(const QString& activityId);
     void handleMemberSelected(const QString& memberId);
     void handlePrivateChat(const QString& memberId);

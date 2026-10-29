@@ -4,12 +4,14 @@
 #include <QFont>
 #include <QIODevice>
 #include <QStandardPaths>
+#include <QTimer>
 
 #include "ui/LoginWindow.h"
 #include "ui/MainWindow.h"
 #include "ui/EnrollmentDialog.h"
 #include "application/controller/CampusController.hpp"
 #include "network/CampusWireClient.hpp"
+#include "network/CampusWireServer.hpp"
 
 #include "DBConnection.hpp"
 #include "DatabaseConfigLoader.hpp"
@@ -133,16 +135,56 @@ int main(int argc, char *argv[])
         loginWindow->deleteLater();
     });
 
+    // The first local client hosts the small campus session automatically.
+    // Other local clients connect to it; a dedicated server can still own the port.
+    const QString liveHost = qEnvironmentVariable("ARCANE_SERVER_HOST", "127.0.0.1");
+    bool validLivePort = false;
+    const quint16 livePort = qEnvironmentVariable("ARCANE_SERVER_PORT", "8888")
+                                 .toUShort(&validLivePort);
+    const bool localLiveHost = liveHost == QLatin1String("127.0.0.1")
+        || liveHost == QLatin1String("localhost") || liveHost == QLatin1String("::1");
+    auto* localLiveServer = new arcane::network::CampusWireServer(&app);
+    const auto ensureLocalLiveServer = [localLiveServer, localLiveHost, liveHost,
+                                        port = validLivePort ? livePort : quint16{8888}] {
+        if (localLiveHost && localLiveServer->port() == 0)
+            (void)localLiveServer->listen(
+                liveHost == QLatin1String("::1") ? QHostAddress::LocalHostIPv6
+                                                   : QHostAddress::LocalHost,
+                port);
+    };
+    ensureLocalLiveServer();
+
     auto* liveClient = new arcane::network::CampusWireClient(&app);
     auto liveName = std::make_shared<QString>();
+    auto liveLocation = std::make_shared<QString>();
+    auto freeExploring = std::make_shared<bool>(false);
     QObject::connect(campusController, &arcane::application::controller::CampusController::loginAccepted,
                      &app, [liveName](const QString& name, const QString&) { *liveName = name; });
     QObject::connect(campusController, &arcane::application::controller::CampusController::playerLocationChanged,
-                     &app, [liveClient, liveName](const QString& location, const QString& state) {
-        if (state == QLatin1String("Free exploration") && !liveClient->connected() && !liveName->isEmpty())
-            liveClient->join(*liveName, location);
+                     &app, [liveClient, liveName, liveLocation, freeExploring,
+                            ensureLocalLiveServer](const QString& location, const QString& state) {
+        if (state == QLatin1String("Free exploration")) {
+            *freeExploring = true;
+            *liveLocation = location;
+        }
+        if (*freeExploring && !liveClient->connected() && !liveName->isEmpty()) {
+            ensureLocalLiveServer();
+            liveClient->join(*liveName, *liveLocation);
+        }
         else if (liveClient->connected()) liveClient->move(location);
     });
+    if (localLiveHost) {
+        auto* liveRetry = new QTimer(&app);
+        liveRetry->setInterval(2000);
+        QObject::connect(liveRetry, &QTimer::timeout, &app,
+                         [liveClient, liveName, liveLocation, freeExploring,
+                          ensureLocalLiveServer] {
+            if (!*freeExploring || liveName->isEmpty() || liveClient->connected()) return;
+            ensureLocalLiveServer();
+            liveClient->join(*liveName, *liveLocation);
+        });
+        liveRetry->start();
+    }
     QObject::connect(liveClient, &arcane::network::CampusWireClient::messageReceived,
                      mainWindow, &MainWindow::appendCampusMessage);
     QObject::connect(mainWindow, &MainWindow::sendChatRequested,
@@ -185,6 +227,8 @@ int main(int argc, char *argv[])
                      campusController, &arcane::application::controller::CampusController::handleProfessorInfo);
     QObject::connect(mainWindow, &MainWindow::studyRequested,
                      campusController, &arcane::application::controller::CampusController::handleStudy);
+    QObject::connect(mainWindow, &MainWindow::restRequested,
+                     campusController, &arcane::application::controller::CampusController::handleRest);
     QObject::connect(mainWindow, &MainWindow::activityJoinRequested,
                      campusController, &arcane::application::controller::CampusController::handleActivity);
     QObject::connect(mainWindow, &MainWindow::memberSelected,

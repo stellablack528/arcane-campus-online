@@ -22,6 +22,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <algorithm>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -70,32 +72,42 @@ void MainWindow::displayMaraudersMap(const QString &spellQuote,
                                      std::uint32_t onlineCount,
                                      const std::vector<arcane::application::vo::MapPlayerVO> &players)
 {
-    appendCampusMessage(QStringLiteral("Map"), QStringLiteral("Marauder's Map"),
-                        spellQuote);
-    appendCampusMessage(QStringLiteral("Map"), QStringLiteral("System"),
-                        QString::number(onlineCount)
-                            + (onlineCount == 1 ? " wanderer is currently within the grounds."
-                                                : " wanderers are currently within the grounds."));
+    const bool chinese = arcane::ui::I18n::instance().language()
+                         == arcane::ui::I18n::Lang::Chinese;
+    const QString mapName = TR("menu.campus.map");
+    appendCampusMessage(QStringLiteral("Map"), mapName,
+                        chinese ? QStringLiteral("我庄严宣誓不干好事。羊皮纸上的墨迹开始移动。")
+                                : spellQuote);
+    appendCampusMessage(QStringLiteral("Map"), mapName,
+                        chinese ? QStringLiteral("当前地图上有 %1 位行踪可见的人。")
+                                      .arg(onlineCount)
+                                : QStringLiteral("%1 wanderer(s) are visible on the map.")
+                                      .arg(onlineCount));
     for (const auto &player : players) {
-        const auto line = QString::fromStdString(player.statusEmoji)
-                              + QStringLiteral(" ")
-                              + QString::fromStdString(player.nickname)
-                              + QStringLiteral(" (")
-                              + QString::fromStdString(player.house)
-                              + QStringLiteral(") — ")
-                              + QString::fromStdString(player.roomName)
-                              + QStringLiteral(" @ (")
-                              + QString::number(player.posX, 'f', 1)
-                              + QStringLiteral(", ")
-                              + QString::number(player.posY, 'f', 1)
-                              + QStringLiteral(")");
-        appendCampusMessage(QStringLiteral("Map"), QStringLiteral("Reveal"), line);
+        const QString line = QStringLiteral("%1 (%2) · %3 · (%4, %5)")
+                                 .arg(QString::fromStdString(player.nickname),
+                                      QString::fromStdString(player.house),
+                                      QString::fromStdString(player.roomName),
+                                      QString::number(player.posX, 'f', 1),
+                                      QString::number(player.posY, 'f', 1));
+        appendCampusMessage(QStringLiteral("Map"), mapName, line);
     }
 }
 
 void MainWindow::refreshInventory(const std::vector<arcane::application::vo::InventoryItemVO> &items)
 {
     m_inventory->refreshFromDatabase(items);
+    const bool hasMap = std::any_of(items.begin(), items.end(), [](const auto& item) {
+        return item.itemId == 7 && item.quantity > 0;
+    });
+    setMaraudersMapAvailable(hasMap);
+}
+
+void MainWindow::setMaraudersMapAvailable(bool available)
+{
+    m_mapAvailable = available;
+    if (m_mapAction) m_mapAction->setVisible(available);
+    if (m_locationPanel) m_locationPanel->setMaraudersMapAvailable(available);
 }
 
 void MainWindow::onHousePointsChanged(const QString &house, int delta, const QString &reason)
@@ -130,8 +142,9 @@ void MainWindow::buildMenu()
     roleMenu->addAction(TR("menu.character.relationships"))->setEnabled(false);
 
     auto *campusMenu = menuBar()->addMenu(TR("menu.campus"));
-    auto *mapAction = campusMenu->addAction(TR("menu.campus.map"));
-    connect(mapAction, &QAction::triggered, this, [this] { emit useMaraudersMapRequested(0); });
+    m_mapAction = campusMenu->addAction(TR("menu.campus.map"));
+    m_mapAction->setVisible(m_mapAvailable);
+    connect(m_mapAction, &QAction::triggered, this, [this] { emit useMaraudersMapRequested(0); });
     auto *nightPatrolAction = campusMenu->addAction(TR("menu.campus.nightpatrol"));
     connect(nightPatrolAction, &QAction::triggered, this, [this] { emit nightPatrolRequested({}); });
     campusMenu->addAction(TR("menu.campus.courses"))->setEnabled(false);
@@ -366,6 +379,8 @@ void MainWindow::connectWidgetSignals()
             this, &MainWindow::moveToLocationRequested);
     connect(m_locationPanel, &LocationPanel::studyRequested,
             this, &MainWindow::studyRequested);
+    connect(m_locationPanel, &LocationPanel::restRequested,
+            this, &MainWindow::restRequested);
     connect(m_locationPanel, &LocationPanel::joinActivityRequested,
             this, &MainWindow::activityJoinRequested);
     connect(m_locationPanel, &LocationPanel::useMaraudersMapRequested,

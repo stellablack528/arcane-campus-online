@@ -38,6 +38,11 @@ void CharacterStatusWidget::setCampusState(const QString &location, const QStrin
     else if (location == QLatin1String("sorting_stool")) locationText = TR("loc.sortingstool");
     else if (location == QLatin1String("house_tables")) locationText = TR("loc.housetables");
     else if (location == QLatin1String("charms_classroom")) locationText = TR("loc.charmsclassroom");
+    else if (location == QLatin1String("great_hall")) locationText = TR("loc.greathall");
+    else if (location == QLatin1String("transfiguration_classroom")) locationText = TR("loc.classroom");
+    else if (location == QLatin1String("library")) locationText = TR("loc.library");
+    else if (location == QLatin1String("courtyard")) locationText = TR("loc.courtyard");
+    else if (location == QLatin1String("hogsmeade")) locationText = TR("loc.hogsmeade");
     m_locationValue->setText(locationText);
 
     QString stateText = state;

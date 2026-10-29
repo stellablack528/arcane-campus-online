@@ -561,7 +561,7 @@ QProgressBar#HufflepuffBar {
     background-color: #1c231e;
     border: 1px solid #2a342d;
     border-radius: 5px;
-    margin-top: 14px;
+    margin-top: 0;
     padding: 6px 4px 6px 4px;
     font-weight: 600;
     color: #e8d5a4;
@@ -578,6 +578,7 @@ QProgressBar#HufflepuffBar {
 }
 
 #LocationPanel #SectionCaption {
+    background-color: transparent;
     color: #b89860;
     font-family: Georgia, "Times New Roman";
     font-size: 11px;
@@ -614,6 +615,13 @@ QProgressBar#HufflepuffBar {
 #LocationPanel #LocationMoveBtn:pressed {
     background-color: #1a221c;
     border-color: #4a6052;
+}
+
+#LocationPanel #LocationActionBtn:disabled,
+#LocationPanel #LocationMoveBtn:disabled {
+    background-color: #1b231d;
+    color: #718071;
+    border-color: #2a342d;
 }
 
 #LocationPanel #PeopleHereList {

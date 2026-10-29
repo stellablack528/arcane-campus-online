@@ -7,14 +7,8 @@
 #include <vector>
 
 class QLabel;
-class QListWidget;
-class QListWidgetItem;
-
-struct ItemSeed {
-    QString id;
-    QString nameKey;
-    QString description;
-};
+class QTreeWidget;
+class QTreeWidgetItem;
 
 class InventoryWidget : public QWidget
 {
@@ -34,10 +28,9 @@ signals:
 private:
     void buildUi();
     void retranslateUi();
-    void addItem(const QString &id, const QString &nameKey, const QString &description);
-    QString itemId(QListWidgetItem *item) const;
+    QString itemId(QTreeWidgetItem *item) const;
 
     QLabel *m_titleLabel = nullptr;
-    QListWidget *m_list = nullptr;
-    std::vector<ItemSeed> m_seed;
+    QTreeWidget *m_list = nullptr;
+    std::vector<arcane::application::vo::InventoryItemVO> m_items;
 };

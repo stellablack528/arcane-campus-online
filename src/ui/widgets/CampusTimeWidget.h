@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+#include <QString>
 
 class QLabel;
 class QTimer;
@@ -11,6 +12,7 @@ class CampusTimeWidget : public QWidget
 
 public:
     explicit CampusTimeWidget(QWidget *parent = nullptr);
+    void setGameSchedule(const QString& schedule);
 
 signals:
     // 当校园时段发生变化时发出。
@@ -31,4 +33,5 @@ private:
     QLabel *m_periodLabel = nullptr;
     QTimer *m_timer = nullptr;
     int m_lastPeriod = -1;  // -1 表示尚未初始化，避免启动即触发事件
+    QString m_gameSchedule = QStringLiteral("入学旅程");
 };

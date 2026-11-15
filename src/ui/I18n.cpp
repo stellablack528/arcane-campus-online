@@ -255,8 +255,15 @@ void I18n::seed()
     seedPair("status.sortingceremony", "参加分院仪式", "Attending the Sorting Ceremony");
     seedPair("status.joininghousetable", "走向学院长桌", "Joining the house table");
     seedPair("status.freeexploration", "自主探索", "Free exploration");
+    seedPair("status.term", "学期日程", "Term Schedule");
+    seedPair("status.health", "健康", "Health");
+    seedPair("status.reputation", "声望", "Reputation");
+    seedPair("status.subjects", "学科能力", "Subjects");
     seedPair("status.attendingclass", "正在上魔咒课", "Attending Charms class");
     seedPair("loc.charmsclassroom", "魔咒课教室", "Charms Classroom");
+    seedPair("loc.greenhouse", "三号温室", "Greenhouse Three");
+    seedPair("loc.defenseclassroom", "黑魔法防御术教室", "Defence Classroom");
+    seedPair("loc.forbiddenforest", "禁林边缘", "Forbidden Forest Edge");
     seedPair("location.no_people", "这里暂时没有可交谈的人。", "Nobody is here to talk to yet.");
     seedPair("status.none",         "暂无",         "None");
 

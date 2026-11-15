@@ -16,16 +16,20 @@ CourseScheduleWidget::CourseScheduleWidget(QWidget *parent)
     setObjectName("CourseScheduleWidget");
     buildUi();
 
-    m_seed.clear();
-    m_seed.append({"transfiguration", "08:00", "class.transfiguration", "class.inprogress", "prof_mcgonagall"});
-    m_seed.append({"charms",          "10:00", "class.charms",          "class.notstarted", "prof_flitwick"});
-    m_seed.append({"herbology",       "14:00", "class.herbology",       "class.notstarted", "prof_garlick"});
-    m_seed.append({"defense",         "16:00", "class.defense",         "class.notstarted", "prof_defense"});
-
     retranslateUi();
 
     connect(&arcane::ui::I18n::instance(), &arcane::ui::I18n::languageChanged,
             this, [this](arcane::ui::I18n::Lang) { retranslateUi(); });
+}
+
+void CourseScheduleWidget::setTermSchedule(int week, int weekday, int morningSubject, int afternoonSubject)
+{
+    m_termActive = true;
+    m_termWeek = week;
+    m_termWeekday = weekday;
+    m_morningSubject = morningSubject;
+    m_afternoonSubject = afternoonSubject;
+    retranslateUi();
 }
 
 void CourseScheduleWidget::buildUi()
@@ -88,12 +92,39 @@ void CourseScheduleWidget::retranslateUi()
     if (m_detailButton) m_detailButton->setText(TR("class.details"));
 
     m_list->clear();
-    for (const auto& s : m_seed) {
-        auto *item = new QListWidgetItem(
-            QStringLiteral("%1  %2  -  %3").arg(s.time, TRQ(s.nameKey), TRQ(s.statusKey)),
-            m_list);
-        item->setData(Qt::UserRole, s.id);
-        item->setData(Qt::UserRole + 1, s.professorId);
+    if (!m_termActive) {
+        auto *item = new QListWidgetItem(QStringLiteral("完成入学剧情后开放课表。"), m_list);
+        item->setFlags(Qt::NoItemFlags);
+        return;
+    }
+    if (m_termActive) {
+        if (m_termWeekday < 0) {
+            m_titleLabel->setText(QStringLiteral("第一学期前五周已完成"));
+            auto *item = new QListWidgetItem(QStringLiteral("后续课程尚未开放。"), m_list);
+            item->setFlags(Qt::NoItemFlags);
+            return;
+        }
+        const QString day = QStringList{QStringLiteral("一"), QStringLiteral("二"),
+            QStringLiteral("三"), QStringLiteral("四"), QStringLiteral("五"),
+            QStringLiteral("六"), QStringLiteral("日")}.value(m_termWeekday);
+        m_titleLabel->setText(QStringLiteral("第%1周 · 周%2课程").arg(m_termWeek).arg(day));
+        const QStringList ids{QStringLiteral("charms"), QStringLiteral("transfiguration"),
+            QStringLiteral("herbology"), QStringLiteral("defense")};
+        const QStringList names{QStringLiteral("魔咒学"), QStringLiteral("变形术"),
+            QStringLiteral("草药学"), QStringLiteral("黑魔法防御术")};
+        const auto addCourse = [&](const QString& time, int subject) {
+            if (subject < 0 || subject >= ids.size()) return;
+            auto *item = new QListWidgetItem(time + QStringLiteral("  ") + names.at(subject), m_list);
+            item->setData(Qt::UserRole, ids.at(subject));
+            item->setData(Qt::UserRole + 1, QString());
+        };
+        addCourse(QStringLiteral("09:00"), m_morningSubject);
+        addCourse(QStringLiteral("14:00"), m_afternoonSubject);
+        if (m_list->count() == 0) {
+            auto *item = new QListWidgetItem(QStringLiteral("周末无课程，可自由探索和休息。"), m_list);
+            item->setFlags(Qt::NoItemFlags);
+        }
+        return;
     }
 }
 

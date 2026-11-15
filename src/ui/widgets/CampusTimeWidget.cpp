@@ -70,8 +70,31 @@ void CampusTimeWidget::retranslateUi()
     m_weatherLabel->setText(TR("time.weather"));
 }
 
+void CampusTimeWidget::setGameSchedule(const QString& schedule)
+{
+    m_gameSchedule = schedule;
+    if (m_timer) m_timer->stop();
+    refreshTime();
+}
+
 void CampusTimeWidget::refreshTime()
 {
+    if (!m_gameSchedule.isEmpty()) {
+        if (m_gameSchedule == QLatin1String("入学旅程")) {
+            m_weekdayLabel->setText(QStringLiteral("新生入学"));
+            m_timeLabel->clear();
+            m_termLabel->clear();
+            m_weatherLabel->clear();
+            m_periodLabel->clear();
+            return;
+        }
+        m_weekdayLabel->setText(QStringLiteral("第一学期"));
+        m_timeLabel->clear();
+        m_termLabel->setText(QStringLiteral("秋季学期 · 第1～5周"));
+        m_weatherLabel->clear();
+        m_periodLabel->setText(m_gameSchedule);
+        return;
+    }
     const QDateTime now = QDateTime::currentDateTime();
     const QString englishWeekday = now.toString("dddd");
     const QString weekdayKey = weekdayKeyFrom(englishWeekday);

@@ -17,7 +17,10 @@ bool knownLocation(const QString& id)
         || id == QLatin1String("courtyard")
         || id == QLatin1String("house_tables")
         || id == QLatin1String("transfiguration_classroom")
-        || id == QLatin1String("hogsmeade");
+        || id == QLatin1String("hogsmeade")
+        || id == QLatin1String("greenhouse_three")
+        || id == QLatin1String("defense_classroom")
+        || id == QLatin1String("forbidden_forest");
 }
 }
 

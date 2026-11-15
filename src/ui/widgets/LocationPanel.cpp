@@ -20,15 +20,18 @@ struct MoveTarget {
     const char* labelKey;
 };
 
-constexpr std::array<MoveTarget, 5> kMoveTargets = {{
+constexpr std::array<MoveTarget, 8> kMoveTargets = {{
     {"great_hall",              "loc.greathall"},
+    {"charms_classroom",        "loc.charmsclassroom"},
     {"transfiguration_classroom","loc.classroom"},
+    {"greenhouse_three",        "loc.greenhouse"},
+    {"defense_classroom",       "loc.defenseclassroom"},
     {"library",                 "loc.library"},
     {"courtyard",               "loc.courtyard"},
     {"hogsmeade",               "loc.hogsmeade"},
 }};
 
-constexpr std::array<MoveTarget, 15> kLocationLabels = {{
+constexpr std::array<MoveTarget, 18> kLocationLabels = {{
     {"diagon_alley",             "loc.diagonalley"},
     {"kings_cross",              "loc.kingscross"},
     {"platform_nine_three_quarters", "loc.platform934"},
@@ -44,6 +47,9 @@ constexpr std::array<MoveTarget, 15> kLocationLabels = {{
     {"library",                  "loc.library"},
     {"courtyard",                "loc.courtyard"},
     {"hogsmeade",                "loc.hogsmeade"},
+    {"greenhouse_three",         "loc.greenhouse"},
+    {"defense_classroom",        "loc.defenseclassroom"},
+    {"forbidden_forest",         "loc.forbiddenforest"},
 }};
 
 // 此地角色：locationId -> [(memberId, npcNameKey)]
@@ -305,6 +311,12 @@ void LocationPanel::setCurrentLocation(const QString &locationId)
     refreshPeopleHere();
 }
 
+void LocationPanel::setEraId(const QString &eraId)
+{
+    m_eraId = eraId;
+    refreshPeopleHere();
+}
+
 void LocationPanel::setMaraudersMapAvailable(bool available)
 {
     m_mapBtn->setVisible(available);
@@ -315,14 +327,34 @@ void LocationPanel::refreshPeopleHere()
     m_peopleList->clear();
     const auto& map = peopleByLocation();
     const auto it = map.constFind(m_currentLocationId);
-    if (it == map.constEnd()) {
+    const bool historicalEra = m_eraId == QLatin1String("parents")
+        || m_eraId == QLatin1String("riddle");
+    if (it == map.constEnd() && !(historicalEra && m_currentLocationId == QLatin1String("great_hall"))) {
         auto *placeholder = new QListWidgetItem(TR("location.no_people"), m_peopleList);
         placeholder->setFlags(Qt::NoItemFlags);
         m_talkBtn->setEnabled(false);
         return;
     }
-    for (const auto& p : *it) {
-        auto *item = new QListWidgetItem(TRQ(QString::fromLatin1(p.nameKey)), m_peopleList);
+    const std::vector<Person> hallClassmate{{"npc_rowan_vale", "npc.rowan"}};
+    const auto& people = historicalEra && m_currentLocationId == QLatin1String("great_hall")
+        ? hallClassmate : *it;
+    for (const auto& p : people) {
+        const QString id = QString::fromLatin1(p.memberId);
+        if (historicalEra && id != QLatin1String("npc_rowan_vale")
+            && id != QLatin1String("prof_flitwick")
+            && id != QLatin1String("shop_ollivander")
+            && id != QLatin1String("sorting_hat")
+            && id != QLatin1String("deputy_head")) continue;
+        QString personName = TRQ(QString::fromLatin1(p.nameKey));
+        if (m_eraId != QLatin1String("harry")) {
+            if (QString::fromLatin1(p.memberId) == QLatin1String("npc_rowan_vale"))
+                personName = m_eraId == QLatin1String("parents")
+                    ? QStringLiteral("艾达·芬奇") : QStringLiteral("伊芙琳·摩尔");
+            else if (QString::fromLatin1(p.memberId) == QLatin1String("prof_flitwick"))
+                personName = m_eraId == QLatin1String("parents")
+                    ? QStringLiteral("梅里克教授") : QStringLiteral("艾尔德里奇教授");
+        }
+        auto *item = new QListWidgetItem(personName, m_peopleList);
         item->setData(Qt::UserRole, QString::fromLatin1(p.memberId));
     }
     m_talkBtn->setEnabled(m_peopleList->count() > 0);

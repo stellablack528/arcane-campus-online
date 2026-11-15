@@ -204,6 +204,24 @@ int main(int argc, char *argv[])
                 || text.contains(QStringLiteral("米拉")) || text.contains(QStringLiteral("管理员"))
                 || text.contains(QStringLiteral("调查")) || text.contains(QStringLiteral("喷泉"))
                 || text.contains(QStringLiteral("刻字"))
+                || text.contains(QStringLiteral("探索")) || text.contains(QStringLiteral("最高层"))
+                || text.contains(QStringLiteral("顶层")) || text.contains(QStringLiteral("前往"))
+                || text.contains(QStringLiteral("我要到"))
+                || text == QStringLiteral("吃饭") || text == QStringLiteral("上课")
+                || text == QStringLiteral("在礼堂按时吃饭")
+                || text == QStringLiteral("自由探索") || text == QStringLiteral("休息一晚")
+                || text == QStringLiteral("回去休息") || text == QStringLiteral("熬夜")
+                || text == QStringLiteral("跳过时段") || text == QStringLiteral("进入禁林")
+                || text == QStringLiteral("去禁林") || text == QStringLiteral("错过这餐")
+                || text == QStringLiteral("缺席这节课")
+                || text == QStringLiteral("谨慎观察") || text == QStringLiteral("深入禁林")
+                || text == QStringLiteral("冒险深入")
+                || text == QStringLiteral("撤离禁林") || text == QStringLiteral("接受救治")
+                || text == QStringLiteral("接受校医救治")
+                || text == QStringLiteral("施展漂浮咒托住铜鸟")
+                || text == QStringLiteral("提醒教授并协助同学")
+                || text == QStringLiteral("先保护自己")
+                || (text.startsWith(QStringLiteral("按时上")) && text.endsWith(QStringLiteral("课")))
                 || text.compare(QStringLiteral("investigate book"), Qt::CaseInsensitive) == 0)
                 campusController->handleChat(channel, text);
             else liveClient->say(text);
@@ -263,6 +281,10 @@ int main(int argc, char *argv[])
                      mainWindow, &MainWindow::setInputHint);
     QObject::connect(campusController, &arcane::application::controller::CampusController::choicesPresented,
                      mainWindow, &MainWindow::presentChoices);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::termProgressChanged,
+                     mainWindow, &MainWindow::updateTermProgress);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::worldEraChanged,
+                     mainWindow, &MainWindow::setWorldEra);
 
     QObject::connect(campusController, &arcane::application::controller::CampusController::campusMessageProduced,
                      mainWindow, &MainWindow::appendCampusMessage);

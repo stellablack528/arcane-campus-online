@@ -33,6 +33,7 @@ private:
     QLineEdit *m_usernameEdit = nullptr;
     QLineEdit *m_nicknameEdit = nullptr;
     QComboBox *m_houseCombo = nullptr;
+    QComboBox *m_eraCombo = nullptr;
     QComboBox *m_genderCombo = nullptr;
     QLineEdit *m_hairColorEdit = nullptr;
     QLineEdit *m_eyeColorEdit = nullptr;

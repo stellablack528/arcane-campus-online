@@ -1,0 +1,313 @@
+{
+  "format": "storyforge.package/v1",
+  "id": "arcane-campus-harry",
+  "title": "哈利在校时代 · 1990年代",
+  "version": "1.0.0",
+  "entry": {
+    "chapter": "chapter.week-one",
+    "scene": "scene.charms",
+    "node": "node.entry"
+  },
+  "world_context": "学生们从报纸与走廊传闻中拼凑真相。哈利·波特也在校，但玩家的故事由自己的选择推动。",
+  "variables": [
+    {
+      "id": "var.charms",
+      "initial": 0
+    },
+    {
+      "id": "var.absent",
+      "initial": false
+    },
+    {
+      "id": "var.reputation",
+      "initial": 0
+    }
+  ],
+  "agent_npcs": [
+    {
+      "id": "npc.classmate",
+      "name": "罗温·维尔",
+      "scene": "scene.hall"
+    },
+    {
+      "id": "npc.professor",
+      "name": "弗立维教授",
+      "scene": "scene.charms"
+    }
+  ],
+  "agent_objects": [
+    {
+      "id": "object.clue",
+      "name": "手写借阅条",
+      "scene": "scene.library",
+      "description": "这条线索与课堂上失控的铜鸟有关。"
+    }
+  ],
+  "agent_routes": [
+    {
+      "from": "scene.charms",
+      "to": "scene.library",
+      "conditions": []
+    },
+    {
+      "from": "scene.charms",
+      "to": "scene.hall",
+      "conditions": []
+    },
+    {
+      "from": "scene.library",
+      "to": "scene.charms",
+      "conditions": []
+    },
+    {
+      "from": "scene.library",
+      "to": "scene.hall",
+      "conditions": []
+    },
+    {
+      "from": "scene.hall",
+      "to": "scene.charms",
+      "conditions": []
+    },
+    {
+      "from": "scene.hall",
+      "to": "scene.library",
+      "conditions": []
+    }
+  ],
+  "agent_actions": [
+    {
+      "id": "action.accident.cast",
+      "text": "施展漂浮咒托住铜鸟",
+      "conditions": [
+        {
+          "type": "current_scene",
+          "scene": "scene.charms"
+        },
+        {
+          "type": "not",
+          "condition": {
+            "type": "event_triggered",
+            "event": "event.accident.resolved"
+          }
+        },
+        {
+          "type": "variable",
+          "variable": "var.absent",
+          "op": "eq",
+          "value": false
+        },
+        {
+          "type": "variable",
+          "variable": "var.charms",
+          "op": "gte",
+          "value": 15
+        }
+      ],
+      "effects": [
+        {
+          "type": "complete_event",
+          "event": "event.accident.resolved"
+        },
+        {
+          "type": "write_npc_memory",
+          "npc": "npc.classmate",
+          "key": "accident",
+          "value": "cast"
+        },
+        {
+          "type": "modify_variable",
+          "variable": "var.reputation",
+          "operation": "add",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "action.accident.help",
+      "text": "提醒教授并协助同学",
+      "conditions": [
+        {
+          "type": "current_scene",
+          "scene": "scene.charms"
+        },
+        {
+          "type": "not",
+          "condition": {
+            "type": "event_triggered",
+            "event": "event.accident.resolved"
+          }
+        },
+        {
+          "type": "variable",
+          "variable": "var.absent",
+          "op": "eq",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "complete_event",
+          "event": "event.accident.resolved"
+        },
+        {
+          "type": "write_npc_memory",
+          "npc": "npc.classmate",
+          "key": "accident",
+          "value": "help"
+        },
+        {
+          "type": "modify_variable",
+          "variable": "var.reputation",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "action.accident.ignore",
+      "text": "先保护自己，保持距离",
+      "conditions": [
+        {
+          "type": "current_scene",
+          "scene": "scene.charms"
+        },
+        {
+          "type": "not",
+          "condition": {
+            "type": "event_triggered",
+            "event": "event.accident.resolved"
+          }
+        },
+        {
+          "type": "variable",
+          "variable": "var.absent",
+          "op": "eq",
+          "value": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "complete_event",
+          "event": "event.accident.resolved"
+        },
+        {
+          "type": "write_npc_memory",
+          "npc": "npc.classmate",
+          "key": "accident",
+          "value": "ignore"
+        },
+        {
+          "type": "modify_variable",
+          "variable": "var.reputation",
+          "operation": "add",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "action.clue.find",
+      "text": "在图书馆发现手写借阅条",
+      "conditions": [
+        {
+          "type": "current_scene",
+          "scene": "scene.library"
+        },
+        {
+          "type": "not",
+          "condition": {
+            "type": "event_triggered",
+            "event": "event.clue.found"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "type": "complete_event",
+          "event": "event.clue.found"
+        },
+        {
+          "type": "write_npc_memory",
+          "npc": "npc.classmate",
+          "key": "clue",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "action.followup",
+      "text": "与罗温·维尔谈起课堂意外",
+      "conditions": [
+        {
+          "type": "current_scene",
+          "scene": "scene.hall"
+        },
+        {
+          "type": "event_triggered",
+          "event": "event.accident.resolved"
+        },
+        {
+          "type": "not",
+          "condition": {
+            "type": "event_triggered",
+            "event": "event.followup"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "type": "complete_event",
+          "event": "event.followup"
+        }
+      ]
+    }
+  ],
+  "chapters": [
+    {
+      "id": "chapter.week-one",
+      "title": "第一周 · 铜鸟意外",
+      "entry_scene": "scene.charms",
+      "scenes": [
+        {
+          "id": "scene.charms",
+          "title": "魔咒课教室",
+          "entry_node": "node.entry",
+          "nodes": [
+            {
+              "id": "node.entry",
+              "text": "课堂上，一只练习用的铜鸟突然冲向窗边，翅膀边缘迸出蓝色火花。",
+              "choices": [],
+              "terminal": false
+            }
+          ]
+        },
+        {
+          "id": "scene.library",
+          "title": "图书馆",
+          "entry_node": "node.entry",
+          "nodes": [
+            {
+              "id": "node.entry",
+              "text": "旧书堆里露出一角手写借阅条。",
+              "choices": [],
+              "terminal": false
+            }
+          ]
+        },
+        {
+          "id": "scene.hall",
+          "title": "大礼堂",
+          "entry_node": "node.entry",
+          "nodes": [
+            {
+              "id": "node.entry",
+              "text": "罗温·维尔坐在长桌旁，似乎还记得课堂那天。",
+              "choices": [],
+              "terminal": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

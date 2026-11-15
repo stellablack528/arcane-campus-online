@@ -123,6 +123,12 @@ CREATE TABLE IF NOT EXISTS character_story_states (
     FOREIGN KEY (character_id) REFERENCES characters(character_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS character_term_states (
+    character_id INTEGER PRIMARY KEY,
+    state_json TEXT NOT NULL,
+    FOREIGN KEY (character_id) REFERENCES characters(character_id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS character_wands (
     character_id INTEGER PRIMARY KEY,
     wood_id TEXT NOT NULL,
@@ -190,7 +196,10 @@ INSERT OR IGNORE INTO rooms (room_id, room_name, room_type, description, max_pla
     (9, 'Diagon Alley', 'shopping', 'A street of magical shops.', 120, 0),
     (10, 'Courtyard', 'public', 'A fountain and a lamp that stays lit.', 120, 0),
     (11, 'Transfiguration Classroom', 'study', 'A classroom of careful transformations.', 80, 0),
-    (12, 'Hogsmeade', 'public', 'A nearby wizarding village.', 120, 0);
+    (12, 'Hogsmeade', 'public', 'A nearby wizarding village.', 120, 0),
+    (13, 'Charms Classroom', 'study', 'A bright room for spell practice.', 80, 0),
+    (14, 'Greenhouse Three', 'study', 'A warm greenhouse full of magical plants.', 80, 0),
+    (15, 'Defense Classroom', 'study', 'A classroom for defensive magic.', 80, 0);
 
 INSERT OR IGNORE INTO items (item_id, item_name, item_type, description, stackable) VALUES
     (1, 'Wand', 'equipment', 'A student wand.', 0),

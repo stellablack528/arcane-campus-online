@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QVector>
 #include <QWidget>
 
 #include <cstdint>
@@ -18,6 +19,8 @@ public slots:
     void setIdentity(const QString &studentName, const QString &houseName);
     void setCampusState(const QString &location, const QString &state);
     void setGold(std::uint64_t gold);
+    void setTermProgress(const QString& schedule, int health, int reputation,
+                         const QVector<int>& subjects);
 
 private:
     void buildUi();
@@ -33,6 +36,10 @@ private:
     QLabel *m_pointsLabel = nullptr;
     QLabel *m_stateLabel = nullptr;
     QLabel *m_courseLabel = nullptr;
+    QLabel *m_termLabel = nullptr;
+    QLabel *m_healthLabel = nullptr;
+    QLabel *m_reputationLabel = nullptr;
+    QLabel *m_subjectsLabel = nullptr;
 
     QLabel *m_nameValue = nullptr;
     QLabel *m_houseValue = nullptr;
@@ -42,6 +49,10 @@ private:
     QLabel *m_pointsValue = nullptr;
     QLabel *m_stateValue = nullptr;
     QLabel *m_courseValue = nullptr;
+    QLabel *m_termValue = nullptr;
+    QLabel *m_healthValue = nullptr;
+    QLabel *m_reputationValue = nullptr;
+    QLabel *m_subjectsValue = nullptr;
     QString m_currentLocation;
     QString m_currentState;
 };

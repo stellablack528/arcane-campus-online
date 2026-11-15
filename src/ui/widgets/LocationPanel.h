@@ -23,6 +23,7 @@ public:
 public slots:
     // 根据 locationId 更新"当前地点"标题与此地角色列表。
     void setCurrentLocation(const QString &locationId);
+    void setEraId(const QString &eraId);
     void setMaraudersMapAvailable(bool available);
 
 signals:
@@ -53,4 +54,5 @@ private:
 
     QHash<QString, QPushButton*> m_moveButtons;  // locationId -> button
     QString m_currentLocationId;                  // 当前地点 id（英文 key）
+    QString m_eraId = QStringLiteral("harry");
 };

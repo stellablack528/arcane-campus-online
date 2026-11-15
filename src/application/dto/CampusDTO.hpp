@@ -54,6 +54,7 @@ struct NightPatrolRequestDTO {
 // 入学请求：角色信息 + 预先登记的魔杖参数。魔杖与动物都不会在
 // 创建界面直接发放；实际获得时机由对角巷剧情决定。
 struct EnrollmentRequestDTO {
+    std::string eraId = "harry"; // parents / harry / riddle
     // 角色基本信息
     std::string username;      // 登录用户名
     std::string nickname;      // 角色昵称

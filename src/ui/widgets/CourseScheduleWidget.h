@@ -8,20 +8,13 @@ class QListWidget;
 class QListWidgetItem;
 class QPushButton;
 
-struct CourseSeed {
-    QString id;
-    QString time;
-    QString nameKey;
-    QString statusKey;
-    QString professorId;
-};
-
 class CourseScheduleWidget : public QWidget
 {
     Q_OBJECT
 
 public:
     explicit CourseScheduleWidget(QWidget *parent = nullptr);
+    void setTermSchedule(int week, int weekday, int morningSubject, int afternoonSubject);
 
 signals:
     void goToClassroomRequested(const QString &courseId);
@@ -38,5 +31,9 @@ private:
     QListWidget *m_list = nullptr;
     QPushButton *m_goButton = nullptr;
     QPushButton *m_detailButton = nullptr;
-    QList<CourseSeed> m_seed;
+    bool m_termActive = false;
+    int m_termWeek = 1;
+    int m_termWeekday = 0;
+    int m_morningSubject = -1;
+    int m_afternoonSubject = -1;
 };

@@ -156,7 +156,8 @@ void MainWindow::buildMenu()
     connect(reputationAction, &QAction::triggered, this, [this] { emit reputationQueryRequested(); });
     storyMenu->addSeparator();
     auto addChoice = [&](const char *id, const char *labelKey) {
-        auto *a = storyMenu->addAction(TRQ(labelKey));
+        auto *a = storyMenu->addAction(TRQ(QString::fromLatin1(labelKey)));
+        m_legacyStoryActions.push_back(a);
         connect(a, &QAction::triggered, this, [this, id] { emit storyChoiceRequested(QString::fromLatin1(id)); });
     };
     addChoice("share_notes",        "story.share");
@@ -341,6 +342,22 @@ void MainWindow::buildUi()
 void MainWindow::updatePlayerGold(std::uint64_t gold)
 {
     m_characterStatus->setGold(gold);
+}
+
+void MainWindow::setWorldEra(const QString &eraId)
+{
+    if (m_locationPanel) m_locationPanel->setEraId(eraId);
+    for (auto *action : m_legacyStoryActions)
+        action->setVisible(eraId == QLatin1String("harry"));
+}
+
+void MainWindow::updateTermProgress(const QString &schedule, int week, int weekday,
+                                    int health, int reputation, const QVector<int> &subjects,
+                                    int morningSubject, int afternoonSubject)
+{
+    if (m_characterStatus) m_characterStatus->setTermProgress(schedule, health, reputation, subjects);
+    if (m_courses) m_courses->setTermSchedule(week, weekday, morningSubject, afternoonSubject);
+    if (m_campusTime) m_campusTime->setGameSchedule(schedule);
 }
 
 void MainWindow::setLeftDrawerVisible(bool visible)

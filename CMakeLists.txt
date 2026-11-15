@@ -11,6 +11,29 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network Sql)
 include(CTest)
 
+add_library(TaleStateCore STATIC
+    third_party/talestate_core/src/story_runtime.cpp
+    third_party/talestate_core/src/story_loader.cpp
+    third_party/talestate_core/src/story_validator.cpp)
+target_include_directories(TaleStateCore PUBLIC third_party/talestate_core/include)
+target_compile_features(TaleStateCore PUBLIC cxx_std_20)
+
+add_library(ArcaneOpenWorldRoutes STATIC
+    src/application/open_world/talestate/OpenWorldRouteGuard.hpp
+    src/application/open_world/talestate/OpenWorldRouteGuard.cpp)
+target_include_directories(ArcaneOpenWorldRoutes PUBLIC src)
+target_link_libraries(ArcaneOpenWorldRoutes PUBLIC TaleStateCore)
+
+add_library(ArcaneFirstTerm STATIC
+    src/application/world/FirstTermEngine.hpp
+    src/application/world/FirstTermEngine.cpp
+    src/application/world/FirstTermStore.hpp
+    src/application/world/FirstTermStore.cpp
+    src/application/world/EraWorldPack.hpp
+    src/application/world/EraWorldPack.cpp)
+target_include_directories(ArcaneFirstTerm PUBLIC src)
+target_link_libraries(ArcaneFirstTerm PUBLIC TaleStateCore ArcaneCampusDatabase Qt6::Core)
+
 add_library(ArcaneCampusWire STATIC
     src/network/CampusWireServer.hpp
     src/network/CampusWireServer.cpp
@@ -171,6 +194,16 @@ if(BUILD_TESTING)
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
+
+    add_executable(ArcaneOpenWorldRouteTest tests/open_world/OpenWorldRouteTest.cpp)
+    target_link_libraries(ArcaneOpenWorldRouteTest PRIVATE ArcaneOpenWorldRoutes)
+    add_test(NAME ArcaneOpenWorldRouteTest COMMAND ArcaneOpenWorldRouteTest)
+
+    add_executable(ArcaneFirstTermTest tests/world/FirstTermTest.cpp src/resources/resources.qrc)
+    target_link_libraries(ArcaneFirstTermTest PRIVATE ArcaneFirstTerm)
+    add_test(NAME ArcaneFirstTermTest COMMAND ArcaneFirstTermTest)
+    set_tests_properties(ArcaneFirstTermTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
 
     add_executable(ArcaneCampusWireTest tests/network/CampusWireTest.cpp)
     target_link_libraries(ArcaneCampusWireTest PRIVATE ArcaneCampusWire)
@@ -441,6 +474,8 @@ qt_add_executable(HogwartsOnline
 target_include_directories(HogwartsOnline PRIVATE src)
 
 target_link_libraries(HogwartsOnline PRIVATE
+    ArcaneOpenWorldRoutes
+    ArcaneFirstTerm
     ArcaneCampusDatabase
     ArcaneStoryEngine
     ArcaneStoryPersistence

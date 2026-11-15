@@ -2,8 +2,10 @@
 
 #include "application/dto/CampusDTO.hpp"
 #include "application/story/adapters/DiagonAlleyChapterAdapter.hpp"
+#include "application/open_world/talestate/OpenWorldRouteGuard.hpp"
 #include "core/DeepSeekClient.hpp"
 #include "ui/I18n.hpp"
+#include <storyforge/model/story_types.hpp>
 
 #include <QSet>
 #include <QTime>
@@ -21,6 +23,10 @@ QString storySceneForCampusLocation(const QString& location)
     if (location == QLatin1String("Courtyard")) return QStringLiteral("courtyard");
     if (location == QLatin1String("Transfiguration Classroom")) return QStringLiteral("transfiguration_classroom");
     if (location == QLatin1String("Hogsmeade")) return QStringLiteral("hogsmeade");
+    if (location == QLatin1String("Charms Classroom")) return QStringLiteral("charms_classroom");
+    if (location == QLatin1String("Greenhouse Three")) return QStringLiteral("greenhouse_three");
+    if (location == QLatin1String("Defense Classroom")) return QStringLiteral("defense_classroom");
+    if (location == QLatin1String("Forbidden Forest")) return QStringLiteral("forbidden_forest");
     return location;
 }
 
@@ -381,6 +387,7 @@ void CampusController::configureStoryProgressService(
 void CampusController::configureStoryPersistence(
     std::shared_ptr<arcane::database::DBConnection> connection)
 {
+    firstTermStore_ = std::make_unique<world::FirstTermStore>(connection);
     storyPersistenceService_ =
         std::make_unique<story::persistence::StoryPersistenceService>(std::move(connection));
     storyRuntimeService_->setCommitter(
@@ -466,12 +473,26 @@ void CampusController::handleEnrollment(const dto::EnrollmentRequestDTO& request
         publish({false, result.message});
         return;
     }
+    if (auto* student = activeSession()) {
+        world::FirstTermState term;
+        term.eraId = request.eraId;
+        if (firstTermStore_ && !firstTermStore_->save(student->characterId, term))
+            emit feedbackProduced(QStringLiteral("入学时代暂时无法保存。"));
+        firstTermState_ = term;
+        QString worldError;
+        eraPackage_ = world::EraWorldPack::load(QString::fromStdString(term.eraId), &worldError);
+        if (!eraPackage_) emit feedbackProduced(worldError);
+        emit worldEraChanged(QString::fromStdString(term.eraId));
+    }
     emit loginAccepted(QString::fromStdString(result.studentName),
                         QString::fromStdString(result.house));
     emit playerLocationChanged(QString::fromStdString(result.location),
                                 QStringLiteral("Shopping for school supplies"));
     emit campusMessageProduced(QStringLiteral("System"), QStringLiteral("Campus Notice"),
                                QString::fromStdString(result.message));
+    if (eraPackage_) emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("时代旁白"),
+        world::EraWorldPack::title(*eraPackage_) + QStringLiteral("：")
+        + QString::fromStdString(eraPackage_->world_context));
     handleRefreshInventory();
 
     prologue::WandConfig wand;
@@ -555,6 +576,7 @@ void CampusController::handleLogin(const QString& studentName, const QString& ho
     }
     // 登录成功后自动刷新背包，无需用户手动点菜单。
     handleRefreshInventory();
+    ensureFirstTerm();
     resumeSavedStory();
 }
 
@@ -562,6 +584,34 @@ void CampusController::handleChat(const QString& channel, const QString& text)
 {
     if (freeExplorationActive_) {
         const QString action = text.trimmed();
+        const QHash<QString, world::TermAction> termCommands{
+            {QStringLiteral("吃饭"), world::TermAction::Eat},
+            {QStringLiteral("在礼堂按时吃饭"), world::TermAction::Eat},
+            {QStringLiteral("上课"), world::TermAction::Attend},
+            {QStringLiteral("自由探索"), world::TermAction::Explore},
+            {QStringLiteral("休息一晚"), world::TermAction::Rest},
+            {QStringLiteral("回去休息"), world::TermAction::Rest},
+            {QStringLiteral("跳过时段"), world::TermAction::Skip},
+            {QStringLiteral("错过这餐"), world::TermAction::Skip},
+            {QStringLiteral("缺席这节课"), world::TermAction::Skip},
+            {QStringLiteral("熬夜"), world::TermAction::Skip},
+            {QStringLiteral("进入禁林"), world::TermAction::EnterForest},
+            {QStringLiteral("去禁林"), world::TermAction::EnterForest},
+            {QStringLiteral("谨慎观察"), world::TermAction::ForestCareful},
+            {QStringLiteral("深入禁林"), world::TermAction::ForestDeep},
+            {QStringLiteral("冒险深入"), world::TermAction::ForestDeep},
+            {QStringLiteral("撤离禁林"), world::TermAction::ForestRetreat},
+            {QStringLiteral("接受救治"), world::TermAction::Recover},
+            {QStringLiteral("接受校医救治"), world::TermAction::Recover},
+            {QStringLiteral("施展漂浮咒托住铜鸟"), world::TermAction::AccidentCast},
+            {QStringLiteral("提醒教授并协助同学"), world::TermAction::AccidentHelp},
+            {QStringLiteral("先保护自己"), world::TermAction::AccidentIgnore}};
+        if (termCommands.contains(action)
+            || (action.startsWith(QStringLiteral("按时上")) && action.endsWith(QStringLiteral("课")))) {
+            handleTermAction(termCommands.contains(action)
+                ? termCommands.value(action) : world::TermAction::Attend);
+            return;
+        }
         const auto* session = activeSession();
         const QString location = session
             ? storySceneForCampusLocation(QString::fromStdString(session->currentLocation))
@@ -603,9 +653,12 @@ void CampusController::handleChat(const QString& channel, const QString& text)
             (void)beginCampaignChapter(QStringLiteral("turning_pages"));
             return;
         }
-        if (action.contains(QStringLiteral("罗温")) && location == QLatin1String("great_hall")
+        if ((action.contains(QStringLiteral("罗温"))
+             || (eraPackage_ && action.contains(world::EraWorldPack::classmate(*eraPackage_))))
+            && location == QLatin1String("great_hall")
             && !rememberedEncounterOutcome_.isEmpty()) {
-            emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("罗温·维尔"),
+            emit campusMessageProduced(QStringLiteral("Location"),
+                eraPackage_ ? world::EraWorldPack::classmate(*eraPackage_) : QStringLiteral("罗温·维尔"),
                 rememberedEncounterOutcome_ == QLatin1String("shared")
                     ? QStringLiteral("“艾琳的名字现在有人记得了。谢谢你愿意把故事讲出来。”")
                     : rememberedEncounterOutcome_ == QLatin1String("archived")
@@ -615,7 +668,8 @@ void CampusController::handleChat(const QString& channel, const QString& text)
         }
         if (action.contains(QStringLiteral("教授")) && location == QLatin1String("courtyard")
             && rememberedEncounterOutcome_ == QLatin1String("archived")) {
-            emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("弗立维教授"),
+            emit campusMessageProduced(QStringLiteral("Location"),
+                eraPackage_ ? world::EraWorldPack::professor(*eraPackage_) : QStringLiteral("弗立维教授"),
                 QStringLiteral("“艾琳的名字已经写进档案。你的慎重帮了她。”"));
             return;
         }
@@ -624,6 +678,17 @@ void CampusController::handleChat(const QString& channel, const QString& text)
             && rememberedEncounterOutcome_ == QLatin1String("private")) {
             emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("图书管理员米拉"),
                 QStringLiteral("“那页仍放在原处。我记得你替它保留了安静。”"));
+            return;
+        }
+        if (action.contains(QStringLiteral("最高层")) || action.contains(QStringLiteral("顶层"))) {
+            emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("旁白"),
+                QStringLiteral("你望向城堡高处的楼梯。最高层暂时还不能进入；现在可以先去大礼堂、变形术教室、图书馆或庭院，霍格莫德也已有可停留的场景。"));
+            return;
+        }
+        if (action.contains(QStringLiteral("探索")) || action.contains(QStringLiteral("前往"))
+            || action.contains(QStringLiteral("我要到"))) {
+            emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("旁白"),
+                QStringLiteral("你可以从左侧“场景 → 前往”选择地点，也可以输入“去图书馆”“去庭院”“去霍格莫德”等指令。其他地点会随之后的剧情逐步开放。"));
             return;
         }
     }
@@ -650,17 +715,30 @@ void CampusController::handleChat(const QString& channel, const QString& text)
     // Prefer an AI-generated reply when the user has configured an API key.
     if (core::DeepSeekClient::hasApiKey()) {
         const auto persona = npcForChannel(request.channel);
+        const bool historicalLocation = eraPackage_ && firstTermState_
+            && firstTermState_->eraId != "harry" && request.channel == "Location";
+        const QString speaker = historicalLocation
+            ? world::EraWorldPack::classmate(*eraPackage_) : QString::fromLatin1(persona.name);
         const QString systemPrompt =
             QStringLiteral("You are %1, a character in a Hogwarts-themed text RPG campus. "
                            "Personality: %2 Reply in 1-2 short English sentences, staying fully "
                            "in character. Never mention that you are an AI.")
-                .arg(persona.name, persona.personality);
+                .arg(speaker, historicalLocation
+                    ? QString::fromStdString(eraPackage_->world_context)
+                    : QString::fromLatin1(persona.personality));
         deepSeekClient_->sendChat(systemPrompt, text,
-                                  channel, QString::fromLatin1(persona.name));
+                                  channel, speaker);
         return; // The reply arrives asynchronously via onAiReplyReceived.
     }
 
     // Fallback: hardcoded replies when no API key is configured.
+    if (eraPackage_ && firstTermState_ && firstTermState_->eraId != "harry"
+        && request.channel == "Location") {
+        emit campusMessageProduced(QStringLiteral("Location"),
+            world::EraWorldPack::classmate(*eraPackage_),
+            QStringLiteral("我也在留意这几天的事。若你发现了线索，来礼堂和我谈谈。"));
+        return;
+    }
     const auto reply = chatService_->npcReply(request);
     emit campusMessageProduced(QString::fromStdString(reply.channel), QString::fromStdString(reply.speaker),
                                QString::fromStdString(reply.text));
@@ -678,6 +756,7 @@ void CampusController::onAiErrorOccurred(const QString& message)
 
 void CampusController::onTimePeriodChanged(int period)
 {
+    if (firstTermState_) return; // 学期由玩家行动推进，不受现实时间跳转影响。
     using namespace arcane::application::world;
     const auto timePeriod = static_cast<TimePeriod>(period);
 
@@ -709,8 +788,11 @@ void CampusController::handleStartNightPatrol(const QString& targetId)
     }
 
     const int hour = QTime::currentTime().hour();
-    if (!world::WorldClock::isCurfew(hour)) {
-        publish({false, "It is not curfew hours. Night patrol is only meaningful between 23:00 and 06:00."});
+    const bool termNight = firstTermState_ && firstTermState_->phase == 6;
+    if (!(firstTermState_ ? (freeExplorationActive_ && termNight) : world::WorldClock::isCurfew(hour))) {
+        publish({false, firstTermState_
+            ? "夜游只能在学期日程的夜间进行。"
+            : "It is not curfew hours. Night patrol is only meaningful between 23:00 and 06:00."});
         return;
     }
 
@@ -725,6 +807,7 @@ void CampusController::handleStartNightPatrol(const QString& targetId)
                            "before things get worse."));
         applyHousePointsChange(session->house, -5, "Risky night patrol without a map");
         publish({false, "Your night patrol was cut short \xe2\x80\x94 no map to guide you."});
+        if (firstTermState_) handleTermAction(world::TermAction::Skip);
         return;
     }
 
@@ -743,6 +826,7 @@ void CampusController::handleStartNightPatrol(const QString& targetId)
     // 夜游成功的冒险奖励。
     applyHousePointsChange(session->house, 3, "Successful night patrol with the Marauder's Map");
     publish({true, "Night patrol completed. The castle remembers."});
+    if (firstTermState_) handleTermAction(world::TermAction::Skip);
 }
 
 void CampusController::applyHousePointsChange(const std::string& house, int delta, const std::string& reason)
@@ -780,6 +864,10 @@ void CampusController::slotDeductHousePoints(const QString& house, int points)
 
 void CampusController::handleMakeChoice(const QString& choiceId)
 {
+    if (firstTermState_ && firstTermState_->eraId != "harry") {
+        emit feedbackProduced(QStringLiteral("这个时代尚未开放旧版校园选项；可以继续当前的时代剧情与探索。"));
+        return;
+    }
     auto* session = activeSession();
     if (!session) {
         publish({false, "Enter the campus before making story choices."});
@@ -823,11 +911,23 @@ void CampusController::handlePrologueChoice(int index)
         prologueService_->submitChoice(index);
         return;
     }
+    if (freeExplorationActive_ && index >= 0 && index < termChoices_.size()) {
+        handleTermAction(termChoices_.at(index));
+        return;
+    }
     publish({false, "No active story choice to respond to."});
 }
 
 void CampusController::handleMove(const QString& locationId)
 {
+    if (firstTermState_ && firstTermState_->accidentPending) {
+        emit feedbackProduced(QStringLiteral("请先处理教室里的意外。"));
+        return;
+    }
+    if (firstTermState_ && firstTermState_->forestChoice) {
+        emit feedbackProduced(QStringLiteral("先决定如何处理禁林中的危险。"));
+        return;
+    }
     if (storyRuntimeService_->isActive()) {
         const auto* state = storyRuntimeService_->state();
         if (!state || state->chapterId != QLatin1String("turning_pages")) {
@@ -855,10 +955,19 @@ void CampusController::handleMove(const QString& locationId)
         emit inputHintChanged(QStringLiteral("描述你想探索的地点、角色或行动……"));
         emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("旁白"),
             QStringLiteral("你暂时放下旧书的线索。以后仍可回来继续调查。"));
+        ensureFirstTerm();
+        publishFirstTerm();
     }
     auto* session = activeSession();
     if (!session) {
         publish({false, "Enter the campus before travelling."});
+        return;
+    }
+    const auto route = open_world::talestate::OpenWorldRouteGuard::check(
+        storySceneForCampusLocation(QString::fromStdString(session->currentLocation)).toStdString(),
+        locationId.toStdString());
+    if (!route.allowed) {
+        emit feedbackProduced(QStringLiteral("目前没有从这里通往该地点的路线。"));
         return;
     }
     const auto result = campusService_->moveTo(*session, {locationId.toStdString()});
@@ -872,12 +981,24 @@ void CampusController::handleMove(const QString& locationId)
         session->currentState = "Free exploration";
         const QHash<QString, QString> sceneTitles{
             {QStringLiteral("great_hall"), TR("loc.greathall")},
+            {QStringLiteral("charms_classroom"), TR("loc.charmsclassroom")},
             {QStringLiteral("transfiguration_classroom"), TR("loc.classroom")},
+            {QStringLiteral("greenhouse_three"), TR("loc.greenhouse")},
+            {QStringLiteral("defense_classroom"), TR("loc.defenseclassroom")},
+            {QStringLiteral("forbidden_forest"), TR("loc.forbiddenforest")},
             {QStringLiteral("library"), TR("loc.library")},
             {QStringLiteral("courtyard"), TR("loc.courtyard")},
             {QStringLiteral("hogsmeade"), TR("loc.hogsmeade")}};
         emit sceneHeaderChanged(sceneTitles.value(locationId, locationId));
-        const QString scene = locationId == QLatin1String("library")
+        const QString scene = locationId == QLatin1String("charms_classroom")
+            ? QStringLiteral("魔咒课教室里还留着练习时的羽毛和粉笔印。按学期日程来上课，才能增长魔咒学能力。")
+            : locationId == QLatin1String("greenhouse_three")
+            ? QStringLiteral("三号温室弥漫着潮湿的草木气息。上课时别忘了戴好防护手套。")
+            : locationId == QLatin1String("defense_classroom")
+            ? QStringLiteral("黑魔法防御术教室里，练习用的护盾仍在微微发亮。")
+            : locationId == QLatin1String("forbidden_forest")
+            ? QStringLiteral("你停在禁林边缘。树影深处并不安全；请先做出眼前的剧情选择。")
+            : locationId == QLatin1String("library")
             ? QStringLiteral("书架间有一册会自行翻页的魔咒史，几位同学正在低声讨论。")
             : locationId == QLatin1String("courtyard")
                 ? QStringLiteral("庭院里晚风吹动长袍，有学生正在练习刚学会的漂浮咒。")
@@ -888,12 +1009,14 @@ void CampusController::handleMove(const QString& locationId)
                         : QStringLiteral("霍格莫德的街道在你面前展开。这里的故事还未开始，你可以停留片刻，或返回校园。");
         emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("旁白"), scene);
         if (locationId == QLatin1String("great_hall")) {
-            emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("罗温·维尔"),
+            emit campusMessageProduced(QStringLiteral("Location"),
+                eraPackage_ ? world::EraWorldPack::classmate(*eraPackage_) : QStringLiteral("罗温·维尔"),
                 rememberedEncounterOutcome_.isEmpty()
-                    ? QStringLiteral("“图书馆那本自己翻页的书像在找人。你想一起查查吗？输入‘和罗温说话’或‘调查翻页的书’。”")
+                    ? QStringLiteral("“图书馆那本自己翻页的书像在找人。你想一起查查吗？输入‘调查翻页的书’。”")
                     : QStringLiteral("“关于那本书，我还记得你当时的选择。想聊聊就叫我。”"));
         } else if (locationId == QLatin1String("courtyard")) {
-            emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("弗立维教授"),
+            emit campusMessageProduced(QStringLiteral("Location"),
+                eraPackage_ ? world::EraWorldPack::professor(*eraPackage_) : QStringLiteral("弗立维教授"),
                 QStringLiteral("“喷泉旁那盏灯有一段很久以前的故事。你可以读读刻字。”"));
         } else if (locationId == QLatin1String("library")) {
             emit campusMessageProduced(QStringLiteral("Location"), QStringLiteral("图书管理员米拉"),
@@ -901,7 +1024,8 @@ void CampusController::handleMove(const QString& locationId)
         }
         // 宵禁+限制区域+活点地图检查
         const int hour = QTime::currentTime().hour();
-        const bool curfewActive = world::WorldClock::isCurfew(hour);
+        const bool curfewActive = firstTermState_
+            ? firstTermState_->phase == 6 : world::WorldClock::isCurfew(hour);
         const bool restricted = campusService_->checkRoomRestricted(locationId.toStdString());
 
         if (curfewActive && restricted) {
@@ -945,6 +1069,20 @@ void CampusController::handleCourseJoin(const QString& courseId)
     auto* session = activeSession();
     if (!session) {
         publish({false, "Enter the campus before joining a class."});
+        return;
+    }
+    if (firstTermState_ && !firstTermState_->complete) {
+        const QHash<QString, QString> rooms{
+            {QStringLiteral("charms"), QStringLiteral("charms_classroom")},
+            {QStringLiteral("transfiguration"), QStringLiteral("transfiguration_classroom")},
+            {QStringLiteral("herbology"), QStringLiteral("greenhouse_three")},
+            {QStringLiteral("defense"), QStringLiteral("defense_classroom")}};
+        const QString room = rooms.value(courseId);
+        if (room.isEmpty()) return;
+        handleMove(room);
+        const int subject = world::FirstTermEngine::subjectFor(*firstTermState_);
+        if (subject >= 0 && room == QLatin1String(world::FirstTermEngine::classroomFor(subject)))
+            handleTermAction(world::TermAction::Attend);
         return;
     }
     const auto result = campusService_->joinCourse(*session, {courseId.toStdString()});
@@ -1001,6 +1139,10 @@ void CampusController::handleRest(const QString& locationId)
         emit feedbackProduced(QStringLiteral("先完成当前剧情，再找地方休息。"));
         return;
     }
+    if (freeExplorationActive_ && firstTermState_ && firstTermState_->phase == 6) {
+        handleTermAction(world::TermAction::Rest);
+        return;
+    }
     const QString place = locationId == QLatin1String("library") ? TR("loc.library")
         : locationId == QLatin1String("courtyard") ? TR("loc.courtyard")
         : locationId == QLatin1String("transfiguration_classroom") ? TR("loc.classroom")
@@ -1037,7 +1179,12 @@ void CampusController::handleMemberSelected(const QString& memberId)
         {QStringLiteral("deputy_head"), TR("npc.deputyhead")},
         {QStringLiteral("sorting_hat"), TR("npc.sortinghat")},
         {QStringLiteral("prof_flitwick"), TR("npc.flitwick")}};
-    emit campusMessageProduced(QStringLiteral("Location"), names.value(memberId, memberId),
+    QString displayName = names.value(memberId, memberId);
+    if (eraPackage_ && memberId == QLatin1String("npc_rowan_vale"))
+        displayName = world::EraWorldPack::classmate(*eraPackage_);
+    else if (eraPackage_ && memberId == QLatin1String("prof_flitwick"))
+        displayName = world::EraWorldPack::professor(*eraPackage_);
+    emit campusMessageProduced(QStringLiteral("Location"), displayName,
         arcane::ui::I18n::instance().language() == arcane::ui::I18n::Lang::Chinese
             ? QStringLiteral("对方向你点点头，暂时没有新的话题。")
             : QStringLiteral("They nod to you, but have nothing new to say just yet."));
@@ -1168,7 +1315,8 @@ bool CampusController::beginCampaignChapter(const QString& chapterId)
         beginDiagonAlley();
         return storyRuntimeService_->isActive();
     }
-    auto chapter = storyCampaignService_->chapter(chapterId);
+    auto chapter = storyCampaignService_->chapterForEra(chapterId,
+        firstTermState_ ? QString::fromStdString(firstTermState_->eraId) : QStringLiteral("harry"));
     if (!chapter) {
         emit feedbackProduced(QStringLiteral("The requested story chapter is unavailable."));
         return false;
@@ -1204,11 +1352,14 @@ void CampusController::enterFreeExplorationMode(bool announce)
     storyRuntimeService_->stop();
     freeExplorationActive_ = true;
     emit choicesPresented({});
+    ensureFirstTerm();
 
     const bool chinese = arcane::ui::I18n::instance().language()
         == arcane::ui::I18n::Lang::Chinese;
-    emit sceneHeaderChanged(chinese ? QStringLiteral("霍格沃茨 · 自主探索")
-                                    : QStringLiteral("Hogwarts · Free Exploration"));
+    emit sceneHeaderChanged(eraPackage_
+        ? world::EraWorldPack::title(*eraPackage_)
+        : (chinese ? QStringLiteral("霍格沃茨 · 自主探索")
+                   : QStringLiteral("Hogwarts · Free Exploration")));
     emit inputHintChanged(chinese
                               ? QStringLiteral("描述你想探索的地点、角色或行动……")
                               : QStringLiteral("Describe the place, person, or action you want to explore..."));
@@ -1218,9 +1369,152 @@ void CampusController::enterFreeExplorationMode(bool announce)
             QStringLiteral("World"),
             chinese ? QStringLiteral("校园指引") : QStringLiteral("Campus Guide"),
             chinese
-                ? QStringLiteral("<b>校园向你开放。</b><br>礼堂里的罗温想谈一本自己翻页的书；你也可以先去图书馆、庭院，或者自由交谈。")
-                : QStringLiteral("<b>The campus is open.</b><br>Rowan in the Great Hall has heard of a book that turns its own pages. You can also visit the library or courtyard, or speak freely."));
+                ? QStringLiteral("<b>校园向你开放。</b><br>礼堂里的%1想谈一本自己翻页的书；你也可以先去图书馆、庭院，或者自由交谈。")
+                    .arg(eraPackage_ ? world::EraWorldPack::classmate(*eraPackage_) : QStringLiteral("罗温"))
+                : QStringLiteral("<b>The campus is open.</b><br>A classmate in the Great Hall has heard of a book that turns its own pages. You can also visit the library or courtyard, or speak freely."));
     }
+    publishFirstTerm();
+}
+
+void CampusController::ensureFirstTerm()
+{
+    if (firstTermState_) {
+        if (!eraPackage_) {
+            QString error;
+            eraPackage_ = world::EraWorldPack::load(
+                QString::fromStdString(firstTermState_->eraId), &error);
+            if (!eraPackage_) emit feedbackProduced(error);
+        }
+        emit worldEraChanged(QString::fromStdString(firstTermState_->eraId));
+        return;
+    }
+    auto* session = activeSession();
+    if (!session) return;
+    firstTermState_ = firstTermStore_ ? firstTermStore_->load(session->characterId)
+                                      : std::nullopt;
+    if (!firstTermState_) {
+        firstTermState_ = world::FirstTermState{};
+        if (firstTermStore_ && !firstTermStore_->save(session->characterId, *firstTermState_))
+            emit feedbackProduced(QStringLiteral("第一学期进度暂时无法写入本地存档。"));
+    }
+    QString error;
+    eraPackage_ = world::EraWorldPack::load(QString::fromStdString(firstTermState_->eraId), &error);
+    if (!eraPackage_) emit feedbackProduced(error);
+    emit worldEraChanged(QString::fromStdString(firstTermState_->eraId));
+}
+
+void CampusController::publishFirstTerm()
+{
+    if (!firstTermState_) return;
+    const auto& state = *firstTermState_;
+    const int subject = world::FirstTermEngine::subjectFor(state);
+    const QString schedule = state.complete ? QStringLiteral("第一学期前五周已完成")
+        : QStringLiteral("第%1周 · 周%2 · %3%4")
+        .arg(world::FirstTermEngine::week(state))
+        .arg(QStringList{QStringLiteral("一"), QStringLiteral("二"), QStringLiteral("三"),
+                         QStringLiteral("四"), QStringLiteral("五"), QStringLiteral("六"),
+                         QStringLiteral("日")}.at(world::FirstTermEngine::weekday(state)))
+        .arg(QString::fromUtf8(world::FirstTermEngine::phaseName(state)))
+        .arg(subject >= 0 ? QStringLiteral(" · %1").arg(QString::fromUtf8(world::FirstTermEngine::subjectName(subject))) : QString());
+    QVector<int> subjects;
+    for (int value : state.subjects) subjects.push_back(value);
+    auto morning = state;
+    morning.phase = 1;
+    auto afternoon = state;
+    afternoon.phase = 3;
+    const QString displaySchedule = eraPackage_
+        ? world::EraWorldPack::title(*eraPackage_) + QStringLiteral(" · ") + schedule : schedule;
+    emit termProgressChanged(displaySchedule, world::FirstTermEngine::week(state),
+        state.complete ? -1 : world::FirstTermEngine::weekday(state),
+        state.health, state.reputation, subjects,
+        state.complete ? -1 : world::FirstTermEngine::subjectFor(morning),
+        state.complete ? -1 : world::FirstTermEngine::subjectFor(afternoon));
+    termChoices_.clear();
+    QStringList labels;
+    auto add = [&](world::TermAction action, const QString& label) {
+        termChoices_.push_back(action); labels.push_back(label);
+    };
+    if (state.complete) {
+        emit choicesPresented({});
+        emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("学期旁白"),
+            QStringLiteral("第一学期前五周结束。你上了%1节课，缺席%2节，吃了%3餐；这些成绩和选择已留在存档中。")
+                .arg(state.attended).arg(state.missed).arg(state.meals));
+        return;
+    }
+    if (state.accidentPending) {
+        if (state.subjects[0] >= 15)
+            add(world::TermAction::AccidentCast, QStringLiteral("施展漂浮咒托住铜鸟"));
+        add(world::TermAction::AccidentHelp, QStringLiteral("提醒教授并协助同学"));
+        add(world::TermAction::AccidentIgnore, QStringLiteral("先保护自己"));
+    } else if (state.critical) add(world::TermAction::Recover, QStringLiteral("接受校医救治"));
+    else if (state.forestChoice) {
+        add(world::TermAction::ForestCareful, QStringLiteral("谨慎观察"));
+        add(world::TermAction::ForestDeep, QStringLiteral("冒险深入"));
+        add(world::TermAction::ForestRetreat, QStringLiteral("撤离禁林"));
+    } else if (state.phase == 0 || state.phase == 2 || state.phase == 4) {
+        add(world::TermAction::Eat, QStringLiteral("在礼堂按时吃饭"));
+        add(world::TermAction::Skip, QStringLiteral("错过这餐"));
+    } else if (subject >= 0) {
+        add(world::TermAction::Attend, QStringLiteral("按时上%1课").arg(QString::fromUtf8(world::FirstTermEngine::subjectName(subject))));
+        add(world::TermAction::Skip, QStringLiteral("缺席这节课"));
+    } else if (state.phase == 6) {
+        add(world::TermAction::Rest, QStringLiteral("回去休息"));
+        add(world::TermAction::Skip, QStringLiteral("熬夜"));
+    } else {
+        add(world::TermAction::Explore, QStringLiteral("自由探索"));
+        if (state.phase == 5) add(world::TermAction::EnterForest, QStringLiteral("从庭院靠近禁林"));
+        add(world::TermAction::Skip, QStringLiteral("跳过这段时间"));
+    }
+    emit choicesPresented(labels);
+    emit campusMessageProduced(QStringLiteral("System"), QStringLiteral("学期日程"),
+        schedule + QStringLiteral("。健康 %1/100，声望 %2。先移动到对应地点，再选择行动；也可以选择跳过。")
+            .arg(state.health).arg(state.reputation));
+}
+
+void CampusController::handleTermAction(world::TermAction action)
+{
+    if (!freeExplorationActive_ || !firstTermState_) return;
+    auto* session = activeSession();
+    if (!session) return;
+    const auto result = world::FirstTermEngine::apply(*firstTermState_, action,
+        storySceneForCampusLocation(QString::fromStdString(session->currentLocation)).toStdString(),
+        eraPackage_.get());
+    if (!result.accepted) {
+        const QString reason = QString::fromStdString(result.narration);
+        emit feedbackProduced(reason);
+        emit campusMessageProduced(QStringLiteral("System"), QStringLiteral("学期日程"), reason);
+        return;
+    }
+    const bool forestEntry = action == world::TermAction::EnterForest;
+    const bool forestExit = action == world::TermAction::ForestCareful
+        || action == world::TermAction::ForestDeep || action == world::TermAction::ForestRetreat;
+    do_model::PlayerSessionDO moved = *session;
+    if (forestEntry || forestExit) {
+        const std::string destination = forestEntry ? "forbidden_forest" : "courtyard";
+        const auto route = open_world::talestate::OpenWorldRouteGuard::check(
+            storySceneForCampusLocation(QString::fromStdString(session->currentLocation)).toStdString(),
+            destination);
+        if (!route.allowed || !campusService_->moveTo(moved, {destination}).success) {
+            emit feedbackProduced(QStringLiteral("当前无法进出禁林。"));
+            return;
+        }
+        moved.currentLocation = destination;
+        moved.currentState = "Free exploration";
+    }
+    if (firstTermStore_ && !firstTermStore_->save(session->characterId, result.next)) {
+        emit feedbackProduced(QStringLiteral("学期进度保存失败，本次行动没有生效。"));
+        return;
+    }
+    *firstTermState_ = result.next;
+    if (forestEntry || forestExit) {
+        *session = std::move(moved);
+        emit playerLocationChanged(QString::fromStdString(session->currentLocation),
+                                   QStringLiteral("Free exploration"));
+        emit sceneHeaderChanged(forestEntry ? TR("loc.forbiddenforest") : TR("loc.courtyard"));
+    }
+    emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("旁白"),
+        QString::fromStdString(result.narration));
+    publishFirstTerm();
 }
 
 void CampusController::resumeSavedStory()

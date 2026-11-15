@@ -69,6 +69,11 @@ void EnrollmentDialog::buildUi()
     m_nicknameEdit->setPlaceholderText(local("角色在故事中的名字", "Your character's story name"));
     m_houseCombo = new QComboBox(page1);
     m_houseCombo->addItems({"Ravenclaw", "Gryffindor", "Hufflepuff", "Slytherin"});
+    m_eraCombo = new QComboBox(page1);
+    m_eraCombo->addItem(local("亲世代 · 1970年代", "Parents' generation · 1970s"), "parents");
+    m_eraCombo->addItem(local("哈利在校时代 · 1990年代", "Harry's school years · 1990s"), "harry");
+    m_eraCombo->addItem(local("汤姆·里德尔在校时代 · 1940年代", "Tom Riddle's school years · 1940s"), "riddle");
+    m_eraCombo->setCurrentIndex(1);
     m_genderCombo = new QComboBox(page1);
     m_genderCombo->addItem(local("男", "Male"), "male");
     m_genderCombo->addItem(local("女", "Female"), "female");
@@ -84,6 +89,7 @@ void EnrollmentDialog::buildUi()
 
     form1->addRow(local("用户名", "Username"), m_usernameEdit);
     form1->addRow(local("角色姓名", "Character name"), m_nicknameEdit);
+    form1->addRow(local("入学时代", "School era"), m_eraCombo);
     form1->addRow(local("学院", "House"), m_houseCombo);
     form1->addRow(local("性别", "Gender"), m_genderCombo);
     form1->addRow(local("发色", "Hair color"), m_hairColorEdit);
@@ -259,6 +265,7 @@ arcane::application::dto::EnrollmentRequestDTO EnrollmentDialog::buildRequest() 
 {
     arcane::application::dto::EnrollmentRequestDTO request;
     request.username = m_usernameEdit->text().trimmed().toStdString();
+    request.eraId = m_eraCombo->currentData().toString().toStdString();
     request.nickname = m_nicknameEdit->text().trimmed().toStdString();
     request.house = m_houseCombo->currentText().toStdString();
     request.gender = m_genderCombo->currentData().toString().toStdString();

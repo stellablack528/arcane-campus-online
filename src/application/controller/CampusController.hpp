@@ -14,9 +14,14 @@
 #include "application/story/persistence/StoryPersistenceService.hpp"
 #include "application/world/WorldClock.hpp"
 #include "application/world/WorldEvent.hpp"
+#include "application/world/FirstTermEngine.hpp"
+#include "application/world/FirstTermStore.hpp"
+#include "application/world/EraWorldPack.hpp"
 
 #include <QObject>
 #include <QString>
+#include <QVector>
+#include <optional>
 
 namespace arcane::core {
 class DeepSeekClient;
@@ -87,6 +92,7 @@ public slots:
     void handleQueryReputation();
     // 开局剧情：处理当前叙事选项。
     void handlePrologueChoice(int index);
+    void handleTermAction(world::TermAction action);
 
 signals:
     void loginAccepted(const QString& studentName, const QString& house);
@@ -106,6 +112,10 @@ signals:
     void inventoryRefreshed(const std::vector<arcane::application::vo::InventoryItemVO>& items);
     // 学院积分变化（delta 正=加分，负=扣分）。
     void housePointsChanged(const QString& house, int delta, const QString& reason);
+    void termProgressChanged(const QString& schedule, int week, int weekday,
+                             int health, int reputation, const QVector<int>& subjects,
+                             int morningSubject, int afternoonSubject);
+    void worldEraChanged(const QString& eraId);
 
 private:
     [[nodiscard]] do_model::PlayerSessionDO* activeSession();
@@ -118,6 +128,8 @@ private:
     [[nodiscard]] bool beginCampaignChapter(const QString& chapterId);
     void enterFreeExplorationMode(bool announce);
     void resumeSavedStory();
+    void ensureFirstTerm();
+    void publishFirstTerm();
 
     std::unique_ptr<service::SessionService> sessionService_;
     std::unique_ptr<service::CampusService> campusService_;
@@ -132,6 +144,10 @@ private:
     std::unique_ptr<story::persistence::StoryPersistenceService> storyPersistenceService_;
     std::unique_ptr<service::StoryProgressService> storyProgressService_;
     std::unique_ptr<core::DeepSeekClient> deepSeekClient_;
+    std::unique_ptr<world::FirstTermStore> firstTermStore_;
+    std::optional<world::FirstTermState> firstTermState_;
+    std::shared_ptr<const storyforge::StoryPackage> eraPackage_;
+    QVector<world::TermAction> termChoices_;
     bool freeExplorationActive_ = false;
     QString rememberedEncounterOutcome_;
 };

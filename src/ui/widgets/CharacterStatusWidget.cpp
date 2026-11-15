@@ -43,6 +43,9 @@ void CharacterStatusWidget::setCampusState(const QString &location, const QStrin
     else if (location == QLatin1String("library")) locationText = TR("loc.library");
     else if (location == QLatin1String("courtyard")) locationText = TR("loc.courtyard");
     else if (location == QLatin1String("hogsmeade")) locationText = TR("loc.hogsmeade");
+    else if (location == QLatin1String("greenhouse_three")) locationText = TR("loc.greenhouse");
+    else if (location == QLatin1String("defense_classroom")) locationText = TR("loc.defenseclassroom");
+    else if (location == QLatin1String("forbidden_forest")) locationText = TR("loc.forbiddenforest");
     m_locationValue->setText(locationText);
 
     QString stateText = state;
@@ -78,6 +81,27 @@ void CharacterStatusWidget::setGold(std::uint64_t gold)
     m_galleonValue->setText(QString::number(gold));
 }
 
+void CharacterStatusWidget::setTermProgress(const QString& schedule, int health,
+                                             int reputation, const QVector<int>& subjects)
+{
+    m_termValue->setText(schedule);
+    m_healthValue->setText(QStringLiteral("%1/100").arg(health));
+    m_healthValue->setStyleSheet(health <= 30 ? QStringLiteral("color: #e08a8a;") : QString());
+    m_reputationValue->setText(QString::number(reputation));
+    QString currentCourse = QStringLiteral("—");
+    for (const QString& name : {QStringLiteral("魔咒学"), QStringLiteral("变形术"),
+                                QStringLiteral("草药学"), QStringLiteral("黑魔法防御术")}) {
+        if (schedule.endsWith(QStringLiteral(" · ") + name)) {
+            currentCourse = name;
+            break;
+        }
+    }
+    m_courseValue->setText(currentCourse);
+    if (subjects.size() == 4)
+        m_subjectsValue->setText(QStringLiteral("魔咒 %1 · 变形 %2\n草药 %3 · 防御 %4")
+            .arg(subjects[0]).arg(subjects[1]).arg(subjects[2]).arg(subjects[3]));
+}
+
 void CharacterStatusWidget::buildUi()
 {
     auto *layout = new QVBoxLayout(this);
@@ -101,6 +125,10 @@ void CharacterStatusWidget::buildUi()
     m_pointsLabel   = new QLabel(this);
     m_stateLabel    = new QLabel(this);
     m_courseLabel   = new QLabel(this);
+    m_termLabel = new QLabel(this);
+    m_healthLabel = new QLabel(this);
+    m_reputationLabel = new QLabel(this);
+    m_subjectsLabel = new QLabel(this);
 
     m_nameValue     = createValue(QStringLiteral("New Student"));
     m_houseValue    = createValue(QStringLiteral("Ravenclaw"));
@@ -110,6 +138,10 @@ void CharacterStatusWidget::buildUi()
     m_pointsValue   = createValue(QStringLiteral("0"));
     m_stateValue    = createValue(QStringLiteral("—"));
     m_courseValue   = createValue(QStringLiteral("—"));
+    m_termValue = createValue(QStringLiteral("—"));
+    m_healthValue = createValue(QStringLiteral("90/100"));
+    m_reputationValue = createValue(QStringLiteral("0"));
+    m_subjectsValue = createValue(QStringLiteral("—"));
 
     form->addRow(m_nameLabel,     m_nameValue);
     form->addRow(m_houseLabel,    m_houseValue);
@@ -119,6 +151,10 @@ void CharacterStatusWidget::buildUi()
     form->addRow(m_pointsLabel,   m_pointsValue);
     form->addRow(m_stateLabel,    m_stateValue);
     form->addRow(m_courseLabel,   m_courseValue);
+    form->addRow(m_termLabel, m_termValue);
+    form->addRow(m_healthLabel, m_healthValue);
+    form->addRow(m_reputationLabel, m_reputationValue);
+    form->addRow(m_subjectsLabel, m_subjectsValue);
 
     layout->addWidget(m_titleLabel);
     layout->addLayout(form);
@@ -137,6 +173,10 @@ void CharacterStatusWidget::retranslateUi()
     if (m_pointsLabel)  m_pointsLabel->setText(TR("status.housepoints"));
     if (m_stateLabel)   m_stateLabel->setText(TR("status.state"));
     if (m_courseLabel)  m_courseLabel->setText(TR("status.currentclass"));
+    m_termLabel->setText(TR("status.term"));
+    m_healthLabel->setText(TR("status.health"));
+    m_reputationLabel->setText(TR("status.reputation"));
+    m_subjectsLabel->setText(TR("status.subjects"));
     if (!m_currentLocation.isEmpty()) {
         setCampusState(m_currentLocation, m_currentState);
     }

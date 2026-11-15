@@ -4,6 +4,7 @@
 
 #include <QMainWindow>
 #include <QString>
+#include <QVector>
 #include <vector>
 
 class CampusTimeWidget;
@@ -29,6 +30,7 @@ public:
 
 public slots:
     void setPlayerIdentity(const QString &studentName, const QString &houseName);
+    void setWorldEra(const QString &eraId);
     void appendCampusMessage(const QString &channel, const QString &speaker, const QString &text);
     void updatePlayerLocation(const QString &location, const QString &state);
     void updatePlayerGold(std::uint64_t gold);
@@ -47,6 +49,9 @@ public slots:
     void setSceneHeader(const QString &title);
     void setInputHint(const QString &hint);
     void presentChoices(const QStringList &labels);
+    void updateTermProgress(const QString &schedule, int week, int weekday,
+                            int health, int reputation, const QVector<int> &subjects,
+                            int morningSubject, int afternoonSubject);
 
 signals:
     void sendChatRequested(const QString &channel, const QString &text);
@@ -100,5 +105,6 @@ private:
     QToolButton *m_leftDrawerButton = nullptr;
     QToolButton *m_rightDrawerButton = nullptr;
     QAction *m_mapAction = nullptr;
+    QVector<QAction*> m_legacyStoryActions;
     bool m_mapAvailable = false;
 };

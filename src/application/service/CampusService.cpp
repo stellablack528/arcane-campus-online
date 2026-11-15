@@ -15,7 +15,8 @@ namespace {
 const std::unordered_map<std::string, std::string> fallbackLocations{
     {"great_hall", "Great Hall"}, {"transfiguration_classroom", "Transfiguration Classroom"},
     {"library", "Library"}, {"courtyard", "Courtyard"}, {"hogsmeade", "Hogsmeade"},
-    {"charms_classroom", "Charms Classroom"}};
+    {"charms_classroom", "Charms Classroom"}, {"greenhouse_three", "Greenhouse Three"},
+    {"defense_classroom", "Defense Classroom"}, {"forbidden_forest", "Forbidden Forest"}};
 const std::unordered_map<std::string, std::string> fallbackCourses{
     {"transfiguration", "Transfiguration Classroom"}, {"charms", "Charms Classroom"},
     {"herbology", "Greenhouse Three"}, {"defense", "Defense Classroom"}};

@@ -9,5 +9,8 @@
         <file>story/chapters/sorting_ceremony.json</file>
         <file>story/chapters/first_charms_lesson.json</file>
         <file>story/chapters/turning_pages.json</file>
+        <file>story/worlds/parents.json</file>
+        <file>story/worlds/harry.json</file>
+        <file>story/worlds/riddle.json</file>
     </qresource>
 </RCC>

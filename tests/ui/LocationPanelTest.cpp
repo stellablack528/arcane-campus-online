@@ -63,5 +63,21 @@ int main(int argc, char* argv[])
         std::cerr << "Empty scene does not show a translated placeholder\n";
         return 1;
     }
+    panel.setEraId(QStringLiteral("riddle"));
+    panel.setCurrentLocation(QStringLiteral("great_hall"));
+    if (people->count() != 1 || people->item(0)->text() != QStringLiteral("伊芙琳·摩尔")) {
+        std::cerr << "Historical hall cast is incorrect\n";
+        return 1;
+    }
+    panel.setCurrentLocation(QStringLiteral("library"));
+    if (people->count() != 0) {
+        std::cerr << "Historical era exposes a later-generation classmate\n";
+        return 1;
+    }
+    panel.setCurrentLocation(QStringLiteral("charms_classroom"));
+    if (people->count() != 2 || people->item(0)->text() != QStringLiteral("艾尔德里奇教授")) {
+        std::cerr << "Historical classroom cast is incorrect\n";
+        return 1;
+    }
     return 0;
 }

@@ -13,6 +13,8 @@ public:
     [[nodiscard]] bool isLoaded() const noexcept { return loaded_; }
     [[nodiscard]] bool contains(const QString& chapterId) const;
     [[nodiscard]] std::optional<ChapterDefinition> chapter(const QString& chapterId) const;
+    [[nodiscard]] std::optional<ChapterDefinition> chapterForEra(const QString& chapterId,
+                                                                 const QString& eraId) const;
     [[nodiscard]] QStringList chapterIds() const;
 
 private:

@@ -1,41 +1,36 @@
 #include "network/CampusWireServer.hpp"
 
-#include <QHostAddress>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QTcpSocket>
+#include <QTimer>
+#include <utility>
 
 namespace arcane::network {
 namespace {
-constexpr qsizetype kMaxFrame = 4096;
-
-bool knownLocation(const QString& id)
-{
-    return id == QLatin1String("charms_classroom")
-        || id == QLatin1String("great_hall")
-        || id == QLatin1String("library")
-        || id == QLatin1String("courtyard")
-        || id == QLatin1String("house_tables")
-        || id == QLatin1String("transfiguration_classroom")
-        || id == QLatin1String("hogsmeade")
-        || id == QLatin1String("greenhouse_three")
-        || id == QLatin1String("defense_classroom")
-        || id == QLatin1String("forbidden_forest");
-}
+constexpr int kMaxPeers = 32;
+constexpr int kHandshakeTimeoutMs = 5000;
 }
 
 CampusWireServer::CampusWireServer(QObject* parent) : QObject(parent)
 {
     connect(&server_, &QTcpServer::newConnection, this, [this] {
         while (auto* socket = server_.nextPendingConnection()) {
+            if (peers_.size() >= kMaxPeers) {
+                send(socket, {{"type", "error"}, {"text", "校园联机人数已满，请稍后重试。"}});
+                connect(socket, &QTcpSocket::disconnected, socket, &QObject::deleteLater);
+                socket->disconnectFromHost();
+                continue;
+            }
+            socket->setReadBufferSize(wire::readBufferBytes);
             peers_.insert(socket, {});
             connect(socket, &QTcpSocket::readyRead, this, [this, socket] { receive(socket); });
             connect(socket, &QTcpSocket::disconnected, this, [this, socket] {
                 const auto peer = peers_.take(socket);
-                if (!peer.name.isEmpty())
-                    broadcast(peer.location, {{"type", "presence"}, {"name", peer.name},
-                                              {"text", "离开了当前场景。"}});
+                if (!peer.name.isEmpty()) announce(peer, false, socket);
                 socket->deleteLater();
+            });
+            QTimer::singleShot(kHandshakeTimeoutMs, socket, [this, socket] {
+                const auto peer = peers_.constFind(socket);
+                if (peer != peers_.cend() && peer->name.isEmpty()) socket->abort();
             });
         }
     });
@@ -43,11 +38,8 @@ CampusWireServer::CampusWireServer(QObject* parent) : QObject(parent)
 
 CampusWireServer::~CampusWireServer()
 {
-    // QTcpServer owns accepted sockets and destroys them after this body.
-    // Disconnect first so their teardown cannot call into a destroyed peer map.
-    for (auto* socket : peers_.keys())
-        QObject::disconnect(socket, nullptr, this, nullptr);
-    peers_.clear();
+    // Stop socket callbacks before the peer map is destroyed.
+    for (auto* socket : peers_.keys()) QObject::disconnect(socket, nullptr, this, nullptr);
 }
 
 bool CampusWireServer::listen(const QHostAddress& address, quint16 port)
@@ -57,81 +49,96 @@ bool CampusWireServer::listen(const QHostAddress& address, quint16 port)
 
 quint16 CampusWireServer::port() const { return server_.serverPort(); }
 
-void CampusWireServer::send(QTcpSocket* socket, const QJsonObject& event)
+bool CampusWireServer::send(QTcpSocket* socket, const QJsonObject& event)
 {
-    socket->write(QJsonDocument(event).toJson(QJsonDocument::Compact) + '\n');
+    if (wire::writeFrame(*socket, event)) return true;
+    // Closing immediately can emit disconnected() and mutate peers_ during a broadcast.
+    QMetaObject::invokeMethod(socket, [socket] { socket->abort(); }, Qt::QueuedConnection);
+    return false;
 }
 
-void CampusWireServer::broadcast(const QString& location, const QJsonObject& event,
-                                 QTcpSocket* except)
+void CampusWireServer::broadcast(const wire::Room& room, const QJsonObject& event, QTcpSocket* except)
 {
     for (auto it = peers_.cbegin(); it != peers_.cend(); ++it)
-        if (it.key() != except && !it.value().name.isEmpty()
-            && (location.isEmpty() || it.value().location == location))
-            send(it.key(), event);
+        if (it.key() != except && !it->name.isEmpty() && it->room == room) send(it.key(), event);
+}
+
+void CampusWireServer::announce(const Peer& peer, bool entering, QTcpSocket* except)
+{
+    broadcast(peer.room, {{"type", "presence"}, {"name", peer.name}, {"location", peer.room.scene},
+                          {"text", entering ? "来到了当前场景。" : "离开了当前场景。"}}, except);
 }
 
 void CampusWireServer::receive(QTcpSocket* socket)
 {
-    auto& peer = peers_[socket];
-    peer.pending += socket->readAll();
-    if (peer.pending.size() > kMaxFrame && !peer.pending.contains('\n')) {
-        socket->disconnectFromHost();
-        return;
-    }
-    while (true) {
-        const auto end = peer.pending.indexOf('\n');
-        if (end < 0) break;
-        if (end > kMaxFrame) { socket->disconnectFromHost(); return; }
-        const auto frame = peer.pending.left(end);
-        peer.pending.remove(0, end + 1);
-        QJsonParseError error;
-        const auto document = QJsonDocument::fromJson(frame, &error);
-        if (error.error != QJsonParseError::NoError || !document.isObject()) continue;
-        const auto request = document.object();
-        const auto type = request.value("type").toString();
-        if (type == QLatin1String("hello")) {
-            if (!peer.name.isEmpty()) continue;
-            const auto name = request.value("name").toString().trimmed();
-            const auto location = request.value("location").toString();
-            if (name.isEmpty() || name.size() > 32 || !knownLocation(location)) continue;
-            for (const auto& other : peers_)
-                if (other.name == name) { send(socket, {{"type", "error"}, {"text", "昵称已在线。"}}); socket->disconnectFromHost(); return; }
-            peer.name = name;
-            peer.location = location;
-            send(socket, {{"type", "welcome"}, {"text", "已连接校园。同场景可交谈，/owl 昵称 内容 可跨场景送信。"}});
-            broadcast(location, {{"type", "presence"}, {"name", name}, {"text", "来到了当前场景。"}}, socket);
-            continue;
-        }
-        if (peer.name.isEmpty()) continue;
-        if (type == QLatin1String("move")) {
-            const auto location = request.value("location").toString();
-            if (!knownLocation(location)) continue;
-            const auto old = peer.location;
-            peer.location = location;
-            broadcast(old, {{"type", "presence"}, {"name", peer.name}, {"text", "离开了当前场景。"}}, socket);
-            broadcast(location, {{"type", "presence"}, {"name", peer.name}, {"text", "来到了当前场景。"}}, socket);
-            send(socket, {{"type", "moved"}, {"location", location}});
-        } else if (type == QLatin1String("say")) {
-            const auto message = request.value("text").toString().trimmed();
-            if (message.isEmpty() || message.size() > 500) continue;
-            broadcast(peer.location, {{"type", "say"}, {"name", peer.name},
-                                      {"location", peer.location}, {"text", message}}, socket);
-        } else if (type == QLatin1String("owl")) {
-            const auto target = request.value("target").toString().trimmed();
-            const auto message = request.value("text").toString().trimmed();
-            if (message.isEmpty() || message.size() > 500) continue;
-            bool delivered = false;
-            for (auto it = peers_.cbegin(); it != peers_.cend(); ++it) {
-                if (it.value().name != target) continue;
-                send(it.key(), {{"type", "owl"}, {"name", peer.name}, {"text", message}});
-                delivered = true;
-                break;
-            }
-            send(socket, {{"type", delivered ? "owl_sent" : "error"},
-                          {"text", delivered ? "猫头鹰已送达。" : "没有找到在线的收信人。"}});
+    auto peer = peers_.find(socket);
+    if (peer == peers_.end()) return;
+    QJsonObject request;
+    while (socket->state() == QAbstractSocket::ConnectedState) {
+        switch (wire::readFrame(*socket, request)) {
+        case wire::ReadResult::Incomplete: return;
+        case wire::ReadResult::TooLarge: socket->abort(); return;
+        case wire::ReadResult::Invalid: continue;
+        case wire::ReadResult::Message:
+            if (!handleRequest(socket, peer.value(), request)) return;
+            break;
         }
     }
-    if (peer.pending.size() > kMaxFrame) socket->disconnectFromHost();
+}
+
+bool CampusWireServer::handleRequest(QTcpSocket* socket, Peer& peer, const QJsonObject& request)
+{
+    const auto type = request.value("type").toString();
+    if (peer.name.isEmpty()) {
+        if (type != QLatin1String("hello")) return true;
+        const auto reject = [socket](const QString& reason, const QString& text) {
+            send(socket, {{"type", "error"}, {"code", reason}, {"text", text}});
+            socket->disconnectFromHost();
+            return false;
+        };
+        if (request.value("version").toInt() != wire::version)
+            return reject(QStringLiteral("version_mismatch"), QStringLiteral("联机版本不一致，请更新客户端和服务端。"));
+        const auto name = request.value("name").toString().trimmed();
+        const wire::Room room{request.value("era").toString(), request.value("location").toString()};
+        if (name.isEmpty() || name.size() > wire::maxNickname || !wire::knownEra(room.era) || !wire::knownScene(room.scene))
+            return reject(QStringLiteral("invalid_identity"), QStringLiteral("无法加入：昵称、时代或地点无效。"));
+        for (const auto& other : std::as_const(peers_))
+            if (other.room.era == room.era && other.name == name)
+                return reject(QStringLiteral("name_in_use"), QStringLiteral("本时代已有同名角色在线。"));
+
+        if (!send(socket, {{"type", "welcome"}, {"version", wire::version}, {"era", room.era},
+                            {"text", "已连接校园。同场景可交谈，/owl 昵称 内容 可在同一时代跨场景送信。"}}))
+            return false;
+        peer = {name, room};
+        announce(peer, true, socket);
+        return true;
+    }
+
+    if (type == QLatin1String("move")) {
+        const auto scene = request.value("location").toString();
+        if (!wire::knownScene(scene) || scene == peer.room.scene) return true;
+        announce(peer, false, socket);
+        peer.room.scene = scene; // Moves cannot change the era fixed during hello.
+        announce(peer, true, socket);
+    } else if (type == QLatin1String("say")) {
+        const auto text = request.value("text").toString().trimmed();
+        if (!text.isEmpty() && text.size() <= wire::maxText)
+            broadcast(peer.room, {{"type", "say"}, {"name", peer.name},
+                                  {"location", peer.room.scene}, {"text", text}}, socket);
+    } else if (type == QLatin1String("owl")) {
+        const auto target = request.value("target").toString().trimmed();
+        const auto text = request.value("text").toString().trimmed();
+        if (target.isEmpty() || target.size() > wire::maxNickname || text.isEmpty() || text.size() > wire::maxText)
+            return true;
+        bool queued = false;
+        for (auto it = peers_.cbegin(); it != peers_.cend(); ++it) {
+            if (it->room.era != peer.room.era || it->name != target) continue;
+            queued = send(it.key(), {{"type", "owl"}, {"name", peer.name}, {"text", text}});
+            break;
+        }
+        return send(socket, {{"type", queued ? "owl_sent" : "error"},
+                             {"text", queued ? "猫头鹰已发送。" : "本时代没有找到可收信的在线角色。"}});
+    }
+    return true;
 }
 } // namespace arcane::network

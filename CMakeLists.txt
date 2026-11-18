@@ -35,6 +35,8 @@ target_include_directories(ArcaneFirstTerm PUBLIC src)
 target_link_libraries(ArcaneFirstTerm PUBLIC TaleStateCore ArcaneCampusDatabase Qt6::Core)
 
 add_library(ArcaneCampusWire STATIC
+    src/network/CampusWireProtocol.hpp
+    src/network/CampusWireProtocol.cpp
     src/network/CampusWireServer.hpp
     src/network/CampusWireServer.cpp
     src/network/CampusWireClient.hpp

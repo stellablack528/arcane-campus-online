@@ -1,5 +1,7 @@
 #pragma once
 
+#include "network/CampusWireProtocol.hpp"
+
 #include <QHash>
 #include <QHostAddress>
 #include <QJsonObject>
@@ -21,14 +23,16 @@ public:
     quint16 port() const;
 
 private:
+    // The socket owns transport state; Peer is the identity accepted by the server.
     struct Peer {
         QString name;
-        QString location;
-        QByteArray pending;
+        wire::Room room;
     };
     void receive(QTcpSocket* socket);
-    void send(QTcpSocket* socket, const QJsonObject& event);
-    void broadcast(const QString& location, const QJsonObject& event, QTcpSocket* except = nullptr);
+    bool handleRequest(QTcpSocket* socket, Peer& peer, const QJsonObject& request);
+    static bool send(QTcpSocket* socket, const QJsonObject& event);
+    void broadcast(const wire::Room& room, const QJsonObject& event, QTcpSocket* except);
+    void announce(const Peer& peer, bool entering, QTcpSocket* except);
     QTcpServer server_;
     QHash<QTcpSocket*, Peer> peers_;
 };

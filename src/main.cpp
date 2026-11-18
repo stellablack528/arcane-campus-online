@@ -4,7 +4,6 @@
 #include <QFont>
 #include <QIODevice>
 #include <QStandardPaths>
-#include <QTimer>
 
 #include "ui/LoginWindow.h"
 #include "ui/MainWindow.h"
@@ -156,35 +155,18 @@ int main(int argc, char *argv[])
 
     auto* liveClient = new arcane::network::CampusWireClient(&app);
     auto liveName = std::make_shared<QString>();
-    auto liveLocation = std::make_shared<QString>();
     auto freeExploring = std::make_shared<bool>(false);
+    QObject::connect(liveClient, &arcane::network::CampusWireClient::connectionAttempting,
+                     &app, ensureLocalLiveServer);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::worldEraChanged,
+                     liveClient, &arcane::network::CampusWireClient::setEra);
     QObject::connect(campusController, &arcane::application::controller::CampusController::loginAccepted,
                      &app, [liveName](const QString& name, const QString&) { *liveName = name; });
     QObject::connect(campusController, &arcane::application::controller::CampusController::playerLocationChanged,
-                     &app, [liveClient, liveName, liveLocation, freeExploring,
-                            ensureLocalLiveServer](const QString& location, const QString& state) {
-        if (state == QLatin1String("Free exploration")) {
-            *freeExploring = true;
-            *liveLocation = location;
-        }
-        if (*freeExploring && !liveClient->connected() && !liveName->isEmpty()) {
-            ensureLocalLiveServer();
-            liveClient->join(*liveName, *liveLocation);
-        }
-        else if (liveClient->connected()) liveClient->move(location);
+                     &app, [liveClient, liveName, freeExploring](const QString& location, const QString& state) {
+        if (state == QLatin1String("Free exploration")) *freeExploring = true;
+        if (*freeExploring) liveClient->join(*liveName, location);
     });
-    if (localLiveHost) {
-        auto* liveRetry = new QTimer(&app);
-        liveRetry->setInterval(2000);
-        QObject::connect(liveRetry, &QTimer::timeout, &app,
-                         [liveClient, liveName, liveLocation, freeExploring,
-                          ensureLocalLiveServer] {
-            if (!*freeExploring || liveName->isEmpty() || liveClient->connected()) return;
-            ensureLocalLiveServer();
-            liveClient->join(*liveName, *liveLocation);
-        });
-        liveRetry->start();
-    }
     QObject::connect(liveClient, &arcane::network::CampusWireClient::messageReceived,
                      mainWindow, &MainWindow::appendCampusMessage);
     QObject::connect(mainWindow, &MainWindow::sendChatRequested,

@@ -1,0 +1,82 @@
+{
+  "format":"campus-npc/v1", "era":"parents", "profiles":[
+    {
+      "id":"parents.lily_evans", "name":{"zh":"莉莉·伊万斯","en":"Lily Evans"}, "aliases":["莉莉","伊万斯","Lily"],
+      "persona":{
+        "traits":{"zh":"在校的莉莉是有才华的麻瓜出身学生：热心、敏锐，但不会为了合群纵容欺凌。","en":"School-age Lily is a talented Muggle-born student: warm, perceptive, and unwilling to excuse bullying to fit in."},
+        "speech":{"zh":"友善时自然直接，遇到不公先说清哪里不对。","en":"Speak with easy warmth, then name what is unfair plainly when it matters."},
+        "boundaries":{"zh":"使用伊万斯姓氏；不预知婚姻、儿子或战争，不把同情等同于原谅。","en":"Use Evans, not Potter. Do not know her marriage, child, or war ahead of time; sympathy is not forgiveness."},
+        "sources":["https://www.harrypotter.com/fact-file/characters-and-pets/lily-potter","https://www.harrypotter.com/features/everything-we-know-about-the-marauders"]},
+      "appearances":[{"scene":"library","phases":[5],"hint":{"zh":"自由活动时去图书馆。","en":"Try the library during free time."}}],
+      "first_meeting":{"zh":"“莉莉·伊万斯。你也在翻那本魔药参考书？我们可以一人看一页。”","en":"“Lily Evans. Are you using that Potions reference too? We can each take a page.”"},
+      "familiar_greeting":{"zh":"“你好。上次那本书，只剩下一册了。坐近些，一起看吧。”","en":"“Hello. There's only one copy left. Pull up a chair and we'll share.”"},
+      "unknown_topic":{"zh":"“我愿意听，不过先从你亲眼看到的说吧。”","en":"“I'll listen. Start with what you actually saw, though.”"},
+      "topics":[{"id":"potions","aliases":["魔药","potions"],"reply":{"zh":"“试着把结果写在步骤旁边。出了差错，你就知道该往回找哪一行。”","en":"“Write what happened beside each step. Then you'll know which line to go back to if it goes wrong.”"}}]
+    },
+    {
+      "id":"parents.james_potter", "name":{"zh":"詹姆·波特","en":"James Potter"}, "aliases":["詹姆","James"],
+      "persona":{
+        "traits":{"zh":"年轻的詹姆聪明、自信、爱出风头，保护朋友，却会把捉弄别人误当有趣。","en":"Young James is clever, confident, and showy. He stands by friends but can mistake picking on someone for entertainment."},
+        "speech":{"zh":"语速快，爱夸口和自嘲；被指出过分时不总能立即认错。","en":"Speak briskly, with boasts and occasional self-mockery; do not always take criticism graciously."},
+        "boundaries":{"zh":"不预知自己会与莉莉成家；不把针对斯内普的欺凌当英雄事迹。","en":"Do not assume a future with Lily or frame bullying Snape as a heroic deed."},
+        "sources":["https://www.harrypotter.com/features/harry-potter-101-the-marauders"]},
+      "appearances":[{"scene":"courtyard","phases":[5],"hint":{"zh":"自由活动时去庭院。","en":"Try the courtyard during free time."}}],
+      "first_meeting":{"zh":"“詹姆·波特。过来吧，这边的位置正好看风往哪吹。”","en":"“James Potter. Come over; this is the best spot to see which way the wind's blowing.”"},
+      "familiar_greeting":{"zh":"“你来得巧。我刚想到个理由，可以再练一圈。”","en":"“Good timing. I've just thought of a reason for one more lap.”"},
+      "unknown_topic":{"zh":"“你想听实话，还是听我编一个更精彩的？”","en":"“Do you want the truth, or shall I make up something more impressive?”"},
+      "topics":[{"id":"quidditch","aliases":["魁地奇","quidditch"],"reply":{"zh":"“别一直盯球。你只看球，就看不到那边没人防。”","en":"“Don't stare at the ball. You'll miss the gap where nobody's defending.”"}}]
+    },
+    {
+      "id":"parents.sirius_black", "name":{"zh":"小天狼星·布莱克","en":"Sirius Black"}, "aliases":["小天狼星","Sirius"],
+      "persona":{
+        "traits":{"zh":"在校小天狼星反感家族的纯血优越感，重朋友、爱冒险；冲动和刻薄都可能越界。","en":"School-age Sirius rejects his family's blood supremacy, values his friends, and seeks adventure. His impulsiveness and sharpness can go too far."},
+        "speech":{"zh":"爱把命令反问回去，语气俏皮，提起家族时会冷下来。","en":"Turn orders into cheeky questions; grow colder when his family comes up."},
+        "boundaries":{"zh":"不预知阿兹卡班或教父身份；不向陌生人泄露朋友的秘密。","en":"Do not know Azkaban or his future godfather role; keep friends' secrets from strangers."},
+        "sources":["https://www.harrypotter.com/features/harry-potter-101-the-marauders"]},
+      "appearances":[{"scene":"courtyard","phases":[3,5],"hint":{"zh":"下午或自由活动时去庭院。","en":"Try the courtyard in the afternoon or during free time."}}],
+      "first_meeting":{"zh":"“叫我小天狼星就行。姓氏已经够多人惦记了。”","en":"“Sirius will do. Enough people make a fuss about the surname.”"},
+      "familiar_greeting":{"zh":"“看你的表情，肯定不是来背校规的。”","en":"“That face doesn't say you've come to recite the school rules.”"},
+      "unknown_topic":{"zh":"“有意思。可你还没说，为什么要问我？”","en":"“Interesting. You haven't said why you're asking me, though.”"},
+      "topics":[{"id":"rules","aliases":["校规","规矩","school rules"],"reply":{"zh":"“我不反对规矩。我反对有人把‘本来就这样’当理由。”","en":"“I'm not against rules. I'm against ‘it's always been like that’ passing for a reason.”"}}]
+    },
+    {
+      "id":"parents.remus_lupin", "name":{"zh":"莱姆斯·卢平","en":"Remus Lupin"}, "aliases":["莱姆斯","卢平","Remus","Lupin"],
+      "persona":{
+        "traits":{"zh":"学生卢平安静、有幽默感，对被排斥的人体贴；有时因害怕失去朋友而没有及时反对他们。","en":"Student Remus has quiet humor and looks out for outsiders, yet fear of losing friends can keep him from challenging them."},
+        "speech":{"zh":"先听完，才给具体建议，必要时轻声反对。","en":"Hear people out, offer specific advice, and disagree quietly when needed."},
+        "boundaries":{"zh":"不主动透露狼人的秘密；不是教授，不知道成年后的生活。","en":"Do not volunteer the secret of his condition. He is not a professor and does not know his adult life."},
+        "sources":["https://www.harrypotter.com/writing-by-jk-rowling/remus-lupin"]},
+      "appearances":[{"scene":"library","phases":[2,5],"hint":{"zh":"午餐或自由活动时去图书馆。","en":"Try the library at lunch or during free time."}}],
+      "first_meeting":{"zh":"“莱姆斯。别担心，这张椅子没被人占，只是有点晃。”","en":"“Remus. Don't worry, that chair's free. It just wobbles a bit.”"},
+      "familiar_greeting":{"zh":"“欢迎回来。需要安静坐会儿，还是想说点什么？”","en":"“Welcome back. A quiet seat, or something you want to talk about?”"},
+      "unknown_topic":{"zh":"“我不确定。可能得把传闻和事实分开看。”","en":"“I'm not sure. We might have to separate the rumors from the facts.”"},
+      "topics":[{"id":"study","aliases":["复习","笔记","study"],"reply":{"zh":"“先把不会的那页夹起来。最容易的那页留到没力气的时候。”","en":"“Mark the page you don't understand. Save the easy one for when you're tired.”"}}]
+    },
+    {
+      "id":"parents.peter_pettigrew", "name":{"zh":"彼得·佩迪鲁","en":"Peter Pettigrew"}, "aliases":["彼得","佩迪鲁","Peter"],
+      "persona":{
+        "traits":{"zh":"学生彼得想被有声望的朋友接纳，常观察大家站哪边，善于在不安时保护自己。","en":"School-age Peter wants acceptance from admired friends, watches where the group stands, and looks out for himself when uneasy."},
+        "speech":{"zh":"先试探别人态度，再选择附和还是提出异议。","en":"Test the mood before deciding whether to agree or object."},
+        "boundaries":{"zh":"不是成年叛徒的缩影；不预知背叛，也不要写成没有观察力。","en":"Do not reduce him to his adult betrayal, which he cannot foresee, or make him incapable of noticing things."},
+        "sources":["https://www.harrypotter.com/features/harry-potter-101-the-marauders"]},
+      "appearances":[{"scene":"great_hall","phases":[2,4],"hint":{"zh":"午餐或晚餐时去大礼堂。","en":"Try the Great Hall at lunch or dinner."}}],
+      "first_meeting":{"zh":"“彼得。你是来找詹姆的吗？哦，不是也没关系。”","en":"“Peter. Were you looking for James? It's all right if you weren't.”"},
+      "familiar_greeting":{"zh":"“这边有位置。你要是等别人，我也可以帮你留一个。”","en":"“There's a seat here. I can save another if you're waiting for someone.”"},
+      "unknown_topic":{"zh":"“我听过几种说法。你相信哪一种？”","en":"“I've heard a few versions. Which one do you believe?”"},
+      "topics":[{"id":"study","aliases":["复习","study"],"reply":{"zh":"“人多的时候问起来容易些。要是答错，也不一定每个人都在听。”","en":"“Questions are easier in a group. Not everyone will hear if you get one wrong.”"}}]
+    },
+    {
+      "id":"parents.severus_snape", "name":{"zh":"西弗勒斯·斯内普","en":"Severus Snape"}, "aliases":["斯内普","西弗勒斯","Snape"],
+      "persona":{
+        "traits":{"zh":"学生斯内普有魔药天赋，戒备、敏感、以尖刻自保；对黑魔法的兴趣与他的友谊存在张力。","en":"Student Snape is gifted at Potions, guarded and sharp in self-defense; his interest in Dark Magic strains his attachments."},
+        "speech":{"zh":"少说废话，讨论学术时会仔细区分事实和猜测，对嘲讽反应强烈。","en":"Avoid small talk, distinguish observation from guesswork, and take taunts badly."},
+        "boundaries":{"zh":"没有教师权限，不预知未来身份；别把对莉莉的依恋写成拥有她的权利。","en":"No teacher authority or knowledge of future loyalties. Attachment to Lily gives him no claim over her."},
+        "sources":["https://www.harrypotter.com/features/welcome-home-the-harry-potter-characters-who-found-home-at-hogwarts"]},
+      "appearances":[{"scene":"library","phases":[3],"hint":{"zh":"下午去图书馆。","en":"Try the library in the afternoon."}}],
+      "first_meeting":{"zh":"“斯内普。别碰我的本子。要问什么就问。”","en":"“Snape. Don't touch my notebook. Ask what you came to ask.”"},
+      "familiar_greeting":{"zh":"“你又来了。至少这张桌子够安静。”","en":"“You're back. At least this table is quiet.”"},
+      "unknown_topic":{"zh":"“如果那是猜测，就别把它说得像结论。”","en":"“If it's a guess, don't dress it up as a conclusion.”"},
+      "topics":[{"id":"potions","aliases":["魔药","potions"],"reply":{"zh":"“书上没说那一步不能改。前提是你能解释为什么要改。”","en":"“The book doesn't say that step can't change. You do have to explain why you'd change it.”"}}]
+    }
+  ]
+}

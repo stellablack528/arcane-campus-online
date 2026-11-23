@@ -1,0 +1,30 @@
+{
+  "format": "campus-npc/v1",
+  "era": "riddle",
+  "profiles": [
+    {
+      "id": "riddle.custom_ada_reed",
+      "name": {"zh": "艾达·里德", "en": "Ada Reed"},
+      "aliases": ["里德", "Ada Reed"],
+      "persona": {
+        "traits": {"zh": "好奇，喜欢修理坏掉的东西，怕在人群面前发言。", "en": "Curious, likes fixing broken things, and dislikes speaking in crowds."},
+        "speech": {"zh": "先说观察到的问题，再给一个小建议。", "en": "Describe what you noticed, then offer one small suggestion."},
+        "boundaries": {"zh": "不会替玩家完成作业，不透露别人交代的秘密。", "en": "Do not do the player's homework or disclose confidences."}
+      },
+      "custom_fields": {
+        "hobby": {"zh": "修旧怀表", "en": "Repairing pocket watches"},
+        "favorite_number": 7,
+        "prefers_quiet": true
+      },
+      "appearances": [
+        {"scene": "library", "phases": [5], "hint": {"zh": "自由活动时到图书馆。", "en": "Try the library during free time."}}
+      ],
+      "first_meeting": {"zh": "“我是艾达。你不介意我把零件放这里吧？”", "en": "“I'm Ada. Do you mind if I leave the parts here?”"},
+      "familiar_greeting": {"zh": "“你来得正好。听听它是不是走快了？”", "en": "“You're just in time. Does it sound a little fast to you?”"},
+      "unknown_topic": {"zh": "“这个我不确定。你要看看那只怀表吗？”", "en": "“I'm not sure. Did you want to see the pocket watch?”"},
+      "topics": [
+        {"id": "watch", "aliases": ["怀表", "watch"], "reply": {"zh": "“簧片没坏，是旁边的小螺丝松了。”", "en": "“The spring is fine. That little screw beside it is loose.”"}}
+      ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
+#include <QFileDialog>
 #include <QFont>
 #include <QIODevice>
 #include <QStandardPaths>
@@ -8,6 +9,7 @@
 #include "ui/LoginWindow.h"
 #include "ui/MainWindow.h"
 #include "ui/EnrollmentDialog.h"
+#include "ui/I18n.hpp"
 #include "application/controller/CampusController.hpp"
 #include "network/CampusWireClient.hpp"
 #include "network/CampusWireServer.hpp"
@@ -32,7 +34,7 @@ namespace {
 
 // An explicit database.ini keeps the MySQL development path. Ordinary players
 // receive a local SQLite save automatically, without database configuration.
-std::shared_ptr<arcane::database::DBConnection> tryCreateConnection(QString* failure)
+std::shared_ptr<arcane::database::DBConnection> tryCreateConnection(QString* failure, QString* localSaveFolder)
 {
     std::filesystem::path configPath = "database.ini";
     bool configuredExternally = false;
@@ -54,6 +56,7 @@ std::shared_ptr<arcane::database::DBConnection> tryCreateConnection(QString* fai
         auto local = arcane::database::LocalSaveBootstrap::open(
             std::filesystem::path(savePath.toStdWString()), &localError);
         if (!local && failure) *failure = QString::fromStdString(localError);
+        if (local && localSaveFolder) *localSaveFolder = saveFolder;
         return local;
     }
 
@@ -93,7 +96,8 @@ int main(int argc, char *argv[])
     auto *campusController = new arcane::application::controller::CampusController(&app);
 
     QString databaseError;
-    if (auto connection = tryCreateConnection(&databaseError)) {
+    QString localSaveFolder;
+    if (auto connection = tryCreateConnection(&databaseError, &localSaveFolder)) {
         auto userDao = std::make_shared<arcane::database::UserDAO>(connection);
         auto characterDao = std::make_shared<arcane::database::CharacterDAO>(connection);
         auto messageDao = std::make_shared<arcane::database::MessageDAO>(connection);
@@ -112,9 +116,30 @@ int main(int argc, char *argv[])
         campusController->configureSocialService(friendDao, characterDao);
         campusController->configureStoryProgressService(storyDao, characterDao);
         campusController->configureStoryPersistence(connection);
+        campusController->configureCustomNpcStorage(localSaveFolder);
     } else if (qEnvironmentVariable("ARCANE_DEMO_MODE") != QLatin1String("1")) {
         loginWindow->setDatabaseAvailable(false, databaseError);
     }
+
+    QObject::connect(mainWindow, &MainWindow::importNpcPackRequested, mainWindow, [mainWindow, campusController] {
+        const bool zh = arcane::ui::I18n::instance().language() == arcane::ui::I18n::Lang::Chinese;
+        const auto path = QFileDialog::getOpenFileName(mainWindow,
+            zh ? QStringLiteral("选择自定义 NPC 角色包") : QStringLiteral("Choose a custom NPC pack"), {},
+            QStringLiteral("JSON (*.json)"));
+        if (path.isEmpty()) return;
+        QFile file(path);
+        if (!file.open(QIODevice::ReadOnly)) { mainWindow->showFeedback(file.errorString()); return; }
+        const auto bytes = file.read(arcane::application::open_world::npc::CustomNpcStore::maxBytes + 1);
+        if (file.error() != QFileDevice::NoError) { mainWindow->showFeedback(file.errorString()); return; }
+        QString error;
+        if (!campusController->importCustomNpcPack(bytes, error)) {
+            mainWindow->showFeedback((zh ? QStringLiteral("导入失败（原角色包未变）：%1")
+                                         : QStringLiteral("Import failed; the current pack was kept: %1")).arg(error));
+            return;
+        }
+        mainWindow->showFeedback(zh ? QStringLiteral("自定义 NPC 已保存到当前角色。进入自由探索后可按出场时段找到他们。")
+                                    : QStringLiteral("Custom NPCs saved for this character. Find them on schedule in free exploration."));
+    });
 
     QObject::connect(loginWindow, &LoginWindow::loginRequested,
                      campusController, &arcane::application::controller::CampusController::handleLogin);
@@ -177,8 +202,13 @@ int main(int argc, char *argv[])
                 liveClient->owl(parts.first(), text.mid(5 + parts.first().size() + 1));
             return;
         }
+        const bool locationChannel = channel == QLatin1String("Location") || channel == QStringLiteral("地点");
+        const bool explicitNpc = text.compare(QStringLiteral("/npc"), Qt::CaseInsensitive) == 0
+            || text.startsWith(QStringLiteral("/npc "), Qt::CaseInsensitive);
+        if ((explicitNpc || (locationChannel && !campusController->hasActiveStory()))
+            && campusController->tryHandleNpcInput(text)) return;
         if (liveClient->connected() && !campusController->hasActiveStory()
-            && (channel == QLatin1String("Location") || channel == QStringLiteral("地点"))) {
+            && locationChannel) {
             if (text == QLatin1String("去图书馆") || text == QLatin1String("去礼堂")
                 || text == QLatin1String("去庭院") || text.startsWith(QLatin1String("go to "))
                 || text.contains(QStringLiteral("翻页")) || text.contains(QStringLiteral("罗温"))
@@ -267,6 +297,8 @@ int main(int argc, char *argv[])
                      mainWindow, &MainWindow::updateTermProgress);
     QObject::connect(campusController, &arcane::application::controller::CampusController::worldEraChanged,
                      mainWindow, &MainWindow::setWorldEra);
+    QObject::connect(campusController, &arcane::application::controller::CampusController::sceneNpcsChanged,
+                     mainWindow, &MainWindow::setSceneNpcs);
 
     QObject::connect(campusController, &arcane::application::controller::CampusController::campusMessageProduced,
                      mainWindow, &MainWindow::appendCampusMessage);

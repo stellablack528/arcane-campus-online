@@ -34,6 +34,13 @@ add_library(ArcaneFirstTerm STATIC
 target_include_directories(ArcaneFirstTerm PUBLIC src)
 target_link_libraries(ArcaneFirstTerm PUBLIC TaleStateCore ArcaneCampusDatabase Qt6::Core)
 
+add_library(ArcaneOpenWorldNpc STATIC
+    src/application/open_world/npc/NpcCatalog.cpp
+    src/application/open_world/npc/CustomNpcStore.cpp
+    src/application/open_world/npc/NpcInteraction.cpp)
+target_include_directories(ArcaneOpenWorldNpc PUBLIC src)
+target_link_libraries(ArcaneOpenWorldNpc PUBLIC ArcaneCampusDatabase Qt6::Core)
+
 add_library(ArcaneCampusWire STATIC
     src/network/CampusWireProtocol.hpp
     src/network/CampusWireProtocol.cpp
@@ -205,6 +212,12 @@ if(BUILD_TESTING)
     target_link_libraries(ArcaneFirstTermTest PRIVATE ArcaneFirstTerm)
     add_test(NAME ArcaneFirstTermTest COMMAND ArcaneFirstTermTest)
     set_tests_properties(ArcaneFirstTermTest PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
+
+    add_executable(ArcaneOpenWorldNpcTest tests/open_world/NpcInteractionTest.cpp src/resources/resources.qrc)
+    target_link_libraries(ArcaneOpenWorldNpcTest PRIVATE ArcaneOpenWorldNpc)
+    add_test(NAME ArcaneOpenWorldNpcTest COMMAND ArcaneOpenWorldNpcTest)
+    set_tests_properties(ArcaneOpenWorldNpcTest PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>")
 
     add_executable(ArcaneCampusWireTest tests/network/CampusWireTest.cpp)
@@ -476,6 +489,7 @@ qt_add_executable(HogwartsOnline
 target_include_directories(HogwartsOnline PRIVATE src)
 
 target_link_libraries(HogwartsOnline PRIVATE
+    ArcaneOpenWorldNpc
     ArcaneOpenWorldRoutes
     ArcaneFirstTerm
     ArcaneCampusDatabase

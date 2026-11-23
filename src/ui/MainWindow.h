@@ -3,7 +3,9 @@
 #include "application/vo/CampusVO.hpp"
 
 #include <QMainWindow>
+#include <QMap>
 #include <QString>
+#include <QStringList>
 #include <QVector>
 #include <vector>
 
@@ -31,6 +33,7 @@ public:
 public slots:
     void setPlayerIdentity(const QString &studentName, const QString &houseName);
     void setWorldEra(const QString &eraId);
+    void setSceneNpcs(const QMap<QString, QString>& present, const QStringList& replacedLegacyIds);
     void appendCampusMessage(const QString &channel, const QString &speaker, const QString &text);
     void updatePlayerLocation(const QString &location, const QString &state);
     void updatePlayerGold(std::uint64_t gold);
@@ -70,6 +73,7 @@ signals:
     void profileRequested(const QString &memberId);
     void useMaraudersMapRequested(std::uint64_t roomId);
     void refreshInventoryRequested();
+    void importNpcPackRequested();
     void timePeriodChanged(int period);
     void nightPatrolRequested(const QString &targetId);
     // 剧情模块：做出选择 / 查询风评。

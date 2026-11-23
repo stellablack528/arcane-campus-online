@@ -12,5 +12,9 @@
         <file>story/worlds/parents.json</file>
         <file>story/worlds/harry.json</file>
         <file>story/worlds/riddle.json</file>
+        <file>story/worlds/npcs/riddle.json</file>
+        <file>story/worlds/npcs/harry.json</file>
+        <file>story/worlds/npcs/parents.json</file>
+        <file alias="story/examples/custom_npcs_riddle.json">../../docs/examples/custom_npcs_riddle.json</file>
     </qresource>
 </RCC>

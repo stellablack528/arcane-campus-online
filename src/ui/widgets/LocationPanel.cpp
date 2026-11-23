@@ -322,6 +322,13 @@ void LocationPanel::setMaraudersMapAvailable(bool available)
     m_mapBtn->setVisible(available);
 }
 
+void LocationPanel::setSceneNpcs(const QMap<QString, QString>& present, const QStringList& replacedLegacyIds)
+{
+    m_sceneNpcs = present;
+    m_replacedLegacyIds = replacedLegacyIds;
+    refreshPeopleHere();
+}
+
 void LocationPanel::refreshPeopleHere()
 {
     m_peopleList->clear();
@@ -329,17 +336,13 @@ void LocationPanel::refreshPeopleHere()
     const auto it = map.constFind(m_currentLocationId);
     const bool historicalEra = m_eraId == QLatin1String("parents")
         || m_eraId == QLatin1String("riddle");
-    if (it == map.constEnd() && !(historicalEra && m_currentLocationId == QLatin1String("great_hall"))) {
-        auto *placeholder = new QListWidgetItem(TR("location.no_people"), m_peopleList);
-        placeholder->setFlags(Qt::NoItemFlags);
-        m_talkBtn->setEnabled(false);
-        return;
-    }
     const std::vector<Person> hallClassmate{{"npc_rowan_vale", "npc.rowan"}};
+    const std::vector<Person> noLegacyPeople;
     const auto& people = historicalEra && m_currentLocationId == QLatin1String("great_hall")
-        ? hallClassmate : *it;
+        ? hallClassmate : it == map.constEnd() ? noLegacyPeople : *it;
     for (const auto& p : people) {
         const QString id = QString::fromLatin1(p.memberId);
+        if (m_replacedLegacyIds.contains(id)) continue;
         if (historicalEra && id != QLatin1String("npc_rowan_vale")
             && id != QLatin1String("prof_flitwick")
             && id != QLatin1String("shop_ollivander")
@@ -357,5 +360,13 @@ void LocationPanel::refreshPeopleHere()
         auto *item = new QListWidgetItem(personName, m_peopleList);
         item->setData(Qt::UserRole, QString::fromLatin1(p.memberId));
     }
+    for (auto npc = m_sceneNpcs.cbegin(); npc != m_sceneNpcs.cend(); ++npc) {
+        auto* item = new QListWidgetItem(npc.value(), m_peopleList);
+        item->setData(Qt::UserRole, npc.key());
+    }
     m_talkBtn->setEnabled(m_peopleList->count() > 0);
+    if (m_peopleList->count() == 0) {
+        auto* placeholder = new QListWidgetItem(TR("location.no_people"), m_peopleList);
+        placeholder->setFlags(Qt::NoItemFlags);
+    }
 }

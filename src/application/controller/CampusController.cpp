@@ -8,6 +8,7 @@
 #include <storyforge/model/story_types.hpp>
 
 #include <QSet>
+#include <QDebug>
 #include <QTime>
 #include <QTimer>
 #include <utility>
@@ -265,6 +266,9 @@ CampusController::CampusController(QObject* parent)
     , storyProgressService_(std::make_unique<service::StoryProgressService>(nullptr, nullptr))
     , deepSeekClient_(std::make_unique<core::DeepSeekClient>(this))
 {
+    for (const auto& error : builtInNpcCatalog_.loadBuiltIns()) qWarning().noquote() << "NPC content:" << error;
+    npcCatalog_ = builtInNpcCatalog_;
+    connect(this, &CampusController::playerLocationChanged, this, &CampusController::refreshSceneNpcs);
     connect(deepSeekClient_.get(), &core::DeepSeekClient::replyReceived,
             this, &CampusController::onAiReplyReceived);
     connect(deepSeekClient_.get(), &core::DeepSeekClient::errorOccurred,
@@ -361,6 +365,7 @@ CampusController::CampusController(QObject* parent)
         storyRuntimeService_->setLanguage(language == arcane::ui::I18n::Lang::Chinese
                                               ? story::StoryLanguage::Chinese
                                               : story::StoryLanguage::English);
+        refreshSceneNpcs();
     };
     updateStoryLanguage(arcane::ui::I18n::instance().language());
     connect(&arcane::ui::I18n::instance(), &arcane::ui::I18n::languageChanged,
@@ -388,6 +393,7 @@ void CampusController::configureStoryPersistence(
     std::shared_ptr<arcane::database::DBConnection> connection)
 {
     firstTermStore_ = std::make_unique<world::FirstTermStore>(connection);
+    npcInteraction_ = std::make_unique<open_world::npc::Interaction>(connection);
     storyPersistenceService_ =
         std::make_unique<story::persistence::StoryPersistenceService>(std::move(connection));
     storyRuntimeService_->setCommitter(
@@ -401,6 +407,39 @@ void CampusController::configureStoryPersistence(
             }
             return storyPersistenceService_->commit(chapter, currentState, result, error);
         });
+}
+
+void CampusController::configureCustomNpcStorage(const QString& saveFolder)
+{
+    if (!saveFolder.isEmpty()) customNpcStore_ = std::make_unique<open_world::npc::CustomNpcStore>(saveFolder);
+}
+
+bool CampusController::importCustomNpcPack(const QByteArray& json, QString& error)
+{
+    const auto* session = activeSession();
+    if (!customNpcStore_ || !session || !firstTermState_) {
+        error = arcane::ui::I18n::instance().language() == arcane::ui::I18n::Lang::Chinese
+            ? QStringLiteral("请先使用本地存档登录角色。") : QStringLiteral("Sign in with a local save first.");
+        return false;
+    }
+    if (!customNpcStore_->importPack(session->characterId, QString::fromStdString(firstTermState_->eraId),
+                                     json, builtInNpcCatalog_, npcCatalog_, error)) return false;
+    refreshSceneNpcs();
+    return true;
+}
+
+void CampusController::restoreCustomNpcPack()
+{
+    npcCatalog_ = builtInNpcCatalog_;
+    const auto* session = activeSession();
+    if (!customNpcStore_ || !session || !firstTermState_) return;
+    QString error;
+    if (!customNpcStore_->restore(session->characterId, QString::fromStdString(firstTermState_->eraId),
+                                   builtInNpcCatalog_, npcCatalog_, error)) {
+        const bool zh = arcane::ui::I18n::instance().language() == arcane::ui::I18n::Lang::Chinese;
+        emit feedbackProduced((zh ? QStringLiteral("自定义 NPC 读取失败，已保留原著人物：%1")
+                                  : QStringLiteral("Custom NPC pack unavailable; built-ins were kept: %1")).arg(error));
+    }
 }
 
 bool CampusController::startStoryChapter(story::ChapterDefinition chapter)
@@ -479,6 +518,7 @@ void CampusController::handleEnrollment(const dto::EnrollmentRequestDTO& request
         if (firstTermStore_ && !firstTermStore_->save(student->characterId, term))
             emit feedbackProduced(QStringLiteral("入学时代暂时无法保存。"));
         firstTermState_ = term;
+        restoreCustomNpcPack();
         QString worldError;
         eraPackage_ = world::EraWorldPack::load(QString::fromStdString(term.eraId), &worldError);
         if (!eraPackage_) emit feedbackProduced(worldError);
@@ -576,7 +616,10 @@ void CampusController::handleLogin(const QString& studentName, const QString& ho
     }
     // 登录成功后自动刷新背包，无需用户手动点菜单。
     handleRefreshInventory();
+    firstTermState_.reset();
+    eraPackage_.reset();
     ensureFirstTerm();
+    restoreCustomNpcPack();
     resumeSavedStory();
 }
 
@@ -1167,6 +1210,10 @@ void CampusController::handleActivity(const QString& activityId)
 void CampusController::handleMemberSelected(const QString& memberId)
 {
     if (memberId.isEmpty()) return;
+    if (npcCatalog_.find(memberId)) {
+        handleNpcTalk({memberId, {}});
+        return;
+    }
     const QHash<QString, QString> names{
         {QStringLiteral("npc_gareth"), TR("npc.gareth")},
         {QStringLiteral("npc_hermione"), TR("npc.hermione")},
@@ -1405,6 +1452,7 @@ void CampusController::ensureFirstTerm()
 
 void CampusController::publishFirstTerm()
 {
+    refreshSceneNpcs();
     if (!firstTermState_) return;
     const auto& state = *firstTermState_;
     const int subject = world::FirstTermEngine::subjectFor(state);
@@ -1515,6 +1563,55 @@ void CampusController::handleTermAction(world::TermAction action)
     emit campusMessageProduced(QStringLiteral("Story"), QStringLiteral("旁白"),
         QString::fromStdString(result.narration));
     publishFirstTerm();
+}
+
+void CampusController::refreshSceneNpcs()
+{
+    QMap<QString, QString> present;
+    QStringList replaced;
+    const auto* session = activeSession();
+    if (session && freeExplorationActive_ && firstTermState_ && !hasActiveStory()) {
+        const auto& term = *firstTermState_;
+        const auto scene = storySceneForCampusLocation(QString::fromStdString(session->currentLocation));
+        const auto era = QString::fromStdString(term.eraId);
+        const bool chinese = arcane::ui::I18n::instance().language() == arcane::ui::I18n::Lang::Chinese;
+        for (const auto& profile : npcCatalog_.profiles()) {
+            if (profile.era != era) continue;
+            if (!profile.legacyMemberId.isEmpty()) replaced << profile.legacyMemberId;
+            if (!term.accidentPending && !term.forestChoice && !term.critical
+                && profile.isPresent(scene, term.phase))
+                present.insert(profile.id, profile.name.forLanguage(chinese));
+        }
+    }
+    emit sceneNpcsChanged(present, replaced);
+}
+
+bool CampusController::tryHandleNpcInput(const QString& text)
+{
+    const auto request = npcCatalog_.matchInput(text,
+        firstTermState_ ? QString::fromStdString(firstTermState_->eraId) : QString{});
+    if (!request) return false;
+    handleNpcTalk(*request);
+    return true;
+}
+
+void CampusController::handleNpcTalk(const open_world::npc::TalkRequest& request)
+{
+    const bool chinese = arcane::ui::I18n::instance().language() == arcane::ui::I18n::Lang::Chinese;
+    const auto* session = activeSession();
+    if (!session || !freeExplorationActive_ || !firstTermState_ || hasActiveStory()
+        || firstTermState_->critical || firstTermState_->accidentPending || firstTermState_->forestChoice) {
+        emit feedbackProduced(chinese ? QStringLiteral("请先处理当前剧情，再找同学交谈。")
+                                      : QStringLiteral("Finish the current scene before looking for a classmate."));
+        return;
+    }
+    const open_world::npc::TalkContext context{session->characterId, QString::fromStdString(firstTermState_->eraId),
+        storySceneForCampusLocation(QString::fromStdString(session->currentLocation)), firstTermState_->phase, chinese};
+    const auto result = npcInteraction_ ? npcInteraction_->talk(npcCatalog_, context, request)
+                                       : open_world::npc::TalkResult{false, {}, chinese
+                                           ? QStringLiteral("NPC 存档暂不可用。") : QStringLiteral("NPC storage is unavailable.")};
+    if (result.spoken) emit campusMessageProduced(QStringLiteral("Location"), result.speaker, result.text);
+    else emit feedbackProduced(result.text);
 }
 
 void CampusController::resumeSavedStory()

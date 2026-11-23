@@ -17,7 +17,10 @@
 #include "application/world/FirstTermEngine.hpp"
 #include "application/world/FirstTermStore.hpp"
 #include "application/world/EraWorldPack.hpp"
+#include "application/open_world/npc/NpcInteraction.hpp"
+#include "application/open_world/npc/CustomNpcStore.hpp"
 
+#include <QMap>
 #include <QObject>
 #include <QString>
 #include <QVector>
@@ -54,10 +57,13 @@ public:
     void configureStoryProgressService(std::shared_ptr<arcane::database::StoryDAO> storyDao,
                                        std::shared_ptr<arcane::database::CharacterDAO> characterDao);
     void configureStoryPersistence(std::shared_ptr<arcane::database::DBConnection> connection);
+    void configureCustomNpcStorage(const QString& saveFolder);
+    [[nodiscard]] bool importCustomNpcPack(const QByteArray& json, QString& error);
     // Starts a generic chapter from a consistent database snapshot when live
     // storage is configured. Diagon Alley uses this runtime in production.
     [[nodiscard]] bool startStoryChapter(story::ChapterDefinition chapter);
     [[nodiscard]] bool hasActiveStory() const noexcept;
+    [[nodiscard]] bool tryHandleNpcInput(const QString& text);
     // 入学注册：从 EnrollmentDialog 获取请求后直接调用（非信号槽驱动）。
     void handleEnrollment(const dto::EnrollmentRequestDTO& request);
 
@@ -116,6 +122,7 @@ signals:
                              int health, int reputation, const QVector<int>& subjects,
                              int morningSubject, int afternoonSubject);
     void worldEraChanged(const QString& eraId);
+    void sceneNpcsChanged(const QMap<QString, QString>& present, const QStringList& replacedLegacyIds);
 
 private:
     [[nodiscard]] do_model::PlayerSessionDO* activeSession();
@@ -130,6 +137,9 @@ private:
     void resumeSavedStory();
     void ensureFirstTerm();
     void publishFirstTerm();
+    void refreshSceneNpcs();
+    void restoreCustomNpcPack();
+    void handleNpcTalk(const open_world::npc::TalkRequest& request);
 
     std::unique_ptr<service::SessionService> sessionService_;
     std::unique_ptr<service::CampusService> campusService_;
@@ -147,6 +157,10 @@ private:
     std::unique_ptr<world::FirstTermStore> firstTermStore_;
     std::optional<world::FirstTermState> firstTermState_;
     std::shared_ptr<const storyforge::StoryPackage> eraPackage_;
+    open_world::npc::Catalog npcCatalog_;
+    open_world::npc::Catalog builtInNpcCatalog_;
+    std::unique_ptr<open_world::npc::Interaction> npcInteraction_;
+    std::unique_ptr<open_world::npc::CustomNpcStore> customNpcStore_;
     QVector<world::TermAction> termChoices_;
     bool freeExplorationActive_ = false;
     QString rememberedEncounterOutcome_;

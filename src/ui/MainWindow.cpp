@@ -173,6 +173,8 @@ void MainWindow::buildMenu()
     socialMenu->addAction("Owl Mail")->setEnabled(false);
 
     auto *systemMenu = menuBar()->addMenu(TR("menu.system"));
+    auto *importNpc = systemMenu->addAction(TR("menu.system.importnpc"));
+    connect(importNpc, &QAction::triggered, this, &MainWindow::importNpcPackRequested);
     auto *refreshInventoryAction = systemMenu->addAction(TR("menu.system.refreshinv"));
     connect(refreshInventoryAction, &QAction::triggered, this, [this] { emit refreshInventoryRequested(); });
     auto *aiSettingsAction = systemMenu->addAction(TR("menu.system.aisettings"));
@@ -349,6 +351,11 @@ void MainWindow::setWorldEra(const QString &eraId)
     if (m_locationPanel) m_locationPanel->setEraId(eraId);
     for (auto *action : m_legacyStoryActions)
         action->setVisible(eraId == QLatin1String("harry"));
+}
+
+void MainWindow::setSceneNpcs(const QMap<QString, QString>& present, const QStringList& replacedLegacyIds)
+{
+    if (m_locationPanel) m_locationPanel->setSceneNpcs(present, replacedLegacyIds);
 }
 
 void MainWindow::updateTermProgress(const QString &schedule, int week, int weekday,

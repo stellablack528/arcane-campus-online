@@ -101,6 +101,7 @@ void I18n::seed()
     seedPair("menu.social.owl",              "猫头鹰邮件",       "Owl Mail");
     seedPair("menu.system.refreshinv",       "刷新背包",         "Refresh Inventory");
     seedPair("menu.system.aisettings",       "AI 设置...",       "AI Settings...");
+    seedPair("menu.system.importnpc",        "导入或替换自定义 NPC…", "Import or Replace Custom NPCs…");
     seedPair("menu.system.logout",           "退出登录",         "Logout");
     seedPair("menu.system.lang",             "语言：中文",       "Language: English");
 

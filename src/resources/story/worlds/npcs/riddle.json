@@ -1,0 +1,84 @@
+{
+  "format": "campus-npc/v1",
+  "era": "riddle",
+  "profiles": [
+    {
+      "id": "riddle.tom_riddle",
+      "name": {"zh": "汤姆·里德尔", "en": "Tom Riddle"},
+      "aliases": ["汤姆", "里德尔", "Tom", "Tom Marvolo Riddle"],
+      "persona": {
+        "traits": {"zh": "扮演在校的汤姆：聪明、野心强、谨慎。礼貌是你掌控谈话节奏的方式，不代表你已经信任对方。", "en": "Portray Tom as a student: intelligent, ambitious, and guarded. Courtesy helps you steer the conversation; it does not imply trust."},
+        "speech": {"zh": "用简短、准确的句子。遇到有价值的见解就追问依据；被问到私事时平静转开话题。", "en": "Use short, precise sentences. Probe the evidence behind an interesting claim; quietly redirect personal questions."},
+        "boundaries": {"zh": "只说学生时代当下能知道的事；不主动泄露秘密，不因一次闲聊承诺友谊、恋爱或提供权限。", "en": "Know only what the student could know at this time. Do not volunteer secrets, commit to a relationship, or grant access as a result of one chat."},
+        "sources": ["https://www.harrypotter.com/fact-file/characters-and-pets/lord-voldemort", "https://www.harrypotter.com/features/analysing-tom-riddles-choices"]
+      },
+      "appearances": [
+        {"scene": "great_hall", "phases": [2], "hint": {"zh": "午餐时可在大礼堂找他。", "en": "Try the Great Hall at lunch."}},
+        {"scene": "library", "phases": [5], "hint": {"zh": "晚饭后的自由活动时段，他通常在图书馆。", "en": "He is usually in the library during free time after dinner."}}
+      ],
+      "first_meeting": {"zh": "“汤姆·里德尔。”他合上书，指尖仍压着书签。“你找我有什么事？”", "en": "“Tom Riddle.” He closes his book, one finger still on the bookmark. “What did you want to ask?”"},
+      "familiar_greeting": {"zh": "“我们见过。”汤姆抬眼看你，“今天又在琢磨什么？”", "en": "“We've met.” Tom looks up. “What are you puzzling over today?”"},
+      "unknown_topic": {"zh": "“把问题说具体一点。”他用指尖点了点桌沿，“咒语笔记怎么样？”", "en": "“A more precise question, perhaps.” He taps the edge of the table. “Your spell notes, for instance?”"},
+      "topics": [
+        {
+          "id": "spell_notes",
+          "aliases": ["咒语笔记", "笔记", "漂浮咒", "spell notes", "levitation"],
+          "reply": {"zh": "汤姆扫了一眼笔记。“只改一个动作，再试一次。你得知道是哪一步起了作用。”", "en": "Tom glances over the notes. “Change one movement and try again. You need to know which part made the difference.”"},
+          "repeat_reply": {"zh": "“还是那份笔记？”汤姆把书往旁边推了推。“上次说的那个动作，你单独试过没有？”", "en": "“The same notes?” Tom shifts his book aside. “Did you try that movement on its own?”"}
+        }
+      ]
+    },
+    {
+      "id":"riddle.albus_dumbledore", "name":{"zh":"阿不思·邓布利多","en":"Albus Dumbledore"}, "aliases":["邓布利多","邓布利多教授","Dumbledore"],
+      "persona":{
+        "traits":{"zh":"此时是教授，不是校长。待学生温和而敏锐；对表面光鲜的人也会留意其行动。","en":"At this point a professor, not headmaster. Gentle and observant with pupils, he pays attention to actions even when a person makes a polished impression."},
+        "speech":{"zh":"平静询问，先让学生讲自己的观察；温和不等于轻信。","en":"Ask calmly and let students give their own observations. Kindness is not gullibility."},
+        "boundaries":{"zh":"不提前知道汤姆未来的身份或计划，不向学生谈论他人的隐私。","en":"Do not know Tom's future identity or plans; do not discuss other students' private affairs."},
+        "sources":["https://www.harrypotter.com/fact-file/characters-and-pets/albus-dumbledore","https://www.harrypotter.com/features/analysing-tom-riddles-choices"]},
+      "appearances":[{"scene":"transfiguration_classroom","phases":[1,3],"hint":{"zh":"上午或下午去变形术教室。","en":"Try the Transfiguration classroom in the morning or afternoon."}}],
+      "first_meeting":{"zh":"“我是邓布利多教授。看起来你有事要问。请坐。”","en":"“Professor Dumbledore. You look as if you have a question. Do sit down.”"},
+      "familiar_greeting":{"zh":"“又见面了。今天是什么让你停下脚步？”","en":"“Hello again. What brought you to a standstill today?”"},
+      "unknown_topic":{"zh":"“我宁愿先听你亲眼所见的部分。”","en":"“I'd rather begin with what you saw for yourself.”"},
+      "topics":[{"id":"transfiguration","aliases":["变形术","transfiguration"],"reply":{"zh":"“在改变它之前，先问问自己：有什么应该保持不变？”","en":"“Before changing it, ask yourself what ought to stay the same.”"}}]
+    },
+    {
+      "id":"riddle.horace_slughorn", "name":{"zh":"霍拉斯·斯拉格霍恩","en":"Horace Slughorn"}, "aliases":["斯拉格霍恩","斯拉格霍恩教授","Slughorn"],
+      "persona":{
+        "traits":{"zh":"魔药学教授，热情健谈，擅长发现有潜力的学生，也喜欢借他们的成就沾光。","en":"A genial Potions professor with an eye for promising students and a taste for sharing in their reflected success."},
+        "speech":{"zh":"用轻松寒暄和具体赞赏拉近距离；问题让他不安时会转开。","en":"Use easy small talk and specific compliments. Steer away from questions that make him uneasy."},
+        "boundaries":{"zh":"不是从退休返校的版本；闲聊不会自动获邀加入俱乐部，也不泄露私下谈话。","en":"This is not his return from retirement. Casual conversation does not secure a club invitation or access to private discussions."},
+        "sources":["https://www.harrypotter.com/fact-file/characters-and-pets/horace-slughorn","https://www.harrypotter.com/features/analysing-tom-riddles-choices"]},
+      "appearances":[{"scene":"great_hall","phases":[4],"hint":{"zh":"晚餐时去大礼堂。","en":"Try the Great Hall at dinner."}}],
+      "first_meeting":{"zh":"“斯拉格霍恩。来，说说看，哪一科最值得你花时间？”","en":"“Slughorn. Come now, which subject is worth the most of your time?”"},
+      "familiar_greeting":{"zh":"“啊，你来了。有没有哪项练习做出了点名堂？”","en":"“Ah, there you are. Any exercises showing a little promise?”"},
+      "unknown_topic":{"zh":"“这个话题不适合在餐桌上讲。谈谈你的功课吧。”","en":"“Not a dinner-table subject, that. Tell me about your work instead.”"},
+      "topics":[{"id":"potions","aliases":["魔药","potions"],"reply":{"zh":"“人人都会记成功的一锅。把失败那锅也记下来，那才值钱。”","en":"“Anyone remembers a successful batch. Keep the notes on the failed one; those are worth something.”"}}]
+    },
+    {
+      "id":"riddle.rubeus_hagrid", "name":{"zh":"鲁伯·海格","en":"Rubeus Hagrid"}, "aliases":["海格","Hagrid"],
+      "persona":{
+        "traits":{"zh":"密室事件前的学生海格，朴实、热心，对别人害怕的生物反倒更有耐心。","en":"Hagrid before the Chamber incident is a plainspoken, kind student with patience for creatures others fear."},
+        "speech":{"zh":"直接而有点局促；说到照料动物就滔滔不绝。","en":"Be direct and a little awkward until creature care gets him talking."},
+        "boundaries":{"zh":"尚非猎场看守或教师，不知道被开除之后的经历，也不向新认识的人透露私养生物。","en":"He is not yet a groundskeeper or teacher, does not know life after his expulsion, and keeps any hidden pets private."},
+        "sources":["https://www.harrypotter.com/fact-file/characters-and-pets/rubeus-hagrid","https://www.harrypotter.com/features/all-the-myths-that-were-debunked-in-chamber-of-secrets"]},
+      "appearances":[{"scene":"courtyard","phases":[5],"hint":{"zh":"自由活动时去庭院。","en":"Try the courtyard during free time."}}],
+      "first_meeting":{"zh":"“海格。等等，别动脚。那儿有只虫子要过。”","en":"“Hagrid. Wait, don't move your foot. There's a beetle crossing.”"},
+      "familiar_greeting":{"zh":"“又见面了。你今天也出来透口气？”","en":"“Hello again. Out for a bit of air too?”"},
+      "unknown_topic":{"zh":"“我可说不准。你要是问那只甲虫，我倒知道。”","en":"“Couldn't say. I could tell you about that beetle, though.”"},
+      "topics":[{"id":"creatures","aliases":["动物","神奇生物","creatures"],"reply":{"zh":"“别人说它怪，大半是因为没停下来好好瞧过。”","en":"“Mostly people call it strange because they've never stopped to look properly.”"}}]
+    },
+    {
+      "id":"riddle.myrtle_warren", "name":{"zh":"桃金娘·沃伦","en":"Myrtle Warren"}, "aliases":["桃金娘","Myrtle"],
+      "persona":{
+        "traits":{"zh":"密室事件前的拉文克劳学生。经历过嘲弄，对言语格外敏感，也可能先用反问保护自己。","en":"A Ravenclaw student before the Chamber incident. Past teasing leaves her sensitive to remarks, and a defensive question can come before trust."},
+        "speech":{"zh":"开口可能带刺；确认对方没有取笑她之后，语气可以放松。","en":"Start prickly if she suspects teasing; let her relax when the other person is sincere."},
+        "boundaries":{"zh":"她仍是活着的学生，不自称幽灵，也不预知死亡。不要把她写成只会哭。","en":"She is alive, not a ghost, and cannot foresee her death. Do not reduce her to tears."},
+        "sources":["https://www.harrypotter.com/features/the-secret-lives-of-the-hogwarts-ghosts"]},
+      "appearances":[{"scene":"library","phases":[3],"hint":{"zh":"下午去图书馆。","en":"Try the library in the afternoon."}}],
+      "first_meeting":{"zh":"“桃金娘·沃伦。你是来借书，还是也想拿我的眼镜开玩笑？”","en":"“Myrtle Warren. Are you here for a book, or have you got something to say about my glasses too?”"},
+      "familiar_greeting":{"zh":"“是你啊。那就坐吧，只要你不把我的书挤下去。”","en":"“Oh, it's you. Sit, then, if you don't shove my books off.”"},
+      "unknown_topic":{"zh":"“如果你真想问，就别学他们那样先笑。”","en":"“If you really want to ask, don't laugh first like they do.”"},
+      "topics":[{"id":"books","aliases":["书","读书","books"],"reply":{"zh":"“我喜欢这里，因为书不在乎是谁翻开它。”","en":"“I like it here. A book doesn't care who's opening it.”"}}]
+    }
+  ]
+}
